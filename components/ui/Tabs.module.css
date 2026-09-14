@@ -1,0 +1,4 @@
+.tabs { display: flex; gap: 3px; overflow-x: auto; padding: 5px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.tabs button { border: 0; background: transparent; color: var(--muted); border-radius: 8px; padding: 8px 11px; white-space: nowrap; font-size: 12px; }
+.tabs button:hover { color: var(--green-900); background: var(--green-50); }
+.tabs .active { color: var(--green-900); background: var(--green-100); font-weight: 500; }

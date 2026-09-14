@@ -1,0 +1,16 @@
+:root {
+  color-scheme: light dark;
+  --green-950: light-dark(#0c3f37, #d8fff4); --green-900: light-dark(#124f45, #b8f2e3);
+  --green-800: light-dark(#176458, #83d7c4); --green-700: light-dark(#1b7465, #5ec4ad);
+  --green-100: light-dark(#dff3ed, #153d35); --green-50: light-dark(#eff9f5, #0f2924);
+  --canvas: light-dark(#f3f7f5, #07130f); --surface: light-dark(#ffffff, #0e1f1a);
+  --surface-raised: light-dark(#ffffff, #142923); --ink: light-dark(#17231f, #ecf8f4);
+  --muted: light-dark(#68766f, #9eb5ad); --border: light-dark(#dce6e1, #29463d);
+  --warning: light-dark(#a55b05, #ffd18c); --warning-soft: light-dark(#fff4dd, #3d2b0e);
+  --danger: light-dark(#a63b37, #ffaaa4); --danger-soft: light-dark(#fff0ef, #3a1716);
+  --blue: light-dark(#315f87, #9bc9f0); --blue-soft: light-dark(#eaf3fb, #142b3f);
+  --radius-sm: 10px; --radius: 15px; --radius-shell: 22px;
+  --shadow: light-dark(0 18px 45px rgba(18, 79, 69, .10), 0 18px 45px rgba(0, 0, 0, .28));
+  --focus: light-dark(#7dbbaa, #80d9c1);
+  --green: var(--green-800); --green-dark: var(--green-900); --mint: var(--green-100);
+}

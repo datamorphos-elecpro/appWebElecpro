@@ -1,0 +1,6 @@
+.status { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.success { background: var(--green-100); color: var(--green-900); }
+.warning { background: var(--warning-soft); color: var(--warning); }
+.danger { background: var(--danger-soft); color: var(--danger); }
+.info { background: var(--blue-soft); color: var(--blue); }
+.muted { background: light-dark(#edf0ef, #24322e); color: var(--muted); }

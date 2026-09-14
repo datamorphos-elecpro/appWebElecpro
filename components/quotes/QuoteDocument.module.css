@@ -1,0 +1,37 @@
+.document { min-height: 980px; padding: 34px 38px; border: 1px solid #dce6e1; border-radius: 15px; background: #fff; color: #17231f; box-shadow: 0 14px 35px rgba(18, 79, 69, .08); font-size: 12px; line-height: 1.65; }
+.header { display: grid; grid-template-columns: minmax(0, 1fr) 155px; align-items: start; gap: 24px; padding-bottom: 20px; border-bottom: 3px solid #176458; }
+.header img { width: 100%; max-width: 155px; height: auto; background: #fff; }
+.kicker { color: #176458; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.header h2 { margin: 6px 0 4px; color: #124f45; font-size: 22px; }
+.header p { margin: 0; color: #68766f; font-size: 11px; }
+.intro { margin: 22px 0; font-size: 12px; line-height: 1.65; }
+.section { margin-top: 20px; }
+.section h3 { margin: 0 0 9px; color: #124f45; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; break-after: avoid; }
+.section p { margin: 0; white-space: pre-line; font-size: 11px; line-height: 1.6; }
+.tableWrap { overflow-x: auto; }
+.table { width: 100%; min-width: 0; border: 1px solid #dce6e1; border-collapse: collapse; font-size: 10px; }
+.table th { padding: 8px; background: #eff9f5; color: #124f45; font-size: 9px; text-align: left; }
+.table td { padding: 8px; border-top: 1px solid #dce6e1; color: #17231f; }
+.table th + th, .table td + td { border-left: 1px solid #dce6e1; }
+.number { text-align: right !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rowHeading { width: 145px; }
+.multiline { white-space: pre-line; }
+.totalRow td { background: #eff9f5; color: #124f45; font-weight: 700; }
+.managerCard { display: grid; grid-template-columns: minmax(0, 1fr) 110px; align-items: center; gap: 18px; margin-top: 28px; padding: 16px; border: 1px solid #b9d8ce; border-left: 5px solid #176458; border-radius: 10px; break-inside: avoid; }
+.managerCard strong, .managerCard span { display: block; }
+.managerCard strong { color: #124f45; font-size: 13px; }
+.managerCard span { margin-top: 4px; color: #52635c; font-size: 10px; }
+.managerCard img { width: 100%; height: auto; background: #fff; }
+@media (max-width: 680px) {
+  .document { min-height: 0; padding: 24px 18px; }
+  .header { grid-template-columns: 1fr; }
+  .header img { grid-row: 1; max-width: 140px; }
+}
+@media print {
+  .document { min-height: 0; max-width: none; padding: 0; border: 0; border-radius: 0; box-shadow: none; font-size: 10pt; }
+  .tableWrap { overflow: visible; }
+  .table { font-size: 8pt; }
+  .table thead { display: table-header-group; }
+  .table tr { break-inside: avoid; }
+  .managerCard { break-inside: avoid; }
+}

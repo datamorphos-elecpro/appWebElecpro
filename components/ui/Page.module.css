@@ -1,0 +1,12 @@
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 17px; }
+.header h1 { margin: 0; font-size: 18px; font-weight: 500; }
+.description { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.metric { min-width: 0; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.label { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 12px; }
+.label i { width: 8px; height: 8px; flex: 0 0 8px; margin-top: 3px; border-radius: 50%; background: var(--green-700); }
+.label i.warning { background: var(--warning); }.label i.danger { background: var(--danger); }
+.metric strong { display: block; margin-top: 9px; overflow-wrap: anywhere; font-size: 19px; font-weight: 500; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.note { display: block; margin-top: 7px; color: var(--muted); font-size: 11px; }
+.empty { padding: 24px 14px; border: 1px dashed var(--border); border-radius: var(--radius); color: var(--muted); text-align: center; font-size: 12px; }
+@media (max-width: 680px) { .header { display: grid; }.actions { justify-content: flex-start; } }

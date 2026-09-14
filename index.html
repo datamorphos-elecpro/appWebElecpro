@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Prototipo interactivo de Elecpro para controlar proyectos, cotizaciones, cartera, gastos y rentabilidad.">
+  <title>Elecpro – Control de Proyectos</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0">
+  <style>html,body{margin:0;min-height:100%;background:#f3f7f5}body{padding:18px}@media(max-width:640px){body{padding:0}}</style>
+</head>
+<body>
+<div id="elecpro-project-control">
+  <style>
+    #elecpro-project-control {
+      color-scheme: light dark;
+      --ep-green-950: light-dark(#0c3f37, #d8fff4);
+      --ep-green-900: light-dark(#124f45, #b8f2e3);
+      --ep-green-800: light-dark(#176458, #83d7c4);
+      --ep-green-700: light-dark(#1b7465, #5ec4ad);
+      --ep-green-100: light-dark(#dff3ed, #153d35);
+      --ep-green-50: light-dark(#eff9f5, #0f2924);
+      --ep-shell: light-dark(#f3f7f5, #07130f);
+      --ep-surface: light-dark(#ffffff, #0e1f1a);
+      --ep-surface-raised: light-dark(#ffffff, #142923);
+      --ep-text: light-dark(#17231f, #ecf8f4);
+      --ep-muted: light-dark(#68766f, #9eb5ad);
+      --ep-line: light-dark(#dce6e1, #29463d);
+      --ep-warning: light-dark(#a55b05, #ffd18c);
+      --ep-warning-soft: light-dark(#fff4dd, #3d2b0e);
+      --ep-danger: light-dark(#a63b37, #ffaaa4);
+      --ep-danger-soft: light-dark(#fff0ef, #3a1716);
+      --ep-blue: light-dark(#315f87, #9bc9f0);
+      --ep-blue-soft: light-dark(#eaf3fb, #142b3f);
+      --ep-shadow: light-dark(0 18px 45px rgba(18, 79, 69, .10), 0 18px 45px rgba(0, 0, 0, .28));
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ep-text);
+      width: 100%;
+    }
+
+    #elecpro-project-control * { box-sizing: border-box; }
+    #elecpro-project-control button,
+    #elecpro-project-control input,
+    #elecpro-project-control select,
+    #elecpro-project-control textarea { font: inherit; }
+    #elecpro-project-control button { cursor: pointer; }
+    #elecpro-project-control .ep-app {
+      width: 100%;
+      min-width: 0;
+      background: var(--ep-shell);
+      border: 1px solid var(--ep-line);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: var(--ep-shadow);
+    }
+
+    #elecpro-project-control .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 21px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    #elecpro-project-control .ep-layout { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 720px; position: relative; }
+    #elecpro-project-control .ep-sidebar {
+      background: light-dark(#f8fcfa, #0a1a15);
+      border-right: 1px solid var(--ep-line);
+      padding: 22px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      min-width: 0;
+      transition: transform .22s ease, padding .22s ease;
+    }
+    #elecpro-project-control .ep-logo-wrap {
+      height: 58px;
+      padding: 7px 10px;
+      border-radius: 12px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+    }
+    #elecpro-project-control .ep-logo-wrap img { width: 100%; max-width: 176px; height: auto; display: block; }
+    #elecpro-project-control .ep-nav { display: grid; gap: 5px; }
+    #elecpro-project-control .ep-nav-button {
+      border: 0;
+      background: transparent;
+      color: var(--ep-muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 43px;
+      padding: 9px 11px;
+      border-radius: 11px;
+      text-align: left;
+      font-weight: 500;
+    }
+    #elecpro-project-control .ep-nav-button:hover { background: var(--ep-green-50); color: var(--ep-green-900); }
+    #elecpro-project-control .ep-nav-button[aria-current="page"] { background: var(--ep-green-100); color: var(--ep-green-900); }
+    #elecpro-project-control .ep-nav-icon { width: 23px; display: grid; place-items: center; flex: 0 0 23px; }
+    #elecpro-project-control .ep-nav-label { min-width: 0; }
+    #elecpro-project-control .ep-sidebar-foot { margin-top: auto; padding: 12px; background: var(--ep-green-50); border-radius: 13px; }
+    #elecpro-project-control .ep-sidebar-foot strong { display: block; color: var(--ep-green-900); font-size: 13px; }
+    #elecpro-project-control .ep-sidebar-foot span { display: block; color: var(--ep-muted); font-size: 12px; margin-top: 4px; }
+    #elecpro-project-control .ep-sidebar-head { display: flex; align-items: center; gap: 8px; }
+    #elecpro-project-control .ep-nav-backdrop {
+      display: none;
+      border: 0;
+      background: rgba(7, 19, 15, .46);
+    }
+    #elecpro-project-control .ep-app.is-nav-collapsed .ep-layout { grid-template-columns: 72px minmax(0, 1fr); }
+    #elecpro-project-control .ep-app.is-nav-collapsed .ep-sidebar { padding: 22px 10px; }
+    #elecpro-project-control .ep-app.is-nav-collapsed .ep-logo-wrap,
+    #elecpro-project-control .ep-app.is-nav-collapsed .ep-sidebar-foot { display: none; }
+    #elecpro-project-control .ep-app.is-nav-collapsed .ep-sidebar-head { justify-content: center; }
+    #elecpro-project-control .ep-app.is-nav-collapsed .ep-nav-button { justify-content: center; padding-inline: 8px; }
+    #elecpro-project-control .ep-app.is-nav-collapsed .ep-nav-label { display: none; }
+
+    #elecpro-project-control .ep-main { min-width: 0; }
+    #elecpro-project-control .ep-topbar {
+      min-height: 78px;
+      padding: 15px 24px;
+      background: var(--ep-surface);
+      border-bottom: 1px solid var(--ep-line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    #elecpro-project-control .ep-topbar-start { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    #elecpro-project-control .ep-menu-toggle,
+    #elecpro-project-control .ep-sidebar-toggle {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--ep-line);
+      border-radius: 10px;
+      background: var(--ep-surface);
+      color: var(--ep-green-900);
+    }
+    #elecpro-project-control .ep-menu-toggle:hover,
+    #elecpro-project-control .ep-sidebar-toggle:hover { background: var(--ep-green-50); }
+    #elecpro-project-control .ep-menu-toggle:focus-visible,
+    #elecpro-project-control .ep-sidebar-toggle:focus-visible,
+    #elecpro-project-control .ep-nav-button:focus-visible { outline: 3px solid light-dark(#7dbbaa, #80d9c1); outline-offset: 2px; }
+    #elecpro-project-control .ep-menu-toggle { display: none; }
+    #elecpro-project-control .ep-title h1 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 500; }
+    #elecpro-project-control .ep-title p { margin: 5px 0 0; color: var(--ep-muted); font-size: 12px; }
+    #elecpro-project-control .ep-account { display: flex; align-items: center; gap: 10px; }
+    #elecpro-project-control .ep-role-select {
+      min-height: 40px;
+      border: 1px solid var(--ep-line);
+      background: var(--ep-surface);
+      color: var(--ep-text);
+      border-radius: 10px;
+      padding: 8px 32px 8px 10px;
+    }
+    #elecpro-project-control .ep-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--ep-green-800); color: #fff; display: grid; place-items: center; font-weight: 500; }
+    #elecpro-project-control .ep-content { padding: 22px 24px 28px; }
+
+    #elecpro-project-control .ep-section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 17px; }
+    #elecpro-project-control .ep-section-head h2 { margin: 0; font-size: 18px; font-weight: 500; }
+    #elecpro-project-control .ep-section-head p { margin: 5px 0 0; color: var(--ep-muted); font-size: 13px; }
+    #elecpro-project-control .ep-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    #elecpro-project-control .ep-action-primary,
+    #elecpro-project-control .ep-action-secondary,
+    #elecpro-project-control .ep-action-ghost {
+      border-radius: 10px;
+      min-height: 39px;
+      padding: 8px 13px;
+      font-weight: 500;
+      border: 1px solid transparent;
+    }
+    #elecpro-project-control .ep-action-primary { background: var(--ep-green-800); color: #fff; }
+    #elecpro-project-control .ep-action-primary:hover { background: var(--ep-green-900); }
+    #elecpro-project-control .ep-action-secondary { background: var(--ep-surface); color: var(--ep-green-900); border-color: var(--ep-line); }
+    #elecpro-project-control .ep-action-ghost { background: transparent; color: var(--ep-muted); }
+    #elecpro-project-control .ep-action-ghost:hover { background: var(--ep-green-50); color: var(--ep-green-900); }
+
+    #elecpro-project-control .ep-metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    #elecpro-project-control .ep-metric {
+      background: var(--ep-surface);
+      border: 1px solid var(--ep-line);
+      border-radius: 15px;
+      padding: 15px;
+      min-width: 0;
+    }
+    #elecpro-project-control .ep-metric-label { color: var(--ep-muted); font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
+    #elecpro-project-control .ep-metric-value { margin-top: 9px; font-size: 19px; line-height: 1.15; font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    #elecpro-project-control .ep-metric-note { margin-top: 7px; color: var(--ep-muted); font-size: 11px; }
+    #elecpro-project-control .ep-metric-mark { width: 8px; height: 8px; border-radius: 50%; background: var(--ep-green-700); margin-top: 3px; }
+    #elecpro-project-control .ep-metric-mark.warning { background: var(--ep-warning); }
+    #elecpro-project-control .ep-metric-mark.danger { background: var(--ep-danger); }
+
+    #elecpro-project-control .ep-dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(250px, .8fr); gap: 14px; align-items: start; }
+    #elecpro-project-control .ep-panel { background: var(--ep-surface); border: 1px solid var(--ep-line); border-radius: 15px; overflow: hidden; }
+    #elecpro-project-control .ep-panel-head { padding: 14px 16px; border-bottom: 1px solid var(--ep-line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    #elecpro-project-control .ep-panel-head h3 { margin: 0; font-size: 14px; font-weight: 500; }
+    #elecpro-project-control .ep-panel-body { padding: 15px 16px; }
+    #elecpro-project-control .ep-table-wrap { overflow-x: auto; }
+    #elecpro-project-control table { width: 100%; border-collapse: collapse; min-width: 650px; }
+    #elecpro-project-control th { color: var(--ep-muted); font-size: 11px; font-weight: 500; text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--ep-line); white-space: nowrap; }
+    #elecpro-project-control td { font-size: 12px; padding: 12px; border-bottom: 1px solid var(--ep-line); vertical-align: middle; }
+    #elecpro-project-control tr:last-child td { border-bottom: 0; }
+    #elecpro-project-control .ep-project-link { border: 0; padding: 0; background: transparent; color: var(--ep-green-900); font-weight: 500; text-align: left; }
+    #elecpro-project-control .ep-project-link small { display: block; color: var(--ep-muted); font-weight: 400; margin-top: 3px; }
+    #elecpro-project-control .ep-status { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; background: var(--ep-green-100); color: var(--ep-green-900); white-space: nowrap; }
+    #elecpro-project-control .ep-status.paused { background: var(--ep-warning-soft); color: var(--ep-warning); }
+    #elecpro-project-control .ep-status.finished { background: var(--ep-blue-soft); color: var(--ep-blue); }
+    #elecpro-project-control .ep-status.draft,
+    #elecpro-project-control .ep-status.quoted { background: light-dark(#edf0ef, #24322e); color: var(--ep-muted); }
+    #elecpro-project-control .ep-status.cancelled { background: var(--ep-danger-soft); color: var(--ep-danger); }
+    #elecpro-project-control .ep-progress { height: 6px; background: light-dark(#e4ece8, #213b33); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+    #elecpro-project-control .ep-progress > span { display: block; height: 100%; background: var(--ep-green-700); border-radius: inherit; }
+
+    #elecpro-project-control .ep-alert-list { display: grid; gap: 9px; }
+    #elecpro-project-control .ep-alert-item { padding: 11px 12px; border-radius: 11px; background: var(--ep-green-50); display: grid; grid-template-columns: 9px minmax(0, 1fr); gap: 10px; }
+    #elecpro-project-control .ep-alert-item.warning { background: var(--ep-warning-soft); }
+    #elecpro-project-control .ep-alert-item.danger { background: var(--ep-danger-soft); }
+    #elecpro-project-control .ep-alert-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ep-green-700); margin-top: 5px; }
+    #elecpro-project-control .ep-alert-item.warning .ep-alert-dot { background: var(--ep-warning); }
+    #elecpro-project-control .ep-alert-item.danger .ep-alert-dot { background: var(--ep-danger); }
+    #elecpro-project-control .ep-alert-item strong { display: block; font-size: 12px; font-weight: 500; }
+    #elecpro-project-control .ep-alert-item span { display: block; color: var(--ep-muted); font-size: 11px; margin-top: 3px; }
+    #elecpro-project-control .ep-automation-list { display: grid; gap: 10px; }
+    #elecpro-project-control .ep-automation { display: flex; gap: 10px; align-items: center; }
+    #elecpro-project-control .ep-automation-toggle { width: 30px; height: 18px; border-radius: 999px; background: var(--ep-green-700); padding: 3px; flex: 0 0 auto; }
+    #elecpro-project-control .ep-automation-toggle::after { content: ""; display: block; width: 12px; height: 12px; margin-left: 12px; background: #fff; border-radius: 50%; }
+    #elecpro-project-control .ep-automation strong { font-size: 12px; display: block; font-weight: 500; }
+    #elecpro-project-control .ep-automation span { color: var(--ep-muted); font-size: 11px; display: block; margin-top: 2px; }
+
+    #elecpro-project-control .ep-project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+    #elecpro-project-control .ep-project-tile { background: var(--ep-surface); border: 1px solid var(--ep-line); border-radius: 15px; padding: 16px; }
+    #elecpro-project-control .ep-project-tile-head { display: flex; justify-content: space-between; gap: 12px; }
+    #elecpro-project-control .ep-project-tile h3 { margin: 0; font-size: 15px; font-weight: 500; }
+    #elecpro-project-control .ep-project-tile .ep-code { color: var(--ep-muted); font-size: 11px; margin-top: 4px; }
+    #elecpro-project-control .ep-project-tile-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+    #elecpro-project-control .ep-project-tile-meta span { display: block; color: var(--ep-muted); font-size: 10px; }
+    #elecpro-project-control .ep-project-tile-meta strong { display: block; font-size: 12px; margin-top: 3px; font-weight: 500; overflow-wrap: anywhere; }
+    #elecpro-project-control .ep-project-tile-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 15px; padding-top: 13px; border-top: 1px solid var(--ep-line); }
+    #elecpro-project-control .ep-project-tile-foot span { color: var(--ep-muted); font-size: 11px; }
+
+    #elecpro-project-control .ep-detail-hero { background: linear-gradient(135deg, var(--ep-green-900), var(--ep-green-700)); color: #fff; border-radius: 17px; padding: 18px; margin-bottom: 14px; }
+    #elecpro-project-control .ep-detail-hero-top { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+    #elecpro-project-control .ep-detail-hero h2 { margin: 6px 0 0; font-size: 20px; font-weight: 500; }
+    #elecpro-project-control .ep-detail-hero p { margin: 6px 0 0; font-size: 12px; opacity: .82; }
+    #elecpro-project-control .ep-detail-code { font-size: 11px; opacity: .78; }
+    #elecpro-project-control .ep-detail-hero .ep-action-secondary { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.3); }
+    #elecpro-project-control .ep-detail-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; margin-top: 18px; }
+    #elecpro-project-control .ep-detail-metric { background: rgba(255,255,255,.11); border-radius: 11px; padding: 11px; }
+    #elecpro-project-control .ep-detail-metric span { display: block; font-size: 10px; opacity: .75; }
+    #elecpro-project-control .ep-detail-metric strong { display: block; margin-top: 4px; font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    #elecpro-project-control .ep-tabs { display: flex; gap: 3px; overflow-x: auto; padding: 5px; background: var(--ep-surface); border: 1px solid var(--ep-line); border-radius: 12px; margin-bottom: 14px; }
+    #elecpro-project-control .ep-tab { border: 0; background: transparent; color: var(--ep-muted); border-radius: 8px; padding: 8px 11px; white-space: nowrap; font-size: 12px; }
+    #elecpro-project-control .ep-tab[aria-selected="true"] { color: var(--ep-green-900); background: var(--ep-green-100); font-weight: 500; }
+    #elecpro-project-control .ep-two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+    #elecpro-project-control .ep-info-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    #elecpro-project-control .ep-info-item span { display: block; color: var(--ep-muted); font-size: 10px; }
+    #elecpro-project-control .ep-info-item strong { display: block; margin-top: 4px; font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
+    #elecpro-project-control .ep-financial-bars { display: grid; gap: 13px; }
+    #elecpro-project-control .ep-financial-row-head { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+    #elecpro-project-control .ep-financial-row-head span:last-child { font-variant-numeric: tabular-nums; font-weight: 500; }
+    #elecpro-project-control .ep-financial-note { padding: 11px 12px; border-radius: 10px; background: var(--ep-green-50); color: var(--ep-muted); font-size: 11px; margin-top: 13px; }
+    #elecpro-project-control .ep-empty { color: var(--ep-muted); text-align: center; padding: 24px 14px; font-size: 12px; }
+    #elecpro-project-control .ep-back { border: 0; background: transparent; color: var(--ep-green-900); padding: 0; margin-bottom: 11px; font-weight: 500; }
+
+    #elecpro-project-control .ep-client-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    #elecpro-project-control .ep-client-tile { background: var(--ep-surface); border: 1px solid var(--ep-line); border-radius: 14px; padding: 15px; }
+    #elecpro-project-control .ep-client-avatar { width: 38px; height: 38px; display: grid; place-items: center; background: var(--ep-green-100); color: var(--ep-green-900); border-radius: 11px; font-weight: 500; }
+    #elecpro-project-control .ep-client-tile h3 { margin: 11px 0 0; font-size: 14px; font-weight: 500; }
+    #elecpro-project-control .ep-client-tile p { color: var(--ep-muted); font-size: 11px; margin: 4px 0 0; }
+    #elecpro-project-control .ep-client-count { margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--ep-line); color: var(--ep-muted); font-size: 11px; }
+
+    #elecpro-project-control .ep-share-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+    #elecpro-project-control .ep-share-tile { background: var(--ep-surface); border: 1px solid var(--ep-line); border-radius: 14px; padding: 14px; }
+    #elecpro-project-control .ep-share-tile strong { display: block; font-size: 13px; font-weight: 500; }
+    #elecpro-project-control .ep-share-tile span { display: block; color: var(--ep-muted); font-size: 11px; margin-top: 4px; }
+    #elecpro-project-control .ep-share-amount { margin-top: 12px !important; color: var(--ep-green-900) !important; font-size: 17px !important; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+    #elecpro-project-control .ep-quote-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    #elecpro-project-control .ep-quote-card { background: var(--ep-surface); border: 1px solid var(--ep-line); border-radius: 15px; padding: 15px; display: grid; gap: 13px; }
+    #elecpro-project-control .ep-quote-card-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    #elecpro-project-control .ep-quote-card h3 { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.35; }
+    #elecpro-project-control .ep-quote-code { color: var(--ep-green-800); font-size: 11px; font-weight: 600; margin-bottom: 5px; }
+    #elecpro-project-control .ep-quote-card p { margin: 0; color: var(--ep-muted); font-size: 11px; line-height: 1.45; }
+    #elecpro-project-control .ep-quote-card-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 11px; border-top: 1px solid var(--ep-line); }
+    #elecpro-project-control .ep-quote-card-meta span { display: block; color: var(--ep-muted); font-size: 10px; }
+    #elecpro-project-control .ep-quote-card-meta strong { display: block; margin-top: 3px; font-size: 12px; font-weight: 500; }
+    #elecpro-project-control .ep-quote-workspace { display: grid; grid-template-columns: minmax(360px, .82fr) minmax(520px, 1.18fr); gap: 14px; align-items: start; }
+    #elecpro-project-control .ep-quote-workspace { display:block; }
+    #elecpro-project-control .ep-editor-pane { width:100%; }
+    #elecpro-project-control .ep-analysis-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    #elecpro-project-control .ep-filter-bar { display:flex; flex-wrap:wrap; gap:8px; padding:12px; background:var(--ep-green-50); border:1px solid var(--ep-line); border-radius:13px; margin-bottom:14px; }
+    #elecpro-project-control .ep-filter-bar select, #elecpro-project-control .ep-filter-bar input { min-height:36px; border:1px solid var(--ep-line); border-radius:8px; padding:6px 8px; background:var(--ep-surface); color:var(--ep-text); }
+    #elecpro-project-control .ep-filter-tags { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:0 0 14px; font-size:11px; color:var(--ep-muted); }
+    #elecpro-project-control .ep-filter-tag { border:1px solid var(--ep-line); background:var(--ep-surface); border-radius:999px; padding:4px 8px; color:var(--ep-green-900); }
+    #elecpro-project-control .ep-chart { padding:12px 14px 5px; min-height:210px; }
+    #elecpro-project-control .ep-chart svg { width:100%; height:180px; overflow:visible; }
+    #elecpro-project-control .ep-chart button { stroke:none; outline:none; }
+    #elecpro-project-control .ep-chart button:focus-visible rect { stroke:var(--ep-text); stroke-width:3; }
+    #elecpro-project-control .ep-chart-label { font-size:10px; fill:var(--ep-muted); }
+    #elecpro-project-control .ep-chart-value { font-size:10px; fill:var(--ep-text); }
+    #elecpro-project-control dialog.ep-preview-dialog { width:min(1180px,calc(100% - 24px)); height:min(94vh,1100px); max-height:none; border:0; padding:0; background:var(--ep-shell); color:var(--ep-text); }
+    #elecpro-project-control .ep-preview-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 18px; background:var(--ep-surface); border-bottom:1px solid var(--ep-line); }
+    #elecpro-project-control .ep-preview-head strong { font-size:13px; color:var(--ep-green-900); }
+    #elecpro-project-control .ep-preview-scroll { height:calc(100% - 64px); overflow:auto; padding:24px; }
+    #elecpro-project-control .ep-preview-print { max-width:860px; margin:auto; }
+    #elecpro-project-control .ep-quote-editor { display: grid; gap: 12px; }
+    #elecpro-project-control .ep-editor-section { background: var(--ep-surface); border: 1px solid var(--ep-line); border-radius: 14px; overflow: hidden; }
+    #elecpro-project-control .ep-editor-section summary { cursor: pointer; padding: 13px 15px; font-size: 13px; font-weight: 600; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+    #elecpro-project-control .ep-editor-section summary::after { content: '＋'; color: var(--ep-green-800); font-size: 16px; }
+    #elecpro-project-control .ep-editor-section[open] summary::after { content: '−'; }
+    #elecpro-project-control .ep-editor-section summary::-webkit-details-marker { display: none; }
+    #elecpro-project-control .ep-editor-body { border-top: 1px solid var(--ep-line); padding: 14px 15px; }
+    #elecpro-project-control .ep-editor-body .ep-field + .ep-field { margin-top: 11px; }
+    #elecpro-project-control .ep-material-editor { display: grid; gap: 9px; }
+    #elecpro-project-control .ep-material-row { display: grid; grid-template-columns: .65fr 1.55fr .55fr .65fr .9fr auto; gap: 7px; align-items: end; padding: 10px; border: 1px solid var(--ep-line); border-radius: 11px; }
+    #elecpro-project-control .ep-material-row .ep-field { gap: 4px; }
+    #elecpro-project-control .ep-icon-button { width: 38px; min-height: 39px; border: 1px solid var(--ep-line); border-radius: 9px; background: var(--ep-surface); color: var(--ep-danger); }
+    #elecpro-project-control .ep-economics-grid { display: grid; grid-template-columns: 1fr 88px 1fr; gap: 8px; align-items: center; }
+    #elecpro-project-control .ep-economics-grid > span { color: var(--ep-muted); font-size: 11px; }
+    #elecpro-project-control .ep-economics-grid input { width: 100%; min-height: 38px; padding: 8px; border: 1px solid var(--ep-line); border-radius: 8px; background: var(--ep-surface); color: var(--ep-text); }
+    #elecpro-project-control .ep-economics-grid strong { text-align: right; font-size: 12px; font-weight: 600; }
+    #elecpro-project-control .ep-economics-total { margin-top: 10px; padding-top: 11px; border-top: 1px solid var(--ep-line); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    #elecpro-project-control .ep-economics-total strong { color: var(--ep-green-900); font-size: 18px; }
+    #elecpro-project-control .ep-quote-document { background: #fff; color: #17231f; border: 1px solid #dce6e1; border-radius: 15px; padding: 34px 38px; box-shadow: 0 14px 35px rgba(18,79,69,.08); min-height: 980px; }
+    #elecpro-project-control .ep-document-head { display: grid; grid-template-columns: minmax(0, 1fr) 155px; gap: 24px; align-items: start; padding-bottom: 20px; border-bottom: 3px solid #176458; }
+    #elecpro-project-control .ep-document-head img { width: 100%; max-width: 155px; background: #fff; }
+    #elecpro-project-control .ep-document-kicker { color: #176458; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    #elecpro-project-control .ep-document-head h2 { margin: 6px 0 4px; font-size: 22px; color: #124f45; }
+    #elecpro-project-control .ep-document-head p { margin: 0; color: #68766f; font-size: 11px; }
+    #elecpro-project-control .ep-document-intro { margin: 22px 0; font-size: 12px; line-height: 1.65; }
+    #elecpro-project-control .ep-document-section { margin-top: 20px; break-inside: avoid; }
+    #elecpro-project-control .ep-document-section h3 { margin: 0 0 9px; color: #124f45; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+    #elecpro-project-control .ep-document-section p { margin: 0; white-space: pre-line; font-size: 11px; line-height: 1.6; }
+    #elecpro-project-control .ep-document-table { min-width: 0; border: 1px solid #dce6e1; }
+    #elecpro-project-control .ep-document-table th { background: #eff9f5; color: #124f45; font-size: 9px; padding: 8px; }
+    #elecpro-project-control .ep-document-table td { color: #17231f; font-size: 10px; padding: 8px; }
+    #elecpro-project-control .ep-document-table .number { text-align: right; white-space: nowrap; }
+    #elecpro-project-control .ep-document-table .total-row td { background: #eff9f5; color: #124f45; font-weight: 700; }
+    #elecpro-project-control .ep-manager-card { margin-top: 28px; padding: 16px; border: 1px solid #b9d8ce; border-left: 5px solid #176458; border-radius: 10px; display: grid; grid-template-columns: 1fr 110px; gap: 18px; align-items: center; break-inside: avoid; }
+    #elecpro-project-control .ep-manager-card strong { display: block; color: #124f45; font-size: 13px; }
+    #elecpro-project-control .ep-manager-card span { display: block; color: #52635c; font-size: 10px; margin-top: 4px; }
+    #elecpro-project-control .ep-manager-card img { width: 100%; background: #fff; }
+
+    #elecpro-project-control dialog.ep-dialog {
+      width: min(620px, calc(100% - 28px));
+      max-height: 86%;
+      border: 1px solid var(--ep-line);
+      border-radius: 17px;
+      padding: 0;
+      background: var(--ep-surface-raised);
+      color: var(--ep-text);
+      box-shadow: var(--ep-shadow);
+    }
+    #elecpro-project-control dialog.ep-dialog::backdrop { background: rgba(5, 22, 17, .58); }
+    #elecpro-project-control .ep-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 18px; border-bottom: 1px solid var(--ep-line); }
+    #elecpro-project-control .ep-dialog-head h2 { margin: 0; font-size: 17px; font-weight: 500; }
+    #elecpro-project-control .ep-dialog-close { width: 35px; height: 35px; border: 0; background: transparent; color: var(--ep-muted); border-radius: 9px; }
+    #elecpro-project-control .ep-form { padding: 17px 18px; }
+    #elecpro-project-control .ep-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+    #elecpro-project-control .ep-field { display: grid; gap: 6px; min-width: 0; }
+    #elecpro-project-control .ep-field.full { grid-column: 1 / -1; }
+    #elecpro-project-control .ep-field label { color: var(--ep-muted); font-size: 11px; font-weight: 500; }
+    #elecpro-project-control .ep-field input,
+    #elecpro-project-control .ep-field select,
+    #elecpro-project-control .ep-field textarea {
+      width: 100%;
+      min-height: 41px;
+      padding: 9px 10px;
+      border: 1px solid var(--ep-line);
+      border-radius: 9px;
+      background: var(--ep-surface);
+      color: var(--ep-text);
+    }
+    #elecpro-project-control .ep-field textarea { min-height: 75px; resize: vertical; }
+    #elecpro-project-control .ep-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--ep-line); }
+    #elecpro-project-control .ep-helper { font-size: 10px; color: var(--ep-muted); }
+    #elecpro-project-control .ep-notice { min-height: 0; }
+    #elecpro-project-control .ep-toast {
+      margin: 0 24px 18px;
+      background: var(--ep-green-900);
+      color: light-dark(#fff, #06251d);
+      padding: 11px 14px;
+      border-radius: 11px;
+      font-size: 12px;
+      display: none;
+    }
+    #elecpro-project-control .ep-toast.show { display: block; }
+
+    @media (max-width: 900px) {
+      #elecpro-project-control .ep-layout { grid-template-columns: 1fr; }
+      #elecpro-project-control .ep-sidebar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        z-index: 3;
+        width: min(280px, 82vw);
+        padding: 22px 14px;
+        transform: translateX(-105%);
+        box-shadow: 18px 0 35px rgba(7, 19, 15, .18);
+      }
+      #elecpro-project-control .ep-nav-backdrop {
+        display: block;
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .22s ease;
+      }
+      #elecpro-project-control .ep-app.is-nav-open .ep-sidebar { transform: translateX(0); }
+      #elecpro-project-control .ep-app.is-nav-open .ep-nav-backdrop { opacity: 1; pointer-events: auto; }
+      #elecpro-project-control .ep-app.is-nav-collapsed .ep-layout { grid-template-columns: 1fr; }
+      #elecpro-project-control .ep-app.is-nav-collapsed .ep-sidebar { padding: 22px 14px; }
+      #elecpro-project-control .ep-app.is-nav-collapsed .ep-logo-wrap,
+      #elecpro-project-control .ep-app.is-nav-collapsed .ep-sidebar-foot { display: flex; }
+      #elecpro-project-control .ep-app.is-nav-collapsed .ep-sidebar-foot { display: block; }
+      #elecpro-project-control .ep-app.is-nav-collapsed .ep-nav-button { justify-content: flex-start; padding-inline: 11px; }
+      #elecpro-project-control .ep-app.is-nav-collapsed .ep-nav-label { display: inline; }
+      #elecpro-project-control .ep-menu-toggle { display: grid; }
+      #elecpro-project-control .ep-sidebar-toggle { display: grid; }
+      #elecpro-project-control .ep-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #elecpro-project-control .ep-client-grid, #elecpro-project-control .ep-share-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #elecpro-project-control .ep-quote-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #elecpro-project-control .ep-quote-workspace { grid-template-columns: 1fr; }
+      #elecpro-project-control .ep-analysis-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width: 680px) {
+      #elecpro-project-control .ep-app { border-radius: 14px; }
+      #elecpro-project-control .ep-topbar { padding: 13px 14px; align-items: flex-start; }
+      #elecpro-project-control .ep-title p { display: none; }
+      #elecpro-project-control .ep-account { align-items: flex-start; }
+      #elecpro-project-control .ep-avatar { display: none; }
+      #elecpro-project-control .ep-role-select { max-width: 132px; min-height: 38px; font-size: 12px; }
+      #elecpro-project-control .ep-content { padding: 16px 14px 22px; }
+      #elecpro-project-control .ep-section-head { display: grid; }
+      #elecpro-project-control .ep-actions { justify-content: flex-start; }
+      #elecpro-project-control .ep-dashboard-grid,
+      #elecpro-project-control .ep-project-grid,
+      #elecpro-project-control .ep-two-col { grid-template-columns: 1fr; }
+      #elecpro-project-control .ep-detail-metrics { grid-template-columns: repeat(2, 1fr); }
+      #elecpro-project-control .ep-project-tile-meta { grid-template-columns: repeat(2, 1fr); }
+      #elecpro-project-control .ep-client-grid,
+      #elecpro-project-control .ep-share-grid,
+      #elecpro-project-control .ep-quote-grid { grid-template-columns: 1fr; }
+      #elecpro-project-control .ep-form-grid { grid-template-columns: 1fr; }
+      #elecpro-project-control .ep-field.full { grid-column: auto; }
+      #elecpro-project-control .ep-material-row { grid-template-columns: 1fr 1fr; }
+      #elecpro-project-control .ep-material-row .ep-field:nth-child(2) { grid-column: 1 / -1; }
+      #elecpro-project-control .ep-quote-document { padding: 24px 18px; }
+      #elecpro-project-control dialog.ep-preview-dialog { width:100%; height:100%; max-height:none; border-radius:0; }
+      #elecpro-project-control .ep-preview-scroll { padding:12px; }
+      #elecpro-project-control .ep-document-head { grid-template-columns: 1fr; }
+      #elecpro-project-control .ep-document-head img { grid-row: 1; max-width: 140px; }
+    }
+    @media (max-width: 380px) {
+      #elecpro-project-control .ep-metric-grid { grid-template-columns: 1fr; }
+      #elecpro-project-control .ep-topbar { display: grid; }
+      #elecpro-project-control .ep-account { justify-content: stretch; }
+      #elecpro-project-control .ep-role-select { width: 100%; max-width: none; }
+      #elecpro-project-control .ep-detail-hero-top { display: grid; }
+      #elecpro-project-control .ep-detail-metrics { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body:has(#ep-preview-dialog[open]) #elecpro-project-control .ep-app { display:none !important; }
+      body:has(#ep-preview-dialog[open]) #elecpro-project-control { display:block; }
+      #elecpro-project-control .ep-sidebar,
+      #elecpro-project-control .ep-nav-backdrop,
+      #elecpro-project-control .ep-topbar,
+      #elecpro-project-control .ep-actions,
+      #elecpro-project-control .ep-tabs,
+      #elecpro-project-control .ep-back,
+      #elecpro-project-control .ep-editor-pane { display: none !important; }
+      #elecpro-project-control .ep-preview-dialog:not([open]) { display:none !important; }
+      #elecpro-project-control .ep-preview-dialog[open] { position:static; width:auto; height:auto; overflow:visible; background:#fff; }
+      #elecpro-project-control .ep-preview-head { display:none !important; }
+      #elecpro-project-control .ep-preview-scroll { height:auto; overflow:visible; padding:0; }
+      #elecpro-project-control .ep-preview-print { max-width:none; }
+      #elecpro-project-control .ep-layout { display: block; }
+      #elecpro-project-control .ep-app { border: 0; box-shadow: none; }
+      #elecpro-project-control .ep-content { padding: 0; }
+      #elecpro-project-control .ep-quote-workspace { display: block; }
+      #elecpro-project-control .ep-quote-document { border: 0; border-radius: 0; box-shadow: none; padding: 0; min-height: 0; }
+      html, body { background: #fff !important; padding: 0 !important; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #elecpro-project-control .ep-sidebar,
+      #elecpro-project-control .ep-nav-backdrop { transition: none; }
+    }
+  </style>
+
+  <div class="ep-app">
+    <div class="ep-layout">
+      <aside class="ep-sidebar" id="ep-sidebar" aria-label="Navegación principal">
+        <div class="ep-sidebar-head">
+          <div class="ep-logo-wrap">
+            <img id="ep-logo" alt="Elecpro Ingeniería Eléctrica">
+          </div>
+          <button type="button" class="ep-sidebar-toggle" id="ep-sidebar-toggle" data-menu-toggle aria-controls="ep-sidebar" aria-expanded="true" aria-label="Contraer menú" title="Contraer menú">
+            <span class="material-symbols-outlined" aria-hidden="true">left_panel_close</span>
+          </button>
+        </div>
+        <nav class="ep-nav" id="ep-navigation"></nav>
+        <div class="ep-sidebar-foot">
+          <strong>Control centralizado</strong>
+          <span>Proyectos, cartera y rentabilidad en un solo lugar.</span>
+        </div>
+      </aside>
+      <button type="button" class="ep-nav-backdrop" data-menu-close aria-label="Cerrar menú"></button>
+      <main class="ep-main">
+        <header class="ep-topbar">
+          <div class="ep-topbar-start">
+            <button type="button" class="ep-menu-toggle" id="ep-menu-toggle" data-menu-toggle aria-controls="ep-sidebar" aria-expanded="true" aria-label="Contraer menú" title="Contraer menú">
+              <span class="material-symbols-outlined" aria-hidden="true">menu_open</span>
+            </button>
+            <div class="ep-title">
+              <h1 id="ep-page-title">Panel general</h1>
+              <p id="ep-page-subtitle">Visión financiera y operativa de Elecpro</p>
+            </div>
+          </div>
+          <div class="ep-account">
+            <select id="ep-role" class="ep-role-select" aria-label="Rol simulado">
+              <option value="Administrador">Administrador</option>
+              <option value="Gerencia">Gerencia</option>
+            </select>
+            <div class="ep-avatar" aria-hidden="true">DV</div>
+          </div>
+        </header>
+        <section class="ep-content" id="ep-view" aria-live="polite"></section>
+        <div class="ep-toast" id="ep-toast" role="status" aria-live="polite"></div>
+      </main>
+    </div>
+  </div>
+
+  <dialog class="ep-dialog" id="ep-dialog">
+    <div class="ep-dialog-head">
+      <h2 id="ep-dialog-title">Nuevo registro</h2>
+      <button class="ep-dialog-close" type="button" data-close-dialog aria-label="Cerrar">✕</button>
+    </div>
+    <form class="ep-form" id="ep-form"></form>
+  </dialog>
+
+  <dialog class="ep-preview-dialog" id="ep-preview-dialog" aria-labelledby="ep-preview-title">
+    <div class="ep-preview-head"><strong id="ep-preview-title">Vista previa</strong><div class="ep-actions"><button type="button" class="ep-action-secondary" data-preview-print>Imprimir / guardar PDF</button><button type="button" class="ep-action-primary" data-close-preview>Volver a editar</button></div></div>
+    <div class="ep-preview-scroll"><div class="ep-preview-print" id="ep-preview-content"></div></div>
+  </dialog>
+
+  <script>
+    (() => {
+      const root = document.getElementById('elecpro-project-control');
+      if (!root) return;
+
+      const LOGO = 'data:image/png;base64,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';
+      root.querySelector('#ep-logo').src = LOGO;
+
+      const STORAGE_KEY = 'elecpro-control-proyectos-v2';
+      const navItems = [
+        ['dashboard', 'dashboard', 'Panel general'],
+        ['analysis', 'query_stats', 'Análisis'],
+        ['projects', 'folder_open', 'Proyectos'],
+        ['quotes', 'request_quote', 'Cotizaciones'],
+        ['catalog', 'inventory_2', 'Productos y servicios'],
+        ['suppliers', 'local_shipping', 'Proveedores'],
+        ['clients', 'groups', 'Clientes'],
+        ['finance', 'account_balance_wallet', 'Finanzas'],
+        ['alerts', 'notifications', 'Alertas']
+      ];
+      const pageMeta = {
+        analysis: ['Análisis', 'Indicadores filtrables para gerencia, operación y comercial'],
+        dashboard: ['Panel general', 'Visión financiera y operativa de Elecpro'],
+        projects: ['Proyectos', 'Control del ciclo completo de cada proyecto'],
+        quotes: ['Cotizaciones', 'Creación, cálculo y seguimiento de propuestas comerciales'],
+        quote: ['Editor de cotización', 'Documento comercial con cálculo automático'],
+        catalog: ['Productos y servicios', 'Catálogo reutilizable de materiales y mano de obra'],
+        suppliers: ['Proveedores', 'Directorio de proveedores y servicios ofrecidos'],
+        clients: ['Clientes', 'Catálogo centralizado y sin datos duplicados'],
+        finance: ['Finanzas', 'Cartera, gastos, utilidad y distribución'],
+        alerts: ['Alertas automáticas', 'Situaciones que requieren atención de gerencia'],
+        project: ['Detalle del proyecto', 'Estado operativo y financiero consolidado']
+      };
+      const state = {
+        view: 'dashboard',
+        selectedProjectId: null,
+        selectedQuoteId: null,
+        projectTab: 'summary',
+        role: 'Administrador',
+        catalogSearch: '', catalogCategory: '', supplierSearch: '', quoteCatalogSearch: '',
+        analysisTab: 'management', analysisFilters: {management:{},operation:{},commercial:{}}, previewOpener: null,
+        data: loadData()
+      };
+      const navigation = { collapsed: false, open: false };
+      const navMedia = window.matchMedia('(max-width: 900px)');
+
+      function isoOffset(days) {
+        const d = new Date();
+        d.setHours(12, 0, 0, 0);
+        d.setDate(d.getDate() + days);
+        return d.toISOString().slice(0, 10);
+      }
+      function seedData() {
+        return {
+          clients: [
+            {id: 'c1', name: 'Industrias Orión S.A.S.', type: 'Empresa', contact: 'Laura Restrepo', phone: '310 555 0142', email:'compras@industriasorion.co', address:'Zona Industrial, Itagüí'},
+            {id: 'c2', name: 'Conjunto Altavista', type: 'Propiedad horizontal', contact: 'Andrés Mejía', phone: '300 555 0198', email:'administracion@altavista.co', address:'Envigado, Antioquia'},
+            {id: 'c3', name: 'Logística del Norte S.A.S.', type: 'Empresa', contact: 'Mariana Gómez', phone: '315 555 0185', email:'proyectos@logisticadelnorte.co', address:'Bello, Antioquia'},
+            {id: 'c4', name: 'Clínica Nova', type: 'Empresa', contact: 'Felipe Ruiz', phone: '301 555 0167', email:'mantenimiento@clinicanova.co', address:'Medellín, Antioquia'}
+          ],
+          projects: [
+            {
+              id: 'p1', quote: `COT-${new Date().getFullYear()}-0001`, type: 'Optimización de tableros de baja tensión', clientId: 'c1', value: 48500000,
+              status: 'En proceso', responsible: 'Santiago Vélez', location: 'Itagüí, Antioquia', priority: 'Alta', start: isoOffset(-37), expectedEnd: isoOffset(12), actualEnd: '',
+              observations: 'Modernización de protecciones y balanceo de cargas en planta principal.', profitMode: 'value', initialProfit: 0,
+              payments: [{id:'pay1', date:isoOffset(-30), amount:15000000, method:'Transferencia', note:'Anticipo de inicio'}, {id:'pay2', date:isoOffset(-12), amount:10000000, method:'Transferencia', note:'Avance de instalación'}],
+              expenses: [{id:'ex1', date:isoOffset(-25), amount:5200000, category:'Materiales', method:'Transferencia', note:'Interruptores y protecciones'}, {id:'ex2', date:isoOffset(-16), amount:3000000, category:'Mano de obra', method:'Transferencia', note:'Cuadrilla técnica'}],
+              budgets: [{id:'bu1', amount:6500000, category:'Materiales', note:'Protecciones y conductores'}, {id:'bu2', amount:3500000, category:'Mano de obra', note:'Instalación y pruebas'}],
+              shares: [{id:'sh1', participant:'Carlos Ramírez', mode:'percent', value:10, basis:'project_value', paid:false, paidDate:''}]
+            },
+            {
+              id: 'p2', quote: `COT-${new Date().getFullYear()}-0002`, type: 'Instalación de subestación de 225 kVA', clientId: 'c3', value: 92000000,
+              status: 'Pausado', responsible: 'Valentina Torres', location: 'Bello, Antioquia', priority: 'Crítica', start: isoOffset(-72), expectedEnd: isoOffset(-5), actualEnd: '',
+              observations: 'Proyecto pausado por adecuaciones civiles pendientes del cliente.', profitMode: 'value', initialProfit: 0,
+              payments: [{id:'pay3', date:isoOffset(-65), amount:30000000, method:'Transferencia', note:'Anticipo contractual'}, {id:'pay4', date:isoOffset(-35), amount:30000000, method:'Cheque', note:'Segundo desembolso'}],
+              expenses: [{id:'ex3', date:isoOffset(-50), amount:32000000, category:'Equipos', method:'Transferencia', note:'Transformador y celdas'}, {id:'ex4', date:isoOffset(-28), amount:22000000, category:'Materiales', method:'Transferencia', note:'Conductores y puesta a tierra'}],
+              budgets: [{id:'bu3', amount:34000000, category:'Equipos', note:'Transformador y celdas'}, {id:'bu4', amount:18000000, category:'Materiales', note:'Conductores y obra eléctrica'}],
+              shares: []
+            },
+            {
+              id: 'p3', quote: `COT-${new Date().getFullYear()}-0003`, type: 'Estudio de calidad de energía', clientId: 'c4', value: 18500000,
+              status: 'Finalizado', responsible: 'Daniela Pérez', location: 'Medellín, Antioquia', priority: 'Media', start: isoOffset(-35), expectedEnd: isoOffset(-12), actualEnd: isoOffset(-10),
+              observations: 'Medición de siete días e informe de armónicos, desbalances y eventos.', profitMode: 'value', initialProfit: 0,
+              payments: [{id:'pay5', date:isoOffset(-31), amount:9000000, method:'Transferencia', note:'Anticipo'}, {id:'pay6', date:isoOffset(-8), amount:9500000, method:'Transferencia', note:'Pago contra entrega'}],
+              expenses: [{id:'ex5', date:isoOffset(-24), amount:2400000, category:'Equipos', method:'Tarjeta empresarial', note:'Alquiler de analizador'}, {id:'ex6', date:isoOffset(-14), amount:4000000, category:'Ingeniería', method:'Transferencia', note:'Medición y análisis'}],
+              budgets: [{id:'bu5', amount:7000000, category:'Ejecución', note:'Medición, análisis e informe'}],
+              shares: []
+            },
+            {
+              id: 'p4', quote: `COT-${new Date().getFullYear()}-0004`, type: 'Modernización de alumbrado industrial', clientId: 'c1', value: 36000000,
+              status: 'En proceso', responsible: 'Santiago Vélez', location: 'La Estrella, Antioquia', priority: 'Alta', start: isoOffset(-20), expectedEnd: isoOffset(24), actualEnd: '',
+              observations: 'Este proyecto utiliza ganancia inicial definida manualmente.', profitMode: 'manual', initialProfit: 22000000,
+              payments: [{id:'pay7', date:isoOffset(-18), amount:8000000, method:'Transferencia', note:'Anticipo'}],
+              expenses: [{id:'ex7', date:isoOffset(-15), amount:10000000, category:'Materiales', method:'Transferencia', note:'Luminarias LED'}, {id:'ex8', date:isoOffset(-5), amount:6000000, category:'Mano de obra', method:'Efectivo', note:'Primera fase de instalación'}],
+              budgets: [{id:'bu6', amount:9000000, category:'Materiales', note:'Luminarias y cableado'}, {id:'bu7', amount:5000000, category:'Mano de obra', note:'Instalación'}],
+              shares: [{id:'sh2', participant:'Inversiones Delta', mode:'fixed', value:2500000, basis:'real_profit', paid:true, paidDate:isoOffset(-2)}]
+            },
+            {
+              id: 'p5', quote: `COT-${new Date().getFullYear()}-0005`, type: 'Diseño de red eléctrica para local comercial', clientId: 'c2', value: 12800000,
+              status: 'Cotizado', responsible: 'Valentina Torres', location: 'Envigado, Antioquia', priority: 'Baja', start: isoOffset(8), expectedEnd: isoOffset(28), actualEnd: '',
+              observations: 'Pendiente aprobación del cliente.', profitMode: 'value', initialProfit: 0,
+              payments: [], expenses: [], budgets: [{id:'bu8', amount:4000000, category:'Ingeniería', note:'Diseño, memorias y planos'}], shares: []
+            }
+          ],
+          quotes: [
+            {
+              id:'q1', number:`COT-${new Date().getFullYear()}-0006`, date:isoOffset(-3), validUntil:isoOffset(12), status:'Enviada', clientId:'c1',
+              title:'Adecuación de tablero general de distribución', greeting:'Cordial saludo. De acuerdo con la visita técnica realizada, presentamos nuestra propuesta para la adecuación del tablero general de distribución de la planta.',
+              projectDescription:'Suministro, instalación y puesta en servicio de protecciones eléctricas para mejorar la seguridad y continuidad de la operación.',
+              objective:'Modernizar el tablero general, corregir puntos críticos y asegurar una distribución eléctrica confiable conforme a las necesidades de la planta.',
+              materials:[
+                {id:'m1',code:'INT-3P-250A',description:'Interruptor termomagnético regulable 3P 250 A',quantity:1,unit:'und',unitPrice:4850000},
+                {id:'m2',code:'CBR-2/0-CU',description:'Cable de cobre THHN/THWN calibre 2/0 AWG',quantity:75,unit:'m',unitPrice:98500},
+                {id:'m3',code:'KIT-TBL-01',description:'Kit de marcación, terminales y accesorios de montaje',quantity:1,unit:'kit',unitPrice:1380000}
+              ],
+              notes:'Los valores incluyen transporte dentro del Área Metropolitana.\nLa oferta tiene una vigencia de 15 días calendario.', administrationPct:8, contingencyPct:3, utilityPct:10, vatUtilityPct:19,
+              scope:'• Desenergización y verificación de ausencia de tensión.\n• Retiro de protecciones existentes.\n• Instalación, torque, marcación y pruebas funcionales.\n• Entrega de registro fotográfico.',
+              benefits:'Mayor confiabilidad operativa, reducción del riesgo de falla y facilidad para futuras intervenciones de mantenimiento.',
+              exclusions:'Obras civiles, adecuaciones no visibles durante la visita y trabajos fuera del horario acordado.',
+              paymentTerms:'50% de anticipo para programación y compra de materiales; 50% contra entrega y aprobación del servicio.',
+              executionTime:'Cinco (5) días hábiles a partir del anticipo y la autorización de ingreso.',
+              deliverable:'Tablero intervenido, protocolo de pruebas, registro fotográfico y acta de entrega.'
+            },
+            {
+              id:'q2', number:`COT-${new Date().getFullYear()}-0007`, date:isoOffset(-1), validUntil:isoOffset(14), status:'Borrador', clientId:'c2',
+              title:'Diagnóstico de calidad de energía en zonas comunes', greeting:'Cordial saludo. Presentamos la siguiente propuesta técnica y económica para evaluar el comportamiento de la red eléctrica del conjunto.',
+              projectDescription:'Campaña de medición y análisis de calidad de energía durante siete días continuos.', objective:'Identificar eventos, armónicos, desbalances y oportunidades de mejora que puedan afectar equipos y consumos.',
+              materials:[{id:'m4',code:'SERV-CAE-07',description:'Medición, análisis especializado e informe técnico',quantity:1,unit:'servicio',unitPrice:7200000}],
+              notes:'El cliente facilitará acceso seguro a los tableros y acompañamiento del personal autorizado.', administrationPct:7, contingencyPct:2, utilityPct:12, vatUtilityPct:19,
+              scope:'Instalación del analizador, monitoreo continuo, análisis de variables y reunión de presentación de resultados.', benefits:'Visibilidad objetiva del estado eléctrico y recomendaciones priorizadas para prevenir fallas.', exclusions:'Correcciones eléctricas, suministro de equipos y mediciones posteriores a la campaña.', paymentTerms:'60% de anticipo y 40% con la entrega del informe.', executionTime:'Diez (10) días hábiles.', deliverable:'Informe técnico de calidad de energía y presentación ejecutiva de resultados.'
+            }
+          ],
+          catalog: [
+            {id:'cat1',code:'INT-3P-250A',description:'Interruptor termomagnético regulable 3P 250 A',unit:'und',unitPrice:4850000,category:'Material'},
+            {id:'cat2',code:'CBR-2/0-CU',description:'Cable de cobre THHN/THWN calibre 2/0 AWG',unit:'m',unitPrice:98500,category:'Material'},
+            {id:'cat3',code:'SERV-CAE-07',description:'Medición, análisis especializado e informe técnico',unit:'servicio',unitPrice:7200000,category:'Mano de obra'},
+            {id:'cat4',code:'KIT-TBL-01',description:'Kit de marcación, terminales y accesorios de montaje',unit:'kit',unitPrice:1380000,category:'Material'}
+          ],
+          suppliers: [],
+          company: {managerName:'Alejandro Vélez',managerRole:'Gerente general',professionalCard:'',phone:'+57 604 555 0180',email:'gerencia@elecpro.com.co',address:'Medellín, Antioquia'},
+          globalShares: [
+            {id:'gs1', participant:'Gerencia Elecpro', mode:'percent', value:18, basis:'portfolio_profit', paid:false, paidDate:''},
+            {id:'gs2', participant:'Inversionista A', mode:'percent', value:7, basis:'portfolio_profit', paid:false, paidDate:''}
+          ]
+        };
+      }
+      function loadData() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          return migrateData(saved ? JSON.parse(saved) : seedData());
+        } catch (_) { return seedData(); }
+      }
+      function saveData() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data)); } catch (_) {}
+      }
+      function normalizeText(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+      function migrateData(data) {
+        data = data || seedData(); data.catalog = data.catalog || []; if (!data.catalog.length) data.catalog = seedData().catalog; data.suppliers = data.suppliers || [];
+        data.company = data.company || {}; if (data.company.professionalCard === undefined) data.company.professionalCard = '';
+        (data.quotes || []).forEach(q => { if (q.materialIncreasePct === undefined) q.materialIncreasePct = 0; (q.materials || []).forEach(m => {
+          const known=(data.catalog || []).find(c=>normalizeText(c.code)===normalizeText(m.code));
+          if (!m.category) m.category=known ? known.category : '';
+          if (m.catalogId === undefined) m.catalogId=known ? known.id : '';
+        }); });
+        return data;
+      }
+      function uid(prefix) { return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+      function num(value) { return Number(value) || 0; }
+      function sum(items, key='amount') { return (items || []).reduce((total, item) => total + num(item[key]), 0); }
+      function money(value, compact=false) {
+        const options = compact && Math.abs(value) >= 1000000
+          ? {style:'currency', currency:'COP', notation:'compact', maximumFractionDigits:1}
+          : {style:'currency', currency:'COP', maximumFractionDigits:0};
+        return new Intl.NumberFormat('es-CO', options).format(num(value));
+      }
+      function dateText(value) {
+        if (!value) return 'Sin registrar';
+        return new Intl.DateTimeFormat('es-CO', {day:'2-digit', month:'short', year:'numeric'}).format(new Date(value + 'T12:00:00'));
+      }
+      function daysBetween(start, end) {
+        if (!start || !end) return 0;
+        return Math.round((new Date(end + 'T12:00:00') - new Date(start + 'T12:00:00')) / 86400000);
+      }
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+      }
+      function client(project) { return state.data.clients.find(c => c.id === project.clientId) || {name:'Cliente sin asignar'}; }
+      function quoteClient(quote) { return state.data.clients.find(c => c.id === quote.clientId) || {name:'Cliente sin asignar',contact:'',phone:'',email:'',address:''}; }
+      function itemFinalPrice(item, quote) { return num(item.unitPrice) * (item.category === 'Material' ? 1 + num(quote.materialIncreasePct) / 100 : 1); }
+      function itemFinalTotal(item, quote) { return num(item.quantity) * itemFinalPrice(item, quote); }
+      function quoteEconomics(quote) {
+        const direct = (quote.materials || []).reduce((total, item) => total + itemFinalTotal(item, quote), 0);
+        const administration = direct * num(quote.administrationPct) / 100;
+        const contingency = direct * num(quote.contingencyPct) / 100;
+        const utility = direct * num(quote.utilityPct) / 100;
+        const vatUtility = utility * num(quote.vatUtilityPct) / 100;
+        return {direct, administration, contingency, utility, vatUtility, total:direct + administration + contingency + utility + vatUtility};
+      }
+      function totals(project) {
+        const paid = sum(project.payments);
+        const expenses = sum(project.expenses);
+        const budget = sum(project.budgets);
+        const profit = project.profitMode === 'manual' ? num(project.initialProfit) - expenses : num(project.value) - expenses;
+        const projectedProfit = project.profitMode === 'manual' ? num(project.initialProfit) - budget : num(project.value) - budget;
+        return {paid, balance:Math.max(0, num(project.value)-paid), expenses, budget, profit, projectedProfit};
+      }
+      function statusClass(status) {
+        return ({'Pausado':'paused','Finalizado':'finished','Borrador':'draft','Cotizado':'quoted','Cancelado':'cancelled'}[status] || 'active');
+      }
+      function isActive(project) { return !['Finalizado','Cancelado','Borrador','Cotizado'].includes(project.status); }
+      function isDelayed(project) {
+        if (!project.expectedEnd || ['Cancelado','Borrador','Cotizado'].includes(project.status)) return false;
+        const reference = project.status === 'Finalizado' && project.actualEnd ? project.actualEnd : isoOffset(0);
+        return reference > project.expectedEnd;
+      }
+      function delayDays(project) {
+        if (!isDelayed(project)) return 0;
+        const reference = project.status === 'Finalizado' && project.actualEnd ? project.actualEnd : isoOffset(0);
+        return daysBetween(project.expectedEnd, reference);
+      }
+      function upcoming(project) {
+        if (!project.expectedEnd || !isActive(project)) return false;
+        const days = daysBetween(isoOffset(0), project.expectedEnd);
+        return days >= 0 && days <= 15;
+      }
+      function shareAmount(share, project=null) {
+        let base = 0;
+        if (share.basis === 'project_value' && project) base = num(project.value);
+        if (share.basis === 'real_profit' && project) base = totals(project).profit;
+        if (share.basis === 'portfolio_profit') base = portfolio().profit;
+        return share.mode === 'fixed' ? num(share.value) : base * num(share.value) / 100;
+      }
+      function portfolio() {
+        const projects = state.data.projects;
+        return projects.reduce((a, p) => {
+          const t = totals(p);
+          a.value += num(p.value); a.paid += t.paid; a.balance += t.balance; a.expenses += t.expenses; a.budget += t.budget; a.profit += t.profit;
+          return a;
+        }, {value:0, paid:0, balance:0, expenses:0, budget:0, profit:0});
+      }
+      function alerts() {
+        const result = [];
+        state.data.projects.forEach(p => {
+          const t = totals(p);
+          if (isDelayed(p)) result.push({level:'danger', title:`${p.quote} presenta retraso`, detail:`${delayDays(p)} día(s) sobre la fecha prevista · ${p.type}`, projectId:p.id});
+          if (t.expenses > t.budget && t.budget > 0) result.push({level:'warning', title:`Gastos por encima del presupuesto`, detail:`${p.quote} excede el presupuesto en ${money(t.expenses-t.budget)}`, projectId:p.id});
+          if (t.balance > 0 && !['Borrador','Cancelado'].includes(p.status)) result.push({level:'info', title:`Saldo pendiente de ${money(t.balance)}`, detail:`${p.quote} · ${client(p).name}`, projectId:p.id});
+          if (upcoming(p)) result.push({level:'info', title:`Finalización próxima`, detail:`${p.quote} finaliza el ${dateText(p.expectedEnd)}`, projectId:p.id});
+        });
+        return result;
+      }
+      function showToast(message) {
+        const toast = root.querySelector('#ep-toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.remove('show'), 2800);
+      }
+      function navMarkup() {
+        return navItems.map(([id, icon, label]) => `<button type="button" class="ep-nav-button" data-nav="${id}" title="${label}" aria-label="${label}" ${state.view === id ? 'aria-current="page"' : ''}><span class="ep-nav-icon material-symbols-outlined" aria-hidden="true">${icon}</span><span class="ep-nav-label">${label}</span></button>`).join('');
+      }
+      function updateNavigation() {
+        const app = root.querySelector('.ep-app');
+        const sidebar = root.querySelector('#ep-sidebar');
+        const mobileToggle = root.querySelector('#ep-menu-toggle');
+        const sidebarToggle = root.querySelector('#ep-sidebar-toggle');
+        const mobile = navMedia.matches;
+        const collapsed = !mobile && navigation.collapsed;
+        const open = mobile && navigation.open;
+        app.classList.toggle('is-nav-collapsed', collapsed);
+        app.classList.toggle('is-nav-open', open);
+        sidebar.inert = mobile && !open;
+        sidebar.setAttribute('aria-hidden', mobile && !open ? 'true' : 'false');
+        mobileToggle.setAttribute('aria-expanded', String(open));
+        mobileToggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+        mobileToggle.title = mobileToggle.getAttribute('aria-label');
+        mobileToggle.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${open ? 'close' : 'menu'}</span>`;
+        sidebarToggle.setAttribute('aria-expanded', mobile ? String(open) : String(!collapsed));
+        sidebarToggle.setAttribute('aria-label', mobile ? 'Cerrar menú' : (collapsed ? 'Expandir menú' : 'Contraer menú'));
+        sidebarToggle.title = sidebarToggle.getAttribute('aria-label');
+        sidebarToggle.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${mobile ? 'close' : (collapsed ? 'right_panel_open' : 'left_panel_close')}</span>`;
+      }
+      function setNavigationOpen(open, restoreFocus = false) {
+        navigation.open = open;
+        updateNavigation();
+        if (open) root.querySelector('#ep-sidebar-toggle')?.focus();
+        else if (restoreFocus) root.querySelector('#ep-menu-toggle')?.focus();
+      }
+      function toggleNavigation() {
+        if (navMedia.matches) setNavigationOpen(!navigation.open);
+        else {
+          navigation.collapsed = !navigation.collapsed;
+          updateNavigation();
+        }
+      }
+      function updateShell() {
+        root.querySelector('#ep-navigation').innerHTML = navMarkup();
+        const meta = pageMeta[state.view] || pageMeta.dashboard;
+        root.querySelector('#ep-page-title').textContent = meta[0];
+        root.querySelector('#ep-page-subtitle').textContent = meta[1];
+        root.querySelector('#ep-role').value = state.role;
+        updateNavigation();
+      }
+      function render() {
+        updateShell();
+        const view = root.querySelector('#ep-view');
+        if (state.view === 'dashboard') view.innerHTML = dashboardView();
+        else if (state.view === 'analysis') view.innerHTML = analysisView();
+        else if (state.view === 'projects') view.innerHTML = projectsView();
+        else if (state.view === 'quotes') view.innerHTML = quotesView();
+        else if (state.view === 'catalog') view.innerHTML = catalogView();
+        else if (state.view === 'suppliers') view.innerHTML = suppliersView();
+        else if (state.view === 'quote') view.innerHTML = quoteView();
+        else if (state.view === 'clients') view.innerHTML = clientsView();
+        else if (state.view === 'finance') view.innerHTML = financeView();
+        else if (state.view === 'alerts') view.innerHTML = alertsView();
+        else if (state.view === 'project') view.innerHTML = projectView();
+      }
+      function metric(label, value, note, tone='') {
+        return `<article class="ep-metric"><div class="ep-metric-label"><span>${label}</span><span class="ep-metric-mark ${tone}"></span></div><div class="ep-metric-value">${value}</div><div class="ep-metric-note">${note}</div></article>`;
+      }
+      function selectedFilter(scope, key) { return state.analysisFilters[scope]?.[key] || ''; }
+      function filterRecords(records, scope, fields) {
+        const f=state.analysisFilters[scope] || {};
+        return records.filter(r => Object.entries(f).every(([key,value]) => !value || !fields[key] || String(fields[key](r))===String(value)));
+      }
+      function groupBy(records, getter, amount) {
+        return Object.entries(records.reduce((out,r)=>{const key=getter(r)||'Sin dato'; if(!out[key])out[key]={count:0,value:0};out[key].count++;out[key].value+=num(amount(r));return out;},{})).map(([label,v])=>({label,...v}));
+      }
+      function svgBars(items, metricKey='value', scope='', filterKey='') {
+        if(!items.length) return '<div class="ep-empty">No hay datos para los filtros seleccionados.</div>';
+        const max=Math.max(...items.map(x=>Math.abs(num(x[metricKey]))),1), width=520, step=width/items.length;
+        return `<div class="ep-chart"><svg viewBox="0 0 ${width} 180" role="img" aria-label="Gráfico de barras">${items.map((x,i)=>{const h=Math.max(3,Math.abs(num(x[metricKey]))/max*120), xPos=i*step+8, y=145-h, filter=scope?` data-analysis-filter="${scope}:${filterKey}:${escapeHtml(x.label)}" tabindex="0" role="button"`:''; return `<g${filter} aria-label="Filtrar por ${escapeHtml(x.label)}"><rect x="${xPos}" y="${y}" width="${Math.max(18,step-16)}" height="${h}" rx="4" fill="var(--ep-green-700)"></rect><text x="${xPos}" y="${y-6}" class="ep-chart-value">${metricKey==='count'?x.count:money(x.value,true)}</text><text x="${xPos}" y="164" class="ep-chart-label">${escapeHtml(String(x.label).slice(0,12))}</text></g>`;}).join('')}</svg></div>`;
+      }
+      function analysisSelect(scope,key,label,options) { return `<label><span class="ep-helper">${label}</span><select data-analysis-select="${scope}:${key}"><option value="">Todos</option>${options.map(o=>`<option value="${escapeHtml(o.id||o)}" ${selectedFilter(scope,key)===(o.id||o)?'selected':''}>${escapeHtml(o.name||o)}</option>`).join('')}</select></label>`; }
+      function analysisView() {
+        const tabs=[['management','Gerencia y rentabilidad'],['operation','Operación'],['commercial','Comercial']];
+        return `<div class="ep-section-head"><div><h2>Análisis interactivo</h2><p>Los datos ficticios sirven para validar cálculos; no representan conclusiones del negocio.</p></div></div><div class="ep-tabs" role="tablist">${tabs.map(([id,label])=>`<button type="button" class="ep-tab" data-analysis-tab="${id}" aria-selected="${state.analysisTab===id}">${label}</button>`).join('')}</div>${state.analysisTab==='management'?managementAnalysis():state.analysisTab==='operation'?operationAnalysis():commercialAnalysis()}`;
+      }
+      function activeFilters(scope) { const f=state.analysisFilters[scope]||{}; const tags=Object.entries(f).filter(([,v])=>v).map(([k,v])=>`<span class="ep-filter-tag">${escapeHtml(k)}: ${escapeHtml(v)}</span>`).join(''); return `<div class="ep-filter-tags"><span>${tags||'Sin filtros activos'} </span><button type="button" class="ep-action-ghost" data-reset-analysis="${scope}">Restablecer filtros</button></div>`; }
+      function managementAnalysis() {
+        const scope='management', projects=filterRecords(state.data.projects,scope,{client:r=>r.clientId,project:r=>r.id,status:r=>r.status});
+        const moves=[]; projects.forEach(p=>{p.payments.forEach(x=>moves.push({...x,kind:'Cobro',project:p}));p.expenses.forEach(x=>moves.push({...x,kind:'Gasto',project:p}));});
+        const filtered=filterRecords(moves,scope,{client:r=>r.project.clientId,project:r=>r.project.id,status:r=>r.project.status,period:r=>(r.date||'').slice(0,7)});
+        const month=groupBy(filtered,r=>(r.date||'Sin fecha').slice(0,7),r=>r.kind==='Cobro'?r.amount:-r.amount), totalBalance=projects.reduce((a,p)=>a+totals(p).balance,0), totalProfit=projects.reduce((a,p)=>a+totals(p).profit,0);
+        const spend=projects.map(p=>({label:p.quote,value:totals(p).expenses,count:1})); const balances=groupBy(projects,p=>client(p).name,p=>totals(p).balance).sort((a,b)=>b.value-a.value);
+        return `<div class="ep-filter-bar">${analysisSelect(scope,'client','Cliente',state.data.clients)}${analysisSelect(scope,'project','Proyecto',projects.map(p=>({id:p.id,name:p.quote})))}${analysisSelect(scope,'status','Estado',['Aprobado','En proceso','Pausado','Finalizado'])}<label><span class="ep-helper">Periodo (mes)</span><input type="month" data-analysis-select="${scope}:period" value="${selectedFilter(scope,'period')}"></label></div>${activeFilters(scope)}<div class="ep-metric-grid">${metric('Registros de movimientos',filtered.length,'Periodo seleccionado')}${metric('Saldo pendiente',money(totalBalance,true),'Acumulado actual')}${metric('Resultado calculado',money(totalProfit,true),'Acumulado actual')}</div><div class="ep-analysis-grid"><section class="ep-panel"><div class="ep-panel-head"><h3>Cobros, gastos y diferencia</h3><span>Movimientos del periodo</span></div>${svgBars(month,'value',scope,'period')}</section><section class="ep-panel"><div class="ep-panel-head"><h3>Gastos acumulados por proyecto</h3><span>Acumulado actual</span></div>${svgBars(spend,'value',scope,'project')}</section><section class="ep-panel"><div class="ep-panel-head"><h3>Saldo pendiente por cliente</h3><span>Acumulado actual</span></div>${svgBars(balances,'value',scope,'client')}</section><section class="ep-panel"><div class="ep-panel-head"><h3>Resultado y margen por proyecto</h3><span>Acumulado actual</span></div><div class="ep-table-wrap"><table><thead><tr><th>Proyecto</th><th>Estado</th><th>Resultado</th><th>Margen</th></tr></thead><tbody>${projects.map(p=>{const t=totals(p);return `<tr><td><button class="ep-project-link" type="button" data-open-project="${p.id}">${escapeHtml(p.quote)}</button></td><td>${escapeHtml(p.status)}</td><td>${money(t.profit)}</td><td>${p.value?`${(t.profit/p.value*100).toFixed(1)}%`:'No calculable'}</td></tr>`}).join('')||'<tr><td colspan="4">Sin registros</td></tr>'}</tbody></table></div></section></div>`;
+      }
+      function operationAnalysis() { const scope='operation', ps=filterRecords(state.data.projects,scope,{client:r=>r.clientId,responsible:r=>r.responsible,status:r=>r.status,priority:r=>r.priority});const statuses=groupBy(ps,p=>p.status,p=>p.value), people=groupBy(ps.filter(isActive),p=>p.responsible,p=>1);return `<div class="ep-filter-bar">${analysisSelect(scope,'client','Cliente',state.data.clients)}${analysisSelect(scope,'responsible','Responsable',[...new Set(state.data.projects.map(p=>p.responsible))])}${analysisSelect(scope,'status','Estado',['Aprobado','En proceso','Pausado','Finalizado'])}${analysisSelect(scope,'priority','Prioridad',['Baja','Media','Alta','Crítica'])}</div>${activeFilters(scope)}<div class="ep-analysis-grid"><section class="ep-panel"><div class="ep-panel-head"><h3>Proyectos por estado</h3></div>${svgBars(statuses,'count',scope,'status')}</section><section class="ep-panel"><div class="ep-panel-head"><h3>Activos por responsable</h3><span>Distribución de proyectos, no horas</span></div>${svgBars(people,'count',scope,'responsible')}</section><section class="ep-panel"><div class="ep-panel-head"><h3>Cronograma y retrasos</h3></div><div class="ep-table-wrap"><table><thead><tr><th>Proyecto</th><th>Responsable</th><th>Inicio</th><th>Prevista</th><th>Real</th><th>Retraso</th></tr></thead><tbody>${ps.map(p=>`<tr><td><button type="button" class="ep-project-link" data-open-project="${p.id}">${escapeHtml(p.quote)}</button></td><td>${escapeHtml(p.responsible)}</td><td>${dateText(p.start)}</td><td>${dateText(p.expectedEnd)}</td><td>${dateText(p.actualEnd)}</td><td>${delayDays(p)?`${delayDays(p)} días`:'—'}</td></tr>`).join('')||'<tr><td colspan="6">Sin registros</td></tr>'}</tbody></table></div></section></div>`; }
+      function commercialAnalysis() { const scope='commercial', qs=filterRecords(state.data.quotes,scope,{client:r=>r.clientId,status:r=>quoteDisplayStatus(r),period:r=>(r.date||'').slice(0,7)}), byStatus=groupBy(qs,quoteDisplayStatus,q=>quoteEconomics(q).total), byMonth=groupBy(qs,q=>(q.date||'').slice(0,7),q=>quoteEconomics(q).total), byClient=groupBy(qs,q=>quoteClient(q).name,q=>quoteEconomics(q).total), approved=qs.filter(q=>quoteDisplayStatus(q)==='Aprobada'), rejected=qs.filter(q=>quoteDisplayStatus(q)==='Rechazada');return `<div class="ep-filter-bar">${analysisSelect(scope,'client','Cliente',state.data.clients)}${analysisSelect(scope,'status','Estado',['Borrador','Enviada','Aprobada','Rechazada','Vencida'])}<label><span class="ep-helper">Emisión (mes)</span><input type="month" data-analysis-select="${scope}:period" value="${selectedFilter(scope,'period')}"></label></div>${activeFilters(scope)}<div class="ep-metric-grid">${metric('Valor aprobado',money(approved.reduce((a,q)=>a+quoteEconomics(q).total,0),true),'Estado actual de cotizaciones emitidas')}${metric('Propuestas vigentes',qs.filter(q=>quoteDisplayStatus(q)==='Enviada').length,'Enviadas y vigentes')}${metric('Vencidas',qs.filter(q=>quoteDisplayStatus(q)==='Vencida').length,'Estado visible actual')}${metric('Aprobación',approved.length+rejected.length?`${(approved.length/(approved.length+rejected.length)*100).toFixed(1)}%`:'No calculable','Aprobadas / decisiones tomadas')}</div><div class="ep-analysis-grid"><section class="ep-panel"><div class="ep-panel-head"><h3>Cotizaciones por estado</h3></div>${svgBars(byStatus,'count',scope,'status')}</section><section class="ep-panel"><div class="ep-panel-head"><h3>Cotizaciones emitidas por mes</h3></div>${svgBars(byMonth,'value',scope,'period')}</section><section class="ep-panel"><div class="ep-panel-head"><h3>Valor cotizado por cliente</h3></div>${svgBars(byClient,'value',scope,'client')}</section></div><section class="ep-panel"><div class="ep-panel-head"><h3>Detalle de cotizaciones</h3><span>${qs.length} registros encontrados</span></div><div class="ep-table-wrap"><table><thead><tr><th>Número</th><th>Cliente</th><th>Emisión</th><th>Estado</th><th>Valor</th></tr></thead><tbody>${qs.map(q=>`<tr><td><button class="ep-project-link" type="button" data-open-quote="${q.id}">${escapeHtml(q.number)}</button></td><td>${escapeHtml(quoteClient(q).name)}</td><td>${dateText(q.date)}</td><td>${escapeHtml(quoteDisplayStatus(q))}</td><td>${money(quoteEconomics(q).total)}</td></tr>`).join('')||'<tr><td colspan="5">Sin registros</td></tr>'}</tbody></table></div></section>`; }
+      function projectRows(projects) {
+        return projects.map(p => {
+          const t = totals(p); const paidPercent = p.value ? Math.min(100, Math.round(t.paid / p.value * 100)) : 0;
+          return `<tr><td><button type="button" class="ep-project-link" data-open-project="${p.id}">${escapeHtml(p.type)}<small>${escapeHtml(p.quote)} · ${escapeHtml(client(p).name)}</small></button></td><td><span class="ep-status ${statusClass(p.status)}">${escapeHtml(p.status)}</span></td><td>${escapeHtml(p.responsible)}</td><td>${money(p.value, true)}</td><td><span>${paidPercent}%</span><div class="ep-progress"><span style="width:${paidPercent}%"></span></div></td><td>${money(t.profit, true)}</td></tr>`;
+        }).join('');
+      }
+      function dashboardView() {
+        const p = portfolio(); const active = state.data.projects.filter(isActive).length; const delayed = state.data.projects.filter(isDelayed).length; const soon = state.data.projects.filter(upcoming).length; const allAlerts = alerts();
+        return `
+          <div class="ep-section-head"><div><h2>Buenos días, ${escapeHtml(state.role)}</h2><p>Información consolidada y actualizada automáticamente.</p></div><div class="ep-actions"><button type="button" class="ep-action-secondary" data-export>Exportar Excel</button><button type="button" class="ep-action-primary" data-new-project>+ Nuevo proyecto</button></div></div>
+          <div class="ep-metric-grid">
+            ${metric('Proyectos activos', active, `${state.data.projects.length} proyectos registrados`)}
+            ${metric('Valor contratado', money(p.value, true), 'Portafolio completo')}
+            ${metric('Pagos recibidos', money(p.paid, true), `${Math.round(p.paid/p.value*100)}% del valor contratado`)}
+            ${metric('Cartera pendiente', money(p.balance, true), 'Recordatorios automáticos', p.balance ? 'warning' : '')}
+            ${metric('Gastos acumulados', money(p.expenses, true), `Presupuesto: ${money(p.budget, true)}`)}
+            ${metric('Ganancia actual', money(p.profit, true), 'Según modelo de cada proyecto')}
+            ${metric('Proyectos retrasados', delayed, 'Requieren seguimiento', delayed ? 'danger' : '')}
+            ${metric('Próximas finalizaciones', soon, 'Dentro de los próximos 15 días')}
+          </div>
+          <div class="ep-dashboard-grid">
+            <section class="ep-panel"><div class="ep-panel-head"><h3>Proyectos recientes</h3><button type="button" class="ep-action-ghost" data-nav="projects">Ver todos</button></div><div class="ep-table-wrap"><table><thead><tr><th>Proyecto</th><th>Estado</th><th>Responsable</th><th>Valor</th><th>Pagado</th><th>Ganancia</th></tr></thead><tbody>${projectRows(state.data.projects.slice(0,4))}</tbody></table></div></section>
+            <div style="display:grid;gap:14px">
+              <section class="ep-panel"><div class="ep-panel-head"><h3>Alertas prioritarias</h3><button type="button" class="ep-action-ghost" data-nav="alerts">Ver ${allAlerts.length}</button></div><div class="ep-panel-body"><div class="ep-alert-list">${alertMarkup(allAlerts.slice(0,3))}</div></div></section>
+              <section class="ep-panel"><div class="ep-panel-head"><h3>Automatizaciones activas</h3></div><div class="ep-panel-body"><div class="ep-automation-list">
+                ${automation('Resumen semanal para gerencia','Cada viernes a las 4:00 p. m.')}
+                ${automation('Recordatorios de cartera','Saldos próximos y vencidos')}
+                ${automation('Control presupuestal','Alerta al superar el presupuesto')}
+                ${automation('Estado financiero','Se actualiza con cada movimiento')}
+              </div></div></section>
+            </div>
+          </div>`;
+      }
+      function automation(title, detail) { return `<div class="ep-automation"><span class="ep-automation-toggle" aria-hidden="true"></span><div><strong>${title}</strong><span>${detail}</span></div></div>`; }
+      function alertMarkup(items) {
+        if (!items.length) return '<div class="ep-empty">No hay alertas pendientes.</div>';
+        return items.map(a => `<button type="button" class="ep-alert-item ${a.level}" data-open-project="${a.projectId}" style="border:0;text-align:left;color:inherit;width:100%"><span class="ep-alert-dot"></span><span><strong>${escapeHtml(a.title)}</strong><span>${escapeHtml(a.detail)}</span></span></button>`).join('');
+      }
+      function projectsView() {
+        return `<div class="ep-section-head"><div><h2>Portafolio de proyectos</h2><p>Desde la cotización hasta el cierre y pago total.</p></div><div class="ep-actions"><button type="button" class="ep-action-secondary" data-export>Exportar Excel</button><button type="button" class="ep-action-primary" data-new-project>+ Nuevo proyecto</button></div></div><div class="ep-project-grid">${state.data.projects.map(projectTile).join('')}</div>`;
+      }
+      function projectTile(p) {
+        const t = totals(p); const paidPercent = p.value ? Math.min(100, Math.round(t.paid / p.value * 100)) : 0; const delay = delayDays(p);
+        return `<article class="ep-project-tile"><div class="ep-project-tile-head"><div><h3>${escapeHtml(p.type)}</h3><div class="ep-code">${escapeHtml(p.quote)} · ${escapeHtml(client(p).name)}</div></div><span class="ep-status ${statusClass(p.status)}">${escapeHtml(p.status)}</span></div><div class="ep-project-tile-meta"><div><span>Valor</span><strong>${money(p.value, true)}</strong></div><div><span>Pagado</span><strong>${money(t.paid, true)}</strong></div><div><span>Ganancia</span><strong>${money(t.profit, true)}</strong></div><div><span>Responsable</span><strong>${escapeHtml(p.responsible)}</strong></div><div><span>Finalización</span><strong>${dateText(p.expectedEnd)}</strong></div><div><span>Prioridad</span><strong>${escapeHtml(p.priority)}</strong></div></div><div class="ep-progress"><span style="width:${paidPercent}%"></span></div><div class="ep-project-tile-foot"><span>${delay ? `Retraso de ${delay} día(s)` : `${paidPercent}% pagado`}</span><button type="button" class="ep-action-ghost" data-open-project="${p.id}">Ver proyecto →</button></div></article>`;
+      }
+      function quoteDisplayStatus(q) {
+        if (!['Aprobada','Rechazada'].includes(q.status) && q.validUntil && q.validUntil < isoOffset(0)) return 'Vencida';
+        return q.status;
+      }
+      function quoteStatusClass(status) {
+        return ({'Borrador':'draft','Enviada':'finished','Aprobada':'active','Rechazada':'cancelled','Vencida':'paused'}[status] || 'draft');
+      }
+      function quotesView() {
+        const quotes = state.data.quotes || [];
+        const statusMetrics=(records, states, status, value)=>states.map(s=>{const filtered=records.filter(x=>status(x)===s);return metric(s,filtered.length, money(filtered.reduce((a,x)=>a+value(x),0),true));}).join('');
+        return `<div class="ep-section-head"><div><h2>Cotizaciones comerciales</h2><p>Crea la propuesta una sola vez; los cálculos y el documento se actualizan automáticamente.</p></div><div class="ep-actions"><button type="button" class="ep-action-primary" data-new-quote>+ Nueva cotización</button></div></div>
+          <section class="ep-panel" style="margin-bottom:14px"><div class="ep-panel-head"><h3>Cotizaciones</h3><span>Valores con incremento, AIU e IVA</span></div><div class="ep-panel-body"><div class="ep-metric-grid">${statusMetrics(quotes,['Borrador','Enviada','Aprobada','Rechazada','Vencida'],quoteDisplayStatus,q=>quoteEconomics(q).total)}</div><strong>Total cotizaciones: ${money(quotes.reduce((a,q)=>a+quoteEconomics(q).total,0))}</strong></div></section>
+          <section class="ep-panel" style="margin-bottom:14px"><div class="ep-panel-head"><h3>Proyectos</h3><span>Valor registrado del proyecto</span></div><div class="ep-panel-body"><div class="ep-metric-grid">${statusMetrics(state.data.projects,['Borrador','Cotizado','Aprobado','En proceso','Pausado','Finalizado','Cancelado'],p=>p.status,p=>num(p.value))}</div><strong>Total proyectos: ${money(state.data.projects.reduce((a,p)=>a+num(p.value),0))}</strong></div></section>
+          <div class="ep-quote-grid">${quotes.map(q=>{const e=quoteEconomics(q);const c=quoteClient(q);const status=quoteDisplayStatus(q);return `<article class="ep-quote-card"><div class="ep-quote-card-head"><div><div class="ep-quote-code">${escapeHtml(q.number)}</div><h3>${escapeHtml(q.title)}</h3></div><span class="ep-status ${quoteStatusClass(status)}">${escapeHtml(status)}</span></div><p>${escapeHtml(c.name)} · ${dateText(q.date)}</p><div class="ep-quote-card-meta"><div><span>Valor total</span><strong>${money(e.total,true)}</strong></div><div><span>Vigencia</span><strong>${dateText(q.validUntil)}</strong></div><div><span>Materiales / ítems</span><strong>${q.materials.length}</strong></div><div><span>Contacto</span><strong>${escapeHtml(c.contact || 'Sin registrar')}</strong></div></div><button type="button" class="ep-action-secondary" data-open-quote="${q.id}">Abrir cotización →</button></article>`}).join('') || '<div class="ep-empty">Aún no hay cotizaciones.</div>'}</div>`;
+      }
+      function catalogView() {
+        const query=normalizeText(state.catalogSearch); const category=state.catalogCategory;
+        const items=state.data.catalog.filter(x=>(!query || normalizeText(x.code).includes(query) || normalizeText(x.description).includes(query)) && (!category || x.category===category));
+        return `<div class="ep-section-head"><div><h2>Productos y servicios</h2><p>Precios base reutilizables; las cotizaciones conservan una copia.</p></div><button class="ep-action-primary" type="button" data-new-catalog>+ Nuevo registro</button></div><div class="ep-actions" style="justify-content:flex-start;margin-bottom:14px"><input class="ep-role-select" data-catalog-search placeholder="Buscar código o descripción" value="${escapeHtml(state.catalogSearch)}"><select class="ep-role-select" data-catalog-category><option value="">Todas las categorías</option>${option('Material','Material',category)}${option('Mano de obra','Mano de obra',category)}</select></div><section class="ep-panel"><div class="ep-table-wrap"><table><thead><tr><th>Código</th><th>Descripción</th><th>Categoría</th><th>Unidad</th><th>Valor base</th><th></th></tr></thead><tbody>${items.map(x=>`<tr><td>${escapeHtml(x.code)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.category)}</td><td>${escapeHtml(x.unit)}</td><td>${money(x.unitPrice)}</td><td><button class="ep-action-ghost" type="button" data-edit-catalog="${x.id}">Editar</button><button class="ep-action-ghost" type="button" data-delete-catalog="${x.id}">Eliminar</button></td></tr>`).join('')||'<tr><td colspan="6"><div class="ep-empty">Sin resultados.</div></td></tr>'}</tbody></table></div></section>`;
+      }
+      function suppliersView() {
+        const query=normalizeText(state.supplierSearch); const items=state.data.suppliers.filter(x=>!query || normalizeText(x.name).includes(query)||normalizeText(x.description).includes(query));
+        return `<div class="ep-section-head"><div><h2>Proveedores</h2><p>Directorio para compras y servicios.</p></div><button class="ep-action-primary" type="button" data-new-supplier>+ Nuevo proveedor</button></div><div class="ep-actions" style="justify-content:flex-start;margin-bottom:14px"><input class="ep-role-select" data-supplier-search placeholder="Buscar nombre o descripción" value="${escapeHtml(state.supplierSearch)}"></div><section class="ep-panel"><div class="ep-table-wrap"><table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Web</th><th>Qué vende</th><th></th></tr></thead><tbody>${items.map(x=>`<tr><td>${escapeHtml(x.name)}</td><td>${escapeHtml(x.phone||'—')}</td><td>${escapeHtml(x.email||'—')}</td><td>${x.website?`<a href="${escapeHtml(x.website)}" target="_blank" rel="noopener">${escapeHtml(x.website)}</a>`:'—'}</td><td>${escapeHtml(x.description||'—')}</td><td><button class="ep-action-ghost" type="button" data-edit-supplier="${x.id}">Editar</button><button class="ep-action-ghost" type="button" data-delete-supplier="${x.id}">Eliminar</button></td></tr>`).join('')||'<tr><td colspan="6"><div class="ep-empty">Sin resultados.</div></td></tr>'}</tbody></table></div></section>`;
+      }
+      function quoteEditorField(label, fieldName, value, kind='input') {
+        if (kind === 'textarea') return `<div class="ep-field"><label>${label}</label><textarea data-quote-field="${fieldName}">${escapeHtml(value)}</textarea></div>`;
+        if (kind === 'select') return `<div class="ep-field"><label>${label}</label><select data-quote-field="${fieldName}">${['Borrador','Enviada','Aprobada','Rechazada'].map(x=>option(x,x,value)).join('')}</select></div>`;
+        if (kind === 'client') return `<div class="ep-field"><label>${label}</label><select data-quote-field="${fieldName}">${clientOptions(value)}</select></div>`;
+        return `<div class="ep-field"><label>${label}</label><input data-quote-field="${fieldName}" type="${kind}" value="${escapeHtml(value)}"></div>`;
+      }
+      function materialEditorRow(item) {
+        const q=state.data.quotes.find(x=>x.id===state.selectedQuoteId); const final=itemFinalPrice(item,q);
+        return `<div class="ep-material-row">${materialField('Código','code',item)}${materialField('Descripción','description',item)}${materialField('Categoría','category',item,'select')}${materialField('Cant.','quantity',item,'number','min="0" step="0.01"')}${materialField('Unidad','unit',item)}${materialField('Precio base','unitPrice',item,'number','min="0" step="0.01"')}<div class="ep-field"><label>Precio final</label><output>${money(final)}</output></div><div class="ep-field"><label>Total</label><output>${money(num(item.quantity)*final)}</output></div><button type="button" class="ep-icon-button" data-remove-material="${item.id}" aria-label="Eliminar material">✕</button></div>`;
+      }
+      function materialField(label,name,item,type='text',extra='') { if(type==='select') return `<div class="ep-field"><label>${label}</label><select required data-material-id="${item.id}" data-material-field="${name}">${option('','Elegir',item[name])}${option('Material','Material',item[name])}${option('Mano de obra','Mano de obra',item[name])}</select></div>`; return `<div class="ep-field"><label>${label}</label><input data-material-id="${item.id}" data-material-field="${name}" type="${type}" value="${escapeHtml(item[name])}" ${extra}></div>`; }
+      function quoteEconomicsEditor(q,e) {
+        const row=(label,fieldName,value,amount,locked=false)=>`<span>${label}</span>${locked?'<span>—</span>':`<input aria-label="${label} porcentaje" data-quote-economic="${fieldName}" type="number" min="0" step="0.01" value="${num(value)}">`}<strong>${money(amount)}</strong>`;
+        return `<div class="ep-economics-grid">${row('Costo directo ajustado','',0,e.direct,true)}${row('Incremento sobre materiales (%)','materialIncreasePct',q.materialIncreasePct,0)}${row('Administración (%)','administrationPct',q.administrationPct,e.administration)}${row('Imprevistos (%)','contingencyPct',q.contingencyPct,e.contingency)}${row('Utilidad (%)','utilityPct',q.utilityPct,e.utility)}${row('IVA sobre utilidad (%)','vatUtilityPct',q.vatUtilityPct,e.vatUtility)}</div><div class="ep-economics-total"><span>Total de la propuesta</span><strong>${money(e.total)}</strong></div>`;
+      }
+      function quoteView() {
+        const q = state.data.quotes.find(x=>x.id===state.selectedQuoteId);
+        if (!q) { state.view='quotes'; return quotesView(); }
+        const e=quoteEconomics(q); const c=quoteClient(q); const linked=state.data.projects.some(p=>p.linkedQuoteId===q.id);
+        return `<button type="button" class="ep-back" data-nav="quotes">← Volver a cotizaciones</button><div class="ep-section-head"><div><h2>${escapeHtml(q.number)}</h2><p>Edite a todo el ancho; la vista previa conserva el documento completo.</p></div><div class="ep-actions"><button type="button" class="ep-action-secondary" data-preview-quote>Vista previa</button><button type="button" class="ep-action-primary" data-convert-quote="${q.id}" ${linked?'disabled':''}>${linked?'Proyecto creado':'Convertir en proyecto'}</button></div></div>
+          <div class="ep-quote-workspace"><div class="ep-editor-pane"><div class="ep-quote-editor">
+            <details class="ep-editor-section" open><summary>1. Información principal</summary><div class="ep-editor-body"><div class="ep-form-grid">${quoteEditorField('Cliente','clientId',q.clientId,'client')}${quoteEditorField('Estado','status',q.status,'select')}${quoteEditorField('Fecha','date',q.date,'date')}${quoteEditorField('Válida hasta','validUntil',q.validUntil,'date')}</div>${quoteEditorField('Título / proyecto','title',q.title)}${quoteEditorField('Saludo e introducción','greeting',q.greeting,'textarea')}${quoteEditorField('Descripción del proyecto','projectDescription',q.projectDescription,'textarea')}${quoteEditorField('Objetivo del servicio','objective',q.objective,'textarea')}</div></details>
+            <details class="ep-editor-section" open><summary>2. Materiales y servicio</summary><div class="ep-editor-body"><label>Buscar en catálogo</label><input class="ep-role-select" data-quote-catalog-search placeholder="Código o descripción" value="${escapeHtml(state.quoteCatalogSearch)}"><div class="ep-catalog-results">${catalogResults(q)}</div><div class="ep-material-editor">${q.materials.map(materialEditorRow).join('')}</div><button type="button" class="ep-action-secondary" style="margin-top:10px" data-add-material>+ Agregar ítem manual</button></div></details>
+            <details class="ep-editor-section" open><summary>3. Resumen económico</summary><div class="ep-editor-body">${quoteEconomicsEditor(q,e)}${quoteEditorField('Notas importantes','notes',q.notes,'textarea')}</div></details>
+            <details class="ep-editor-section"><summary>4. Alcance y condiciones</summary><div class="ep-editor-body">${quoteEditorField('Alcance y actividades','scope',q.scope,'textarea')}${quoteEditorField('Beneficio esperado','benefits',q.benefits,'textarea')}${quoteEditorField('Actividades no incluidas','exclusions',q.exclusions,'textarea')}${quoteEditorField('Condiciones de pago','paymentTerms',q.paymentTerms,'textarea')}${quoteEditorField('Tiempo de ejecución','executionTime',q.executionTime,'textarea')}${quoteEditorField('Entregable','deliverable',q.deliverable,'textarea')}</div></details>
+            <details class="ep-editor-section"><summary>5. Tarjeta del gerente</summary><div class="ep-editor-body">${companyEditor()}</div></details>
+          </div></div></div>`;
+      }
+      function companyEditor() {
+        const co=state.data.company;
+        return `<div class="ep-form-grid">${companyField('Nombre','managerName',co.managerName)}${companyField('Cargo','managerRole',co.managerRole)}${companyField('Tarjeta profesional','professionalCard',co.professionalCard)}${companyField('Teléfono','phone',co.phone)}${companyField('Correo','email',co.email,false,'email')}${companyField('Dirección','address',co.address,true)}</div>`;
+      }
+      function catalogResults(q) {
+        const search=normalizeText(state.quoteCatalogSearch); if (!search) return '<div class="ep-financial-note">Escriba código o descripción para buscar en el catálogo.</div>';
+        const results=state.data.catalog.filter(x=>normalizeText(x.code).includes(search)||normalizeText(x.description).includes(search));
+        return results.length ? results.map(x=>`<button type="button" class="ep-action-secondary" data-add-catalog-item="${x.id}" style="margin:8px 6px 0 0">${escapeHtml(x.code)} · ${escapeHtml(x.description)} · ${escapeHtml(x.category)} · ${escapeHtml(x.unit)} · ${money(x.unitPrice)}</button>`).join('') : '<div class="ep-financial-note">No se encontraron coincidencias.</div>';
+      }
+      function companyField(label,name,value,full=false,type='text') { return `<div class="ep-field ${full?'full':''}"><label>${label}</label><input data-company-field="${name}" type="${type}" value="${escapeHtml(value)}"></div>`; }
+      function syncQuoteFromEditor() {
+        const q=state.data.quotes.find(x=>x.id===state.selectedQuoteId); if(!q) return;
+        root.querySelectorAll('[data-quote-field]').forEach(el=>q[el.dataset.quoteField]=el.value);
+        root.querySelectorAll('[data-quote-economic]').forEach(el=>q[el.dataset.quoteEconomic]=num(el.value));
+        root.querySelectorAll('[data-material-field]').forEach(el=>{const item=q.materials.find(x=>x.id===el.dataset.materialId);if(item)item[el.dataset.materialField]=['quantity','unitPrice'].includes(el.dataset.materialField)?num(el.value):el.value;});
+        root.querySelectorAll('[data-company-field]').forEach(el=>state.data.company[el.dataset.companyField]=el.value);
+        saveData();
+      }
+      function openQuotePreview(opener) {
+        syncQuoteFromEditor(); const q=state.data.quotes.find(x=>x.id===state.selectedQuoteId); if(!q)return;
+        state.previewOpener=opener; root.querySelector('#ep-preview-title').textContent=`Vista previa · ${q.number}`;
+        root.querySelector('#ep-preview-content').innerHTML=quoteDocument(q,quoteClient(q),quoteEconomics(q));
+        root.querySelector('#ep-preview-dialog').showModal();
+      }
+      function quoteDocument(q,c,e) {
+        const materialRows=q.materials.map((m,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(m.code)}</td><td>${escapeHtml(m.description)}</td><td class="number">${num(m.quantity)}</td><td>${escapeHtml(m.unit)}</td><td class="number">${money(itemFinalPrice(m,q))}</td><td class="number">${money(itemFinalTotal(m,q))}</td></tr>`).join('');
+        const economicRows=[['Costo directo','—',e.direct],['Administración',`${num(q.administrationPct)}%`,e.administration],['Imprevistos',`${num(q.contingencyPct)}%`,e.contingency],['Utilidad',`${num(q.utilityPct)}%`,e.utility],['IVA sobre utilidad',`${num(q.vatUtilityPct)}%`,e.vatUtility]];
+        return `<article class="ep-quote-document"><header class="ep-document-head"><div><div class="ep-document-kicker">Propuesta técnico-económica</div><h2>${escapeHtml(q.number)}</h2><p>Fecha: ${dateText(q.date)} · Válida hasta: ${dateText(q.validUntil)}</p></div><img src="${LOGO}" alt="Elecpro Ingeniería Eléctrica"></header>
+          <div class="ep-document-intro"><strong>Señores<br>${escapeHtml(c.name)}</strong><br>${escapeHtml(c.contact || '')}${c.email?` · ${escapeHtml(c.email)}`:''}<br><br>${escapeHtml(q.greeting)}</div>
+          ${docSection('Objetivo del servicio',q.objective)}
+          <section class="ep-document-section"><h3>Materiales y servicios</h3><div class="ep-table-wrap"><table class="ep-document-table"><thead><tr><th>Ítem</th><th>Código</th><th>Descripción</th><th>Cant.</th><th>Unidad</th><th>Valor unit.</th><th>Valor total</th></tr></thead><tbody>${materialRows || '<tr><td colspan="7">Sin ítems registrados</td></tr>'}</tbody></table></div></section>
+          <section class="ep-document-section"><h3>Información del proyecto</h3><div class="ep-table-wrap"><table class="ep-document-table"><tbody><tr><th style="width:145px">Descripción</th><td>${escapeHtml(q.projectDescription)}</td></tr><tr><th>Notas importantes</th><td style="white-space:pre-line">${escapeHtml(q.notes)}</td></tr></tbody></table></div></section>
+          <section class="ep-document-section"><h3>Resumen económico</h3><div class="ep-table-wrap"><table class="ep-document-table"><thead><tr><th>Concepto</th><th>Porcentaje</th><th>Valor</th></tr></thead><tbody>${economicRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="number">${money(r[2])}</td></tr>`).join('')}<tr class="total-row"><td colspan="2">TOTAL PROPUESTA</td><td class="number">${money(e.total)}</td></tr></tbody></table></div></section>
+          ${docSection('Alcance y actividades del servicio',q.scope)}${docSection('Beneficio esperado',q.benefits)}${docSection('Actividades no incluidas',q.exclusions)}${docSection('Condiciones de pago',q.paymentTerms)}${docSection('Tiempo de ejecución',q.executionTime)}${docSection('Entregable',q.deliverable)}
+          <div class="ep-manager-card"><div><strong>${escapeHtml(state.data.company.managerName)}</strong><span>${escapeHtml(state.data.company.managerRole)}</span>${state.data.company.professionalCard?`<span>Tarjeta profesional: ${escapeHtml(state.data.company.professionalCard)}</span>`:''}<span>${escapeHtml(state.data.company.phone)} · ${escapeHtml(state.data.company.email)}</span><span>${escapeHtml(state.data.company.address)}</span></div><img src="${LOGO}" alt="Elecpro"></div></article>`;
+      }
+      function docSection(title,content) { return `<section class="ep-document-section"><h3>${title}</h3><p>${escapeHtml(content || 'Sin información registrada.')}</p></section>`; }
+      function clientsView() {
+        return `<div class="ep-section-head"><div><h2>Catálogo de clientes</h2><p>Una sola ficha puede estar asociada a múltiples proyectos.</p></div><div class="ep-actions"><button type="button" class="ep-action-primary" data-new-client>+ Nuevo cliente</button></div></div><div class="ep-client-grid">${state.data.clients.map(c => { const ps = state.data.projects.filter(p=>p.clientId===c.id); return `<article class="ep-client-tile"><div class="ep-client-avatar">${escapeHtml(c.name.split(/\s+/).slice(0,2).map(x=>x[0]).join(''))}</div><h3>${escapeHtml(c.name)}</h3><p>${escapeHtml(c.type)} · ${escapeHtml(c.contact)}</p><p>${escapeHtml(c.phone)}</p><div class="ep-client-count">${ps.length} proyecto(s) · ${money(ps.reduce((a,p)=>a+num(p.value),0), true)} contratados</div></article>`; }).join('')}</div>`;
+      }
+      function financeView() {
+        const p = portfolio();
+        return `<div class="ep-section-head"><div><h2>Resumen financiero</h2><p>La utilidad respeta el modelo definido en cada proyecto.</p></div><div class="ep-actions"><button type="button" class="ep-action-secondary" data-print>Informe PDF</button><button type="button" class="ep-action-primary" data-new-global-share>+ Distribución general</button></div></div>
+          <div class="ep-metric-grid">${metric('Valor contratado',money(p.value,true),'Portafolio total')}${metric('Pagos recibidos',money(p.paid,true),'Consolidado de anticipos')}${metric('Gastos reales',money(p.expenses,true),`Presupuestados: ${money(p.budget,true)}`,p.expenses>p.budget?'warning':'')}${metric('Ganancia actual',money(p.profit,true),'Antes de distribuciones')}</div>
+          <div class="ep-two-col"><section class="ep-panel"><div class="ep-panel-head"><h3>Estado por proyecto</h3></div><div class="ep-table-wrap"><table><thead><tr><th>Proyecto</th><th>Valor</th><th>Saldo</th><th>Gastos</th><th>Ganancia</th></tr></thead><tbody>${state.data.projects.map(pr=>{const t=totals(pr);return `<tr><td><button type="button" class="ep-project-link" data-open-project="${pr.id}">${escapeHtml(pr.quote)}<small>${escapeHtml(pr.type)}</small></button></td><td>${money(pr.value,true)}</td><td>${money(t.balance,true)}</td><td>${money(t.expenses,true)}</td><td>${money(t.profit,true)}</td></tr>`}).join('')}</tbody></table></div></section>
+          <section class="ep-panel"><div class="ep-panel-head"><h3>Gerencia e inversores</h3></div><div class="ep-panel-body"><div class="ep-share-grid" style="grid-template-columns:1fr">${state.data.globalShares.map(s=>shareTile(s)).join('') || '<div class="ep-empty">No hay distribuciones generales.</div>'}</div><div class="ep-financial-note">Estas participaciones se calculan sobre la utilidad real consolidada de todos los proyectos. En producción se recomienda cerrar cada período antes de liquidarlas.</div></div></section></div>`;
+      }
+      function shareTile(s, project=null) {
+        const mode = s.mode === 'percent' ? `${num(s.value)}%` : money(s.value);
+        const basis = s.basis === 'project_value' ? 'valor total del proyecto' : s.basis === 'real_profit' ? 'utilidad real del proyecto' : 'utilidad real consolidada';
+        return `<article class="ep-share-tile"><strong>${escapeHtml(s.participant)}</strong><span>${mode} sobre ${basis}</span><span class="ep-share-amount">${money(shareAmount(s, project))}</span><span>${s.paid ? `Pagado: ${dateText(s.paidDate)}` : 'Pendiente de pago'}</span></article>`;
+      }
+      function alertsView() {
+        const all = alerts();
+        return `<div class="ep-section-head"><div><h2>Centro de alertas</h2><p>Generadas automáticamente a partir de fechas, saldos y presupuestos.</p></div></div><section class="ep-panel"><div class="ep-panel-head"><h3>${all.length} situaciones detectadas</h3></div><div class="ep-panel-body"><div class="ep-alert-list">${alertMarkup(all)}</div></div></section>`;
+      }
+      function projectView() {
+        const p = state.data.projects.find(x => x.id === state.selectedProjectId);
+        if (!p) { state.view='projects'; return projectsView(); }
+        const t = totals(p); const delay = delayDays(p); const durationEnd = p.actualEnd || isoOffset(0); const duration = Math.max(0, daysBetween(p.start, durationEnd));
+        const tabs = [['summary','Resumen'],['payments','Anticipos'],['expenses','Gastos y presupuesto'],['shares','Distribución'],['timeline','Fechas y condiciones']];
+        return `<button type="button" class="ep-back" data-nav="projects">← Volver a proyectos</button>
+          <section class="ep-detail-hero"><div class="ep-detail-hero-top"><div><div class="ep-detail-code">${escapeHtml(p.quote)} · ${escapeHtml(client(p).name)}</div><h2>${escapeHtml(p.type)}</h2><p>${escapeHtml(p.location)} · Responsable: ${escapeHtml(p.responsible)}</p></div><button type="button" class="ep-action-secondary" data-edit-project="${p.id}">Editar proyecto</button></div><div class="ep-detail-metrics"><div class="ep-detail-metric"><span>Valor del proyecto</span><strong>${money(p.value)}</strong></div><div class="ep-detail-metric"><span>Pagado</span><strong>${money(t.paid)}</strong></div><div class="ep-detail-metric"><span>Saldo pendiente</span><strong>${money(t.balance)}</strong></div><div class="ep-detail-metric"><span>Ganancia actual</span><strong>${money(t.profit)}</strong></div></div></section>
+          <div class="ep-tabs" role="tablist">${tabs.map(([id,label])=>`<button type="button" class="ep-tab" role="tab" data-project-tab="${id}" aria-selected="${state.projectTab===id}">${label}</button>`).join('')}</div>
+          ${projectTabContent(p,t,delay,duration)}`;
+      }
+      function projectTabContent(p,t,delay,duration) {
+        if (state.projectTab === 'summary') return `<div class="ep-two-col"><section class="ep-panel"><div class="ep-panel-head"><h3>Información general</h3></div><div class="ep-panel-body"><div class="ep-info-list">${info('Estado',`<span class="ep-status ${statusClass(p.status)}">${escapeHtml(p.status)}</span>`)}${info('Cliente',escapeHtml(client(p).name))}${info('Responsable',escapeHtml(p.responsible))}${info('Prioridad',escapeHtml(p.priority))}${info('Lugar de ejecución',escapeHtml(p.location))}${info('Tiempo invertido',`${duration} día(s)`)}</div><div class="ep-financial-note">${escapeHtml(p.observations || 'Sin observaciones.')}</div></div></section><section class="ep-panel"><div class="ep-panel-head"><h3>Estado financiero automático</h3></div><div class="ep-panel-body"><div class="ep-financial-bars">${financialBar('Pagos recibidos',t.paid,p.value)}${financialBar('Gastos reales',t.expenses,Math.max(t.budget,p.value))}${financialBar('Presupuesto usado',t.expenses,t.budget || 1)}</div><div class="ep-financial-note">Modelo: ${p.profitMode==='manual'?'ganancia inicial manual menos gastos':'valor del proyecto menos gastos'}. Ganancia proyectada: ${money(t.projectedProfit)}.</div></div></section></div>`;
+        if (state.projectTab === 'payments') return `<section class="ep-panel"><div class="ep-panel-head"><h3>Historial de anticipos</h3><button type="button" class="ep-action-primary" data-new-payment="${p.id}">+ Registrar anticipo</button></div><div class="ep-table-wrap"><table><thead><tr><th>Fecha</th><th>Valor</th><th>Medio de pago</th><th>Observación</th></tr></thead><tbody>${p.payments.length?p.payments.map(x=>`<tr><td>${dateText(x.date)}</td><td>${money(x.amount)}</td><td>${escapeHtml(x.method)}</td><td>${escapeHtml(x.note)}</td></tr>`).join(''):'<tr><td colspan="4"><div class="ep-empty">No se han registrado anticipos.</div></td></tr>'}</tbody></table></div></section>`;
+        if (state.projectTab === 'expenses') return `<div class="ep-two-col"><section class="ep-panel"><div class="ep-panel-head"><h3>Gastos reales · ${money(t.expenses)}</h3><button type="button" class="ep-action-primary" data-new-expense="${p.id}">+ Gasto</button></div><div class="ep-table-wrap"><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Valor</th><th>Descripción</th></tr></thead><tbody>${p.expenses.length?p.expenses.map(x=>`<tr><td>${dateText(x.date)}</td><td>${escapeHtml(x.category)}</td><td>${money(x.amount)}</td><td>${escapeHtml(x.note)}</td></tr>`).join(''):'<tr><td colspan="4"><div class="ep-empty">No hay gastos.</div></td></tr>'}</tbody></table></div></section><section class="ep-panel"><div class="ep-panel-head"><h3>Presupuesto de costos · ${money(t.budget)}</h3><button type="button" class="ep-action-secondary" data-new-budget="${p.id}">+ Presupuestar</button></div><div class="ep-table-wrap"><table><thead><tr><th>Categoría</th><th>Base</th><th>Incrementado</th><th>Descripción</th></tr></thead><tbody>${p.budgets.length?p.budgets.map(x=>`<tr><td>${escapeHtml(x.category)}</td><td>${money(x.baseTotal===undefined?x.amount:x.baseTotal)}</td><td>${x.finalTotal===undefined?'—':money(x.finalTotal)}</td><td>${escapeHtml(x.note)}</td></tr>`).join(''):'<tr><td colspan="4"><div class="ep-empty">No hay presupuesto.</div></td></tr>'}</tbody></table></div>${t.expenses>t.budget&&t.budget?`<div class="ep-panel-body"><div class="ep-alert-item warning"><span class="ep-alert-dot"></span><span><strong>Presupuesto excedido</strong><span>Se superó en ${money(t.expenses-t.budget)}.</span></span></div></div>`:''}</section></div>`;
+        if (state.projectTab === 'shares') return `<div class="ep-section-head"><div><h2>Participación en este proyecto</h2><p>Porcentaje o valor fijo, con trazabilidad de pago.</p></div><button type="button" class="ep-action-primary" data-new-share="${p.id}">+ Agregar condición</button></div><div class="ep-share-grid">${p.shares.length?p.shares.map(s=>shareTile(s,p)).join(''):'<div class="ep-empty">No hay condiciones de distribución.</div>'}</div>`;
+        return `<div class="ep-two-col"><section class="ep-panel"><div class="ep-panel-head"><h3>Fechas y duración</h3></div><div class="ep-panel-body"><div class="ep-info-list">${info('Inicio',dateText(p.start))}${info('Finalización prevista',dateText(p.expectedEnd))}${info('Finalización real',dateText(p.actualEnd))}${info('Tiempo invertido',`${duration} día(s)`)}${info('Desviación',delay?`${delay} día(s) de retraso`:'Sin retraso')}${info('Prioridad',escapeHtml(p.priority))}</div></div></section><section class="ep-panel"><div class="ep-panel-head"><h3>Condiciones operativas</h3></div><div class="ep-panel-body"><div class="ep-financial-note" style="margin-top:0">${escapeHtml(p.observations || 'Sin condiciones registradas.')}</div><div class="ep-financial-note">Los cambios realizados después del inicio deberían guardar usuario, fecha y valor anterior en una bitácora de auditoría.</div></div></section></div>`;
+      }
+      function info(label,value) { return `<div class="ep-info-item"><span>${label}</span><strong>${value}</strong></div>`; }
+      function financialBar(label,value,max) { const pct = max ? Math.max(0,Math.min(100,Math.round(value/max*100))) : 0; return `<div><div class="ep-financial-row-head"><span>${label}</span><span>${money(value)} · ${pct}%</span></div><div class="ep-progress"><span style="width:${pct}%"></span></div></div>`; }
+
+      function clientOptions(selected='') { return state.data.clients.map(c=>`<option value="${c.id}" ${c.id===selected?'selected':''}>${escapeHtml(c.name)}</option>`).join(''); }
+      function openDialog(title, content, onSubmit) {
+        const dialog = root.querySelector('#ep-dialog'); const form = root.querySelector('#ep-form');
+        root.querySelector('#ep-dialog-title').textContent = title; form.innerHTML = content;
+        form.onsubmit = e => { e.preventDefault(); const values = Object.fromEntries(new FormData(form).entries()); if(onSubmit(values) === false) return; saveData(); dialog.close(); render(); };
+        dialog.showModal();
+      }
+      function formActions() { return `<div class="ep-form-actions"><button type="button" class="ep-action-secondary" data-close-dialog>Cancelar</button><button type="submit" class="ep-action-primary">Guardar</button></div>`; }
+      function field(label,name,type='text',value='',extra='',full=false) { return `<div class="ep-field ${full?'full':''}"><label for="ep-${name}">${label}</label><input id="ep-${name}" name="${name}" type="${type}" value="${escapeHtml(value)}" ${extra}></div>`; }
+      function selectField(label,name,options,full=false) { return `<div class="ep-field ${full?'full':''}"><label for="ep-${name}">${label}</label><select id="ep-${name}" name="${name}">${options}</select></div>`; }
+      function option(value,label,selected='') { return `<option value="${value}" ${value===selected?'selected':''}>${label}</option>`; }
+      function projectForm(project=null) {
+        const p = project || {type:'',clientId:state.data.clients[0]?.id||'',value:'',status:'Borrador',responsible:'',location:'',priority:'Media',start:isoOffset(0),expectedEnd:isoOffset(30),actualEnd:'',observations:'',profitMode:'value',initialProfit:''};
+        return `<div class="ep-form-grid">${field('Tipo de proyecto','type','text',p.type,'required',true)}${selectField('Cliente','clientId',clientOptions(p.clientId))}${field('Valor del proyecto','value','number',p.value,'min="0" required')}${selectField('Estado','status',['Borrador','Cotizado','Aprobado','En proceso','Pausado','Finalizado','Cancelado'].map(x=>option(x,x,p.status)).join(''))}${selectField('Prioridad','priority',['Baja','Media','Alta','Crítica'].map(x=>option(x,x,p.priority)).join(''))}${field('Responsable','responsible','text',p.responsible,'required')}${field('Lugar de ejecución','location','text',p.location,'required')}${field('Fecha de inicio','start','date',p.start,'required')}${field('Finalización prevista','expectedEnd','date',p.expectedEnd,'required')}${field('Finalización real','actualEnd','date',p.actualEnd)}${selectField('Modelo de ganancia','profitMode',option('value','Valor del proyecto − gastos',p.profitMode)+option('manual','Ganancia inicial − gastos',p.profitMode),true)}${field('Ganancia inicial manual','initialProfit','number',p.initialProfit,'min="0"',true)}<div class="ep-field full"><label for="ep-observations">Observaciones y condiciones</label><textarea id="ep-observations" name="observations">${escapeHtml(p.observations)}</textarea></div></div>${formActions()}`;
+      }
+      function nextQuoteNumber() {
+        const all=[...(state.data.projects || []).map(x=>x.quote),...(state.data.quotes || []).map(x=>x.number)];
+        const seq=Math.max(0,...all.map(code=>num((String(code).match(/(\d+)$/)||[])[1])))+1;
+        return `COT-${new Date().getFullYear()}-${String(seq).padStart(4,'0')}`;
+      }
+      function openNewQuote() {
+        openDialog('Nueva cotización',`<div class="ep-form-grid">${selectField('Cliente','clientId',clientOptions())}${field('Nombre del proyecto o servicio','title','text','','required',true)}${field('Fecha','date','date',isoOffset(0),'required')}${field('Válida hasta','validUntil','date',isoOffset(15),'required')}</div>${formActions()}`,v=>{
+          const q={id:uid('q'),number:nextQuoteNumber(),date:v.date,validUntil:v.validUntil,status:'Borrador',clientId:v.clientId,title:v.title,greeting:'Cordial saludo. Presentamos para su consideración la siguiente propuesta técnica y económica.',projectDescription:'',objective:'',materials:[{id:uid('m'),code:'',description:'',category:'',catalogId:'',quantity:1,unit:'und',unitPrice:0}],notes:'La oferta tiene una vigencia de 15 días calendario.',materialIncreasePct:0,administrationPct:8,contingencyPct:3,utilityPct:10,vatUtilityPct:19,scope:'',benefits:'',exclusions:'',paymentTerms:'50% de anticipo y 50% contra entrega.',executionTime:'Por definir según programación y disponibilidad de materiales.',deliverable:''};
+          state.data.quotes.unshift(q);state.selectedQuoteId=q.id;state.view='quote';showToast('Cotización creada con numeración automática.');
+        });
+      }
+      function convertQuoteToProject(quoteId) {
+        const q=state.data.quotes.find(x=>x.id===quoteId); if(!q) return;
+        const existing=state.data.projects.find(p=>p.linkedQuoteId===q.id);
+        if(existing){state.selectedProjectId=existing.id;state.view='project';render();return;}
+        const e=quoteEconomics(q); const c=quoteClient(q);
+        const project={id:uid('p'),linkedQuoteId:q.id,quote:q.number,type:q.title,clientId:q.clientId,value:e.total,status:'Aprobado',responsible:state.data.company.managerName,location:c.address || 'Por definir',priority:'Media',start:isoOffset(0),expectedEnd:isoOffset(30),actualEnd:'',observations:q.projectDescription,profitMode:'value',initialProfit:0,payments:[],expenses:[],budgets:q.materials.map(m=>({id:uid('bu'),amount:num(m.quantity)*num(m.unitPrice),baseUnitPrice:num(m.unitPrice),finalUnitPrice:itemFinalPrice(m,q),baseTotal:num(m.quantity)*num(m.unitPrice),finalTotal:itemFinalTotal(m,q),quantity:num(m.quantity),category:m.category||'Sin clasificar',note:`${m.code} · ${m.description}`})),shares:[]};
+        state.data.projects.unshift(project);q.status='Aprobada';saveData();state.selectedProjectId=project.id;state.view='project';state.projectTab='summary';showToast('Cotización aprobada y convertida en proyecto.');render();
+      }
+      function openProjectForm(projectId=null) {
+        const existing = projectId ? state.data.projects.find(p=>p.id===projectId) : null;
+        openDialog(existing?'Editar proyecto':'Nuevo proyecto',projectForm(existing), values => {
+          if (existing) Object.assign(existing, values, {value:num(values.value),initialProfit:num(values.initialProfit)});
+          else {
+            state.data.projects.unshift({...values,id:uid('p'),quote:nextQuoteNumber(),value:num(values.value),initialProfit:num(values.initialProfit),payments:[],expenses:[],budgets:[],shares:[]});
+          }
+          showToast(existing?'Proyecto actualizado.':'Proyecto creado con número de cotización automático.');
+        });
+      }
+      function openPayment(projectId) {
+        openDialog('Registrar anticipo',`<div class="ep-form-grid">${field('Fecha','date','date',isoOffset(0),'required')}${field('Valor','amount','number','','min="1" required')}${selectField('Medio de pago','method',['Transferencia','Efectivo','Cheque','Tarjeta empresarial','Otro'].map(x=>option(x,x)).join(''))}${field('Observación','note','text','','required',true)}</div>${formActions()}`,v=>{state.data.projects.find(p=>p.id===projectId).payments.push({...v,id:uid('pay'),amount:num(v.amount)});showToast('Anticipo registrado y saldo actualizado.');});
+      }
+      function openExpense(projectId, budget=false) {
+        const title = budget?'Agregar presupuesto':'Registrar gasto';
+        const dateAndMethod = budget?'':field('Fecha','date','date',isoOffset(0),'required')+selectField('Medio de pago','method',['Transferencia','Efectivo','Cheque','Tarjeta empresarial','Otro'].map(x=>option(x,x)).join(''));
+        openDialog(title,`<div class="ep-form-grid">${field('Categoría','category','text','','required')}${field('Valor','amount','number','','min="1" required')}${dateAndMethod}${field('Descripción / observación','note','text','','required',true)}</div>${formActions()}`,v=>{const p=state.data.projects.find(p=>p.id===projectId); const record={...v,id:uid(budget?'bu':'ex'),amount:num(v.amount)};(budget?p.budgets:p.expenses).push(record);showToast(budget?'Presupuesto actualizado.':'Gasto registrado; ganancia recalculada automáticamente.');});
+      }
+      function openClient() {
+        openDialog('Nuevo cliente',`<div class="ep-form-grid">${field('Nombre o razón social','name','text','','required',true)}${selectField('Tipo','type',option('Empresa','Empresa')+option('Persona natural','Persona natural')+option('Propiedad horizontal','Propiedad horizontal'))}${field('Contacto','contact','text','','required')}${field('Teléfono','phone','text','','required')}${field('Correo','email','email','')}${field('Dirección','address','text','', '', true)}</div>${formActions()}`,v=>{state.data.clients.push({...v,id:uid('c')});showToast('Cliente agregado al catálogo.');});
+      }
+      function catalogForm(item=null) {
+        const x=item||{code:'',description:'',unit:'und',unitPrice:'',category:'Material'};
+        return `<div class="ep-form-grid">${field('Código','code','text',x.code,'required')}${field('Descripción','description','text',x.description,'required',true)}${field('Unidad','unit','text',x.unit,'required')}${field('Valor unitario base','unitPrice','number',x.unitPrice,'min="0" step="0.01" required')}${selectField('Categoría','category',option('Material','Material',x.category)+option('Mano de obra','Mano de obra',x.category))}</div>${formActions()}`;
+      }
+      function openCatalog(itemId=null) {
+        const existing=itemId ? state.data.catalog.find(x=>x.id===itemId) : null;
+        openDialog(existing?'Editar producto o servicio':'Nuevo producto o servicio',catalogForm(existing),v=>{
+          if(!v.code.trim() || !v.description.trim() || !v.unit.trim() || v.unitPrice==='' || num(v.unitPrice)<0) { alert('Complete los campos obligatorios con un valor válido.'); return false; }
+          v.code=v.code.trim(); v.description=v.description.trim(); v.unit=v.unit.trim();
+          const duplicate=state.data.catalog.find(x=>normalizeText(x.code)===normalizeText(v.code) && x.id!==existing?.id);
+          if(duplicate) { alert('El código ya existe.'); return false; }
+          const record={...v,id:existing?.id||uid('cat'),unitPrice:num(v.unitPrice)};
+          if(existing) Object.assign(existing,record); else state.data.catalog.unshift(record);
+          showToast(existing?'Registro actualizado.':'Registro creado.');
+        });
+      }
+      function supplierForm(item=null) {
+        const x=item||{name:'',phone:'',email:'',website:'',description:''};
+        return `<div class="ep-form-grid">${field('Nombre','name','text',x.name,'required',true)}${field('Teléfono','phone','text',x.phone)}${field('Correo','email','email',x.email)}${field('Página web','website','url',x.website)}<div class="ep-field full"><label>Descripción de lo que vende</label><textarea name="description">${escapeHtml(x.description)}</textarea></div></div>${formActions()}`;
+      }
+      function openSupplier(itemId=null) {
+        const existing=itemId ? state.data.suppliers.find(x=>x.id===itemId) : null;
+        openDialog(existing?'Editar proveedor':'Nuevo proveedor',supplierForm(existing),v=>{
+          if(!v.name.trim()) { alert('El nombre es obligatorio.'); return false; }
+          v.name=v.name.trim();
+          const record={...v,id:existing?.id||uid('sup')}; if(existing) Object.assign(existing,record); else state.data.suppliers.unshift(record);
+          showToast(existing?'Proveedor actualizado.':'Proveedor creado.');
+        });
+      }
+      function openShare(projectId=null) {
+        const isGlobal=!projectId;
+        openDialog(isGlobal?'Distribución general':'Condición de distribución',`<div class="ep-form-grid">${field('Persona, gerencia o inversor','participant','text','','required',true)}${selectField('Tipo de participación','mode',option('percent','Porcentaje')+option('fixed','Valor fijo'))}${field('Valor o porcentaje','value','number','','min="0" step="0.01" required')}${isGlobal?'':selectField('Base de cálculo','basis',option('project_value','Valor total del proyecto')+option('real_profit','Utilidad real del proyecto'),true)}${selectField('Estado del pago','paid',option('false','Pendiente')+option('true','Pagado'))}${field('Fecha de pago','paidDate','date','')}</div>${formActions()}`,v=>{const record={...v,id:uid(isGlobal?'gs':'sh'),value:num(v.value),paid:v.paid==='true',basis:isGlobal?'portfolio_profit':v.basis}; if(isGlobal)state.data.globalShares.push(record);else state.data.projects.find(p=>p.id===projectId).shares.push(record);showToast('Condición de distribución registrada.');});
+      }
+      function exportCsv() {
+        const rows=[['Cotización','Proyecto','Cliente','Estado','Valor','Pagado','Saldo','Gastos','Ganancia']];
+        state.data.projects.forEach(p=>{const t=totals(p);rows.push([p.quote,p.type,client(p).name,p.status,p.value,t.paid,t.balance,t.expenses,t.profit]);});
+        const csv='\ufeff'+rows.map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+        const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); const a=document.createElement('a');a.href=url;a.download='elecpro-proyectos.csv';a.click();URL.revokeObjectURL(url);showToast('Informe compatible con Excel generado.');
+      }
+
+      root.addEventListener('click', e => {
+        const target = e.target.closest('button,[data-analysis-filter]'); if (!target) return;
+        if (target.hasAttribute('data-menu-toggle')) toggleNavigation();
+        else if (target.hasAttribute('data-menu-close')) setNavigationOpen(false, true);
+        else if (target.dataset.nav) { state.view=target.dataset.nav; state.projectTab='summary'; if (navMedia.matches) setNavigationOpen(false, true); render(); }
+        else if (target.dataset.openProject) { state.selectedProjectId=target.dataset.openProject; state.view='project'; state.projectTab='summary'; render(); }
+        else if (target.dataset.openQuote) { state.selectedQuoteId=target.dataset.openQuote; state.view='quote'; render(); }
+        else if (target.dataset.projectTab) { state.projectTab=target.dataset.projectTab; render(); }
+        else if (target.hasAttribute('data-new-quote')) openNewQuote();
+        else if (target.hasAttribute('data-preview-quote')) openQuotePreview(target);
+        else if (target.hasAttribute('data-close-preview')) root.querySelector('#ep-preview-dialog').close();
+        else if (target.hasAttribute('data-preview-print')) window.print();
+        else if (target.dataset.analysisTab) { state.analysisTab=target.dataset.analysisTab; render(); }
+        else if (target.dataset.resetAnalysis) { state.analysisFilters[target.dataset.resetAnalysis]={}; render(); }
+        else if (target.dataset.analysisFilter) { const [scope,key,value]=target.dataset.analysisFilter.split(':'); state.analysisFilters[scope][key]=value; render(); }
+        else if (target.hasAttribute('data-add-material')) { const q=state.data.quotes.find(x=>x.id===state.selectedQuoteId);q.materials.push({id:uid('m'),code:'',description:'',category:'',catalogId:'',quantity:1,unit:'und',unitPrice:0});saveData();render(); }
+        else if (target.dataset.addCatalogItem) { const q=state.data.quotes.find(x=>x.id===state.selectedQuoteId); const x=state.data.catalog.find(x=>x.id===target.dataset.addCatalogItem); if(x) { q.materials.push({id:uid('m'),catalogId:x.id,code:x.code,description:x.description,category:x.category,quantity:1,unit:x.unit,unitPrice:num(x.unitPrice)}); saveData(); render(); showToast('Ítem agregado desde el catálogo.'); } }
+        else if (target.dataset.removeMaterial) { const q=state.data.quotes.find(x=>x.id===state.selectedQuoteId);q.materials=q.materials.filter(x=>x.id!==target.dataset.removeMaterial);saveData();render();showToast('Ítem eliminado de la cotización.'); }
+        else if (target.dataset.convertQuote) convertQuoteToProject(target.dataset.convertQuote);
+        else if (target.hasAttribute('data-new-project')) openProjectForm();
+        else if (target.dataset.editProject) openProjectForm(target.dataset.editProject);
+        else if (target.dataset.newPayment) openPayment(target.dataset.newPayment);
+        else if (target.dataset.newExpense) openExpense(target.dataset.newExpense,false);
+        else if (target.dataset.newBudget) openExpense(target.dataset.newBudget,true);
+        else if (target.hasAttribute('data-new-client')) openClient();
+        else if (target.hasAttribute('data-new-catalog')) openCatalog();
+        else if (target.dataset.editCatalog) openCatalog(target.dataset.editCatalog);
+        else if (target.dataset.deleteCatalog) { const x=state.data.catalog.find(x=>x.id===target.dataset.deleteCatalog); if(x && confirm(`¿Eliminar “${x.code}”?`)) { state.data.catalog=state.data.catalog.filter(x=>x.id!==target.dataset.deleteCatalog);saveData();render();showToast('Registro eliminado.'); } }
+        else if (target.hasAttribute('data-new-supplier')) openSupplier();
+        else if (target.dataset.editSupplier) openSupplier(target.dataset.editSupplier);
+        else if (target.dataset.deleteSupplier) { const x=state.data.suppliers.find(x=>x.id===target.dataset.deleteSupplier); if(x && confirm(`¿Eliminar “${x.name}”?`)) { state.data.suppliers=state.data.suppliers.filter(x=>x.id!==target.dataset.deleteSupplier);saveData();render();showToast('Proveedor eliminado.'); } }
+        else if (target.dataset.newShare) openShare(target.dataset.newShare);
+        else if (target.hasAttribute('data-new-global-share')) openShare();
+        else if (target.hasAttribute('data-export')) exportCsv();
+        else if (target.hasAttribute('data-print') || target.hasAttribute('data-print-quote')) window.print();
+        else if (target.hasAttribute('data-close-dialog')) root.querySelector('#ep-dialog').close();
+      });
+      root.addEventListener('change', e => {
+        if(e.target.dataset.analysisSelect) { const [scope,key]=e.target.dataset.analysisSelect.split(':'); state.analysisFilters[scope][key]=e.target.value; render(); return; }
+        const q=state.data.quotes.find(x=>x.id===state.selectedQuoteId);
+        if (e.target.dataset.quoteField && q) q[e.target.dataset.quoteField]=e.target.value;
+        else if (e.target.dataset.quoteEconomic && q) {
+          if(e.target.dataset.quoteEconomic==='materialIncreasePct' && num(e.target.value)>0 && q.materials.some(m=>!m.category)) { alert('Elija la categoría de los ítems sin clasificar antes de aplicar un incremento.'); e.target.value=0; q.materialIncreasePct=0; }
+          else q[e.target.dataset.quoteEconomic]=num(e.target.value);
+        }
+        else if (e.target.dataset.materialField && q) {
+          const item=q.materials.find(x=>x.id===e.target.dataset.materialId);
+          if(item) item[e.target.dataset.materialField]=['quantity','unitPrice'].includes(e.target.dataset.materialField)?num(e.target.value):e.target.value;
+        } else if (e.target.dataset.companyField) state.data.company[e.target.dataset.companyField]=e.target.value;
+        else return;
+        saveData();render();showToast('Cambios guardados y vista previa actualizada.');
+      });
+      root.addEventListener('input', e => {
+        const refreshSearch=attr=>{ render(); const input=root.querySelector(`[${attr}]`); if(input) { input.focus(); input.setSelectionRange(input.value.length,input.value.length); } };
+        if(e.target.hasAttribute('data-catalog-search')) { state.catalogSearch=e.target.value; refreshSearch('data-catalog-search'); }
+        else if(e.target.hasAttribute('data-supplier-search')) { state.supplierSearch=e.target.value; refreshSearch('data-supplier-search'); }
+        else if(e.target.hasAttribute('data-quote-catalog-search')) { state.quoteCatalogSearch=e.target.value; refreshSearch('data-quote-catalog-search'); }
+        else if(e.target.dataset.quoteField || e.target.dataset.quoteEconomic || e.target.dataset.materialField || e.target.dataset.companyField) { syncQuoteFromEditor(); }
+      });
+      root.addEventListener('change', e => { if(e.target.hasAttribute('data-catalog-category')) { state.catalogCategory=e.target.value; render(); } });
+      root.addEventListener('keydown', e => {
+        if ((e.key==='Enter' || e.key===' ') && e.target.dataset.analysisFilter) { e.preventDefault(); e.target.click(); return; }
+        if (e.key === 'Escape' && navMedia.matches && navigation.open) {
+          e.preventDefault();
+          setNavigationOpen(false, true);
+        }
+      });
+      navMedia.addEventListener('change', () => {
+        navigation.open = false;
+        updateNavigation();
+      });
+      root.querySelector('#ep-role').addEventListener('change', e => { state.role=e.target.value; render(); showToast(`Vista de ${state.role} activada.`); });
+      root.querySelector('#ep-preview-dialog').addEventListener('close', () => { const opener=state.previewOpener; state.previewOpener=null; if(opener && document.contains(opener)) opener.focus(); });
+      render();
+    })();
+  </script>
+</div>
+</body>
+</html>

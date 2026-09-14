@@ -1,0 +1,4 @@
+.bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; margin-bottom: 12px; background: var(--green-50); border: 1px solid var(--border); border-radius: 13px; }
+.bar :is(select, input) { min-height: 36px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; background: var(--surface); color: var(--ink); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 14px; color: var(--muted); font-size: 11px; }
+.tag { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 4px 8px; color: var(--green-900); }

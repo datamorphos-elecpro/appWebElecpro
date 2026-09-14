@@ -1,0 +1,1 @@
+.chart { min-height: 210px; padding: 12px 14px 5px; }.chart svg { width: 100%; height: 180px; overflow: visible; }.chart rect { fill: var(--green-700); }.chart text { font-size: 10px; fill: var(--ink); }.chart text:last-child { fill: var(--muted); }.chart g[role='button'] { cursor: pointer; }.chart g[role='button']:focus-visible rect { stroke: var(--ink); stroke-width: 3; }

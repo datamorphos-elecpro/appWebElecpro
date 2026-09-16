@@ -29,8 +29,9 @@
   .actions { justify-content: flex-start; }
 }
 @media print {
-  .dialog { position: static; width: auto; height: auto; overflow: visible; background: #fff; box-shadow: none; }
+  .dialog { position: static; width: auto; height: auto; max-height: none; overflow: visible; border: 0; border-radius: 0; background: #fff; box-shadow: none; }
+  .dialog::backdrop { background: transparent; }
   .header { display: none !important; }
-  .scroll { height: auto; overflow: visible; padding: 0; }
-  .print { max-width: none; }
+  .scroll { height: auto; overflow: visible; padding: 0; background: #fff; }
+  .print { max-width: none; margin: 0; background: #fff; }
 }

@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from 'vitest';
-import { financialPercent } from '../components/ui/FinancialBar';
+import { financialPercent, financialPercentText } from '../components/ui/FinancialBar';
 import { presentationLabel, quoteDisplayStatus } from '../lib/presentation';
 
 describe('presentation labels', () => {
@@ -7,6 +7,8 @@ describe('presentation labels', () => {
     expect(presentationLabel('approved', 'project')).toBe('Aprobado');
     expect(presentationLabel('approved', 'quote')).toBe('Aprobada');
     expect(presentationLabel('critical', 'priority')).toBe('Crítica');
+    expect(presentationLabel('labor', 'category')).toBe('Servicio MO');
+    expect(presentationLabel('legacy_unknown', 'category')).toBe('Sin clasificar');
   });
   it('shows only undecided, expired quotes as Vencida', () => {
     expect(quoteDisplayStatus({ status: 'sent', valid_until: '2026-09-13' }, '2026-09-14')).toBe('expired');
@@ -21,5 +23,6 @@ describe('financialPercent', () => {
     expect(financialPercent('200.000001', '100.000001')).toBe(100);
     expect(financialPercent('-1', '100')).toBe(0);
     expect(financialPercent('10', '0')).toBeNull();
+    expect(financialPercentText('250', '100')).toBe('250%');
   });
 });

@@ -19,13 +19,12 @@ Elecpro centraliza la operación comercial, técnica y financiera de proyectos d
 | Módulo | Comportamiento requerido |
 | --- | --- |
 | Panel general | Métricas de portafolio, proyectos activos, retrasados y próximos a finalizar; tabla de proyectos, alertas prioritarias y accesos a crear/exportar. |
-| Análisis | Tres vistas independientes: Gerencia y rentabilidad, Operación y Comercial. Cada una conserva sus propios filtros. Muestra indicadores, gráficos accesibles y tablas. |
+| Análisis | Tres vistas independientes: Gerencia y rentabilidad, Operación y Comercial. Cada una conserva sus propios filtros. Gerencia integra el consolidado financiero, caja, cartera, presupuesto, rentabilidad, distribuciones generales e impresión. |
 | Proyectos | Tarjetas del portafolio y detalle con pestañas Resumen, Anticipos, Gastos y presupuesto, Distribución y Fechas y condiciones. Crear, editar y exportar CSV. |
 | Cotizaciones | Lista, métricas por estado y editor a ancho completo. Permite buscar catálogo, añadir ítems, cambiar condiciones, vista previa, impresión/PDF y conversión a proyecto. |
 | Productos y servicios | CRUD del catálogo con búsqueda y filtro de categoría. El código es único sin distinguir mayúsculas, minúsculas ni acentos. |
-| Proveedores | CRUD, búsqueda por nombre, teléfono, correo, web o descripción. |
+| Proveedores | CRUD, búsqueda por nombre, contacto o asesor, teléfono, correo, web o descripción. |
 | Clientes | CRUD de la ficha reutilizable: nombre, tipo, contacto, teléfono, correo y dirección; muestra los proyectos asociados. |
-| Finanzas | Consolidado de valor contratado, cobros, gastos y ganancia; tabla por proyecto y distribuciones generales de gerencia/inversores. |
 | Alertas | Lista calculada al consultar; abre el proyecto asociado. No se persiste como una tabla de notificaciones en la primera versión. |
 
 ## Formularios y operaciones
@@ -33,7 +32,7 @@ Elecpro centraliza la operación comercial, técnica y financiera de proyectos d
 ### Clientes, proveedores y catálogo
 
 - Cliente: nombre, tipo, contacto, teléfono, correo y dirección. El nombre es obligatorio.
-- Proveedor: nombre, teléfono, correo, sitio web y descripción. El nombre es obligatorio.
+- Proveedor: nombre, contacto o asesor opcional, teléfono, correo, sitio web y descripción. El nombre es obligatorio.
 - Ítem de catálogo: código, descripción, unidad, precio base y categoría `Material` o `Mano de obra`. Código, descripción, unidad, precio y categoría son obligatorios; el precio no puede ser negativo.
 - Eliminar clientes con cotizaciones o proyectos, catálogo usado o proveedores asociados a datos futuros debe quedar bloqueado o usar un campo `is_active`; la primera implementación debe preferir desactivación para conservar historial.
 

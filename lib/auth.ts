@@ -13,6 +13,6 @@ export async function requireProfile() {
 
 export async function requireAdministrator() {
   const result = await requireProfile();
-  if (result.profile.role !== 'administrator') redirect('/');
+  if (result.profile.role !== 'administrator') redirect('/panel');
   return result;
 }

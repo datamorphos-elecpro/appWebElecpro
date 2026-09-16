@@ -49,7 +49,7 @@ Una única fila con `id boolean primary key default true check (id)`, `legal_nam
 
 ### `suppliers`
 
-`id`, `name text not null`, `phone text`, `email text`, `website text`, `description text`, `is_active boolean not null default true`, auditoría. Índice para nombre normalizado y búsqueda por activos.
+`id`, `name text not null`, `contact_name text`, `phone text`, `email text`, `website text`, `description text`, `is_active boolean not null default true`, auditoría. Índice para nombre normalizado y búsqueda por activos.
 
 ### `catalog_items`
 

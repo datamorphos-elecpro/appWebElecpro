@@ -9,7 +9,7 @@
 5. Implementar clientes, proveedores y catálogo; usar estos datos en selectores y búsqueda de cotizaciones.
 6. Implementar cotizaciones, guardado transaccional, cálculos de servidor, vista previa e impresión.
 7. Implementar proyectos, conversión idempotente, anticipos, gastos, presupuestos y participaciones.
-8. Construir panel, finanzas, análisis y alertas con consultas consistentes y filtros independientes.
+8. Construir panel, Análisis con el consolidado financiero integrado y alertas con consultas consistentes y filtros independientes.
 9. Ejecutar pruebas automatizadas, revisión manual visual y pruebas de RLS antes de publicar.
 
 ## Casos de prueba funcionales

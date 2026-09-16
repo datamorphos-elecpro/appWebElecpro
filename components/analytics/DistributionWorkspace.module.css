@@ -1,0 +1,9 @@
+.workspace { display: grid; gap: 14px; }
+.filters, .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.filters label, .editor label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; }
+.filters input, .filters select, .editor input, .editor select { min-height: 36px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; background: var(--surface); color: var(--ink); }
+.filters button, .editor button, .rowActions button { min-height: 36px; border: 1px solid var(--green-800); border-radius: 8px; background: var(--surface); color: var(--green-900); font-weight: 700; }
+.rowActions { display: flex; flex-wrap: wrap; gap: 5px; }
+.alert, .error { margin: 0; padding: 10px; border-radius: 8px; background: #fff0e5; color: #8a3c00; font-size: 12px; }
+.editor { display: grid; gap: 11px; max-width: 560px; padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.editor h2, .editor p { margin: 0; }.editor > div { display: flex; justify-content: flex-end; gap: 8px; }

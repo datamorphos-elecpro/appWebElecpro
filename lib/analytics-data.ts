@@ -1,16 +1,21 @@
-import { decimal } from './calculations';
+﻿import { decimal } from './calculations';
 import { bogotaDate } from './money';
-import { quoteDisplayStatus } from './presentation';
-import type { AnalyticsExpense, AnalyticsPayment, ProjectWithFinancialSummary, ProjectRecord, QuoteRecord } from './data';
+import { projectStatusText, quoteDisplayStatus, quoteStatusText } from './presentation';
+import type { AnalyticsExpense, AnalyticsPayment, ProjectRecord, ProjectWithFinancialSummary, QuoteRecord } from './data';
 
 export type AnalyticsData = {
   projects: ProjectWithFinancialSummary<ProjectRecord>[];
   quotes: QuoteRecord[];
   payments: AnalyticsPayment[];
   expenses: AnalyticsExpense[];
+  shares: PortfolioShare[];
+  portfolioSummary: PortfolioFinancialSummary;
 };
+export type PortfolioShare = { id: string; participant: string; mode: 'percent' | 'fixed'; value: string; is_paid: boolean; paid_on: string | null };
+export type PortfolioFinancialSummary = { contracted: string; paid: string; balance: string; expenses: string; budget: string; real_profit: string; projected_profit: string };
 export type AnalyticsFilters = Record<string, string>;
-export type ChartDatum = { key: string; label: string; value: string; count?: number };
+export type ChartUnit = 'money' | 'count' | 'percent';
+export type ChartDatum = { key: string; label: string; value: string; count?: number; unit?: ChartUnit; series?: string };
 
 export const projectStates = ['draft', 'quoted', 'approved', 'in_progress', 'paused', 'finished', 'cancelled'];
 export const quoteStates = ['draft', 'sent', 'approved', 'rejected', 'expired'];
@@ -19,6 +24,7 @@ export const activeProjectStates = new Set(['approved', 'in_progress', 'paused']
 const matches = (value: string, filter?: string) => !filter || value === filter;
 const clientName = (record: { clients: { name: string } | null }) => record.clients?.name ?? 'Sin cliente';
 const monthOf = (date: string) => date.slice(0, 7);
+const countValue = () => '1';
 
 export function filterManagementProjects(data: AnalyticsData, filters: AnalyticsFilters) {
   return data.projects.filter((project) => matches(project.client_id, filters.client) && matches(project.id, filters.project) && matches(project.status, filters.status));
@@ -36,7 +42,7 @@ export function filterCommercialQuotes(data: AnalyticsData, filters: AnalyticsFi
   return data.quotes.filter((quote) => matches(quote.client_id, filters.client) && matches(visibleQuoteStatus(quote, today), filters.status) && matches(monthOf(quote.issued_on), filters.month));
 }
 
-function grouped<T>(records: T[], key: (record: T) => { key: string; label: string }, value: (record: T) => string) {
+function grouped<T>(records: T[], key: (record: T) => { key: string; label: string }, value: (record: T) => string, unit: ChartUnit = 'money') {
   const values = new Map<string, { label: string; value: ReturnType<typeof decimal>; count: number }>();
   for (const record of records) {
     const group = key(record);
@@ -45,28 +51,69 @@ function grouped<T>(records: T[], key: (record: T) => { key: string; label: stri
     current.count += 1;
     values.set(group.key, current);
   }
-  return [...values.entries()].map(([key, value]) => ({ key, label: value.label, value: value.value.toString(), count: value.count }));
+  return [...values.entries()].map(([key, value]) => ({ key, label: value.label, value: value.value.toString(), count: value.count, unit }));
+}
+
+function monthlyCash(payments: AnalyticsPayment[], expenses: AnalyticsExpense[], monthFilter?: string): ChartDatum[] {
+  const months = new Map<string, { payments: ReturnType<typeof decimal>; expenses: ReturnType<typeof decimal> }>();
+  for (const payment of payments) {
+    const month = monthOf(payment.payment_date);
+    if (!matches(month, monthFilter)) continue;
+    const row = months.get(month) ?? { payments: decimal(0), expenses: decimal(0) };
+    row.payments = row.payments.plus(payment.amount);
+    months.set(month, row);
+  }
+  for (const expense of expenses) {
+    const month = monthOf(expense.expense_date);
+    if (!matches(month, monthFilter)) continue;
+    const row = months.get(month) ?? { payments: decimal(0), expenses: decimal(0) };
+    row.expenses = row.expenses.plus(expense.amount);
+    months.set(month, row);
+  }
+  return [...months.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([month, row]) => [
+    { key: `${month}:payments`, label: `${month} · Cobros`, value: row.payments.toString(), unit: 'money' as const, series: 'Cobros' },
+    { key: `${month}:expenses`, label: `${month} · Gastos`, value: row.expenses.negated().toString(), unit: 'money' as const, series: 'Gastos' },
+    { key: `${month}:difference`, label: `${month} · Diferencia`, value: row.payments.minus(row.expenses).toString(), unit: 'money' as const, series: 'Diferencia' },
+  ]);
 }
 
 export function managementAnalysis(data: AnalyticsData, filters: AnalyticsFilters) {
   const projects = filterManagementProjects(data, filters);
   const ids = new Set(projects.map((project) => project.id));
+  const payments = data.payments.filter((payment) => ids.has(payment.project_id));
+  const expensesData = data.expenses.filter((expense) => ids.has(expense.project_id));
   const movements = [
-    ...data.payments.filter((payment) => ids.has(payment.project_id)).map((payment) => ({ project_id: payment.project_id, date: payment.payment_date, amount: payment.amount, kind: 'payment' as const })),
-    ...data.expenses.filter((expense) => ids.has(expense.project_id)).map((expense) => ({ project_id: expense.project_id, date: expense.expense_date, amount: expense.amount, kind: 'expense' as const })),
+    ...payments.map((payment) => ({ project_id: payment.project_id, date: payment.payment_date, amount: payment.amount, kind: 'payment' as const })),
+    ...expensesData.map((expense) => ({ project_id: expense.project_id, date: expense.expense_date, amount: expense.amount, kind: 'expense' as const })),
   ].filter((movement) => matches(monthOf(movement.date), filters.month));
-  const monthly = grouped(movements, (movement) => ({ key: monthOf(movement.date), label: monthOf(movement.date) }), (movement) => movement.kind === 'payment' ? movement.amount : decimal(movement.amount).negated().toString()).sort((a, b) => a.key.localeCompare(b.key));
-  const expenses = projects.map((project) => ({ key: project.id, label: project.quote_number || project.title, value: project.financialSummary.expenses, count: 1 }));
+  const monthly = monthlyCash(payments, expensesData, filters.month);
+  const expenses = projects.map((project) => ({ key: project.id, label: project.quote_number || project.title, value: project.financialSummary.expenses, count: 1, unit: 'money' as const }));
   const balances = grouped(projects, (project) => ({ key: project.client_id, label: clientName(project) }), (project) => project.financialSummary.balance).sort((a, b) => decimal(b.value).comparedTo(decimal(a.value)));
+  const profitability = projects.flatMap((project) => [
+    { key: `${project.id}:real`, label: `${project.quote_number || project.title} · actual`, value: project.financialSummary.real_profit, unit: 'money' as const, series: 'Actual' },
+    { key: `${project.id}:projected`, label: `${project.quote_number || project.title} · proyectado`, value: project.financialSummary.projected_profit, unit: 'money' as const, series: 'Proyectado' },
+  ]);
+  const costs = projects.flatMap((project) => [
+    { key: `${project.id}:budget`, label: `${project.quote_number || project.title} · presupuesto`, value: project.financialSummary.budget, unit: 'money' as const, series: 'Presupuesto' },
+    { key: `${project.id}:expenses`, label: `${project.quote_number || project.title} · gastos`, value: project.financialSummary.expenses, unit: 'money' as const, series: 'Gastos' },
+  ]);
+  const projectValue = projects.reduce((total, project) => total.plus(decimal(project.project_value)), decimal(0)).toString();
+  const paid = projects.reduce((total, project) => total.plus(decimal(project.financialSummary.paid)), decimal(0)).toString();
   const balance = projects.reduce((total, project) => total.plus(decimal(project.financialSummary.balance)), decimal(0)).toString();
+  const expensesTotal = projects.reduce((total, project) => total.plus(decimal(project.financialSummary.expenses)), decimal(0)).toString();
+  const budget = projects.reduce((total, project) => total.plus(decimal(project.financialSummary.budget)), decimal(0)).toString();
   const profit = projects.reduce((total, project) => total.plus(decimal(project.financialSummary.real_profit)), decimal(0)).toString();
-  return { projects, movements, monthly, expenses, balances, balance, profit };
+  const projectedProfit = projects.reduce((total, project) => total.plus(decimal(project.financialSummary.projected_profit)), decimal(0)).toString();
+  const periodPaid = movements.filter((movement) => movement.kind === 'payment').reduce((total, movement) => total.plus(decimal(movement.amount)), decimal(0)).toString();
+  const periodExpenses = movements.filter((movement) => movement.kind === 'expense').reduce((total, movement) => total.plus(decimal(movement.amount)), decimal(0)).toString();
+  const periodDifference = decimal(periodPaid).minus(periodExpenses).toString();
+  return { projects, movements, monthly, expenses, balances, profitability, costs, projectValue, paid, balance, expensesTotal, budget, profit, projectedProfit, periodPaid, periodExpenses, periodDifference };
 }
 
 export function operationAnalysis(data: AnalyticsData, filters: AnalyticsFilters) {
   const projects = filterOperationProjects(data, filters);
-  const byStatus = grouped(projects, (project) => ({ key: project.status, label: project.status }), () => '0');
-  const byResponsible = grouped(projects.filter((project) => activeProjectStates.has(project.status)), (project) => ({ key: project.responsible, label: project.responsible || 'Sin responsable' }), () => '0');
+  const byStatus = grouped(projects, (project) => ({ key: project.status, label: projectStatusText(project.status) }), countValue, 'count');
+  const byResponsible = grouped(projects.filter((project) => activeProjectStates.has(project.status)), (project) => ({ key: project.responsible, label: project.responsible || 'Sin responsable' }), countValue, 'count');
   return { projects, byStatus, byResponsible };
 }
 
@@ -80,7 +127,7 @@ export function delayDays(project: Pick<ProjectRecord, 'status' | 'expected_end_
 
 export function commercialAnalysis(data: AnalyticsData, filters: AnalyticsFilters, today = bogotaDate()) {
   const quotes = filterCommercialQuotes(data, filters, today);
-  const byStatus = grouped(quotes, (quote) => ({ key: visibleQuoteStatus(quote, today), label: visibleQuoteStatus(quote, today) }), () => '0');
+  const byStatus = grouped(quotes, (quote) => ({ key: visibleQuoteStatus(quote, today), label: quoteStatusText(visibleQuoteStatus(quote, today)) }), countValue, 'count');
   const byMonth = grouped(quotes, (quote) => ({ key: monthOf(quote.issued_on), label: monthOf(quote.issued_on) }), (quote) => quote.total_amount).sort((a, b) => a.key.localeCompare(b.key));
   const byClient = grouped(quotes, (quote) => ({ key: quote.client_id, label: clientName(quote) }), (quote) => quote.total_amount).sort((a, b) => decimal(b.value).comparedTo(decimal(a.value)));
   const approved = quotes.filter((quote) => visibleQuoteStatus(quote, today) === 'approved');

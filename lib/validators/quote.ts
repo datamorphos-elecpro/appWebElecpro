@@ -1,5 +1,6 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
+export const catalogCategoryValues = ['material', 'design', 'technical_visit', 'labor'] as const;
 export const quoteDecimalString = (integerDigits: number) => z.string().trim().regex(
   new RegExp(`^\\d{1,${integerDigits}}(?:\\.\\d{1,2})?$`),
   'Debe ser un decimal no negativo con máximo dos decimales.',
@@ -9,7 +10,7 @@ export const quoteItemSchema = z.object({
   catalog_item_id: z.string().uuid().nullable().optional().or(z.literal('')),
   code: z.string(),
   description: z.string().trim().min(1, 'La descripción es obligatoria.'),
-  category: z.enum(['material', 'labor'], { required_error: 'La categoría es obligatoria.', invalid_type_error: 'La categoría es obligatoria.' }),
+  category: z.enum(catalogCategoryValues, { required_error: 'La categoría es obligatoria.', invalid_type_error: 'La categoría es obligatoria.' }),
   quantity: quoteDecimalString(12),
   unit: z.string().trim().min(1, 'La unidad es obligatoria.'),
   base_unit_price: quoteDecimalString(12),

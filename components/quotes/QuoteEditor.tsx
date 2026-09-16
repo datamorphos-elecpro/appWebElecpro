@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
@@ -7,13 +7,14 @@ import { approveAndConvertQuote, saveQuote } from '../../app/actions/quotes';
 import { saveCompanySettings } from '../../app/actions/business';
 import { calculateQuote } from '../../lib/calculations';
 import { bogotaDate, money } from '../../lib/money';
+import { categoryOptions, categoryText, type CatalogCategory } from '../../lib/presentation';
 import { quotePayloadSchema, quoteValidationMessages } from '../../lib/validators/quote';
 import { Dialog } from '../ui/Dialog';
 import { QuoteDocument } from './QuoteDocument';
 import { QuotePreviewDialog } from './QuotePreviewDialog';
 import styles from './QuoteEditor.module.css';
 
-type Category = 'material' | 'labor' | '';
+type Category = CatalogCategory | '';
 type Client = { id: string; name: string; contact_name?: string | null; email?: string | null; address?: string | null };
 type Catalog = { id: string; code: string; description: string; unit: string; base_unit_price: string; category: Exclude<Category, ''> };
 type Item = { localKey: string; catalog_item_id?: string | null; code: string; description: string; unit: string; category: Category; quantity: string; base_unit_price: string };
@@ -44,7 +45,6 @@ function initialForm(quote?: InitialQuote) {
     execution_time: String(quote?.execution_time ?? 'Por definir según programación y disponibilidad de materiales.'), deliverable: String(quote?.deliverable ?? ''),
   };
 }
-
 function initialItems(quote?: InitialQuote): Item[] {
   if (!quote?.quote_items?.length) return [emptyItem('draft-item-1')];
   return [...quote.quote_items].sort((a, b) => Number(a.position ?? 0) - Number(b.position ?? 0)).map((item, index) => ({
@@ -82,7 +82,7 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
   savedRef.current = saved;
 
   const totals = useMemo(() => calculateQuote(items.map((item) => ({
-    category: (item.category || 'labor') as 'material' | 'labor', quantity: item.quantity, baseUnitPrice: item.base_unit_price,
+    category: (item.category || 'labor') as CatalogCategory, quantity: item.quantity, baseUnitPrice: item.base_unit_price,
   })), {
     materialIncreasePct: form.material_increase_pct, administrationPct: form.administration_pct, contingencyPct: form.contingency_pct,
     utilityPct: form.utility_pct, vatUtilityPct: form.vat_utility_pct,
@@ -144,8 +144,13 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
         const targetRevision = revisionRef.current;
         setSaveState('saving');
         try {
-          const result = await saveQuote(parsed.data) as InitialQuote;
-          latest = { ...savedRef.current, ...result } as InitialQuote;
+          const response = await saveQuote(parsed.data);
+          if (!response.ok) {
+            setSaveState('error');
+            setValidation([response.message]);
+            return null;
+          }
+          latest = { ...savedRef.current, ...response.data } as InitialQuote;
           savedRef.current = latest;
           setSaved(latest);
           savedRevisionRef.current = targetRevision;
@@ -159,8 +164,12 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
       return latest;
     })();
     savePromiseRef.current = task;
-    const result = await task;
-    savePromiseRef.current = null;
+    let result: InitialQuote | null;
+    try {
+      result = await task;
+    } finally {
+      savePromiseRef.current = null;
+    }
     if (!quote && result?.id && savedRevisionRef.current === revisionRef.current) router.replace(`/cotizaciones/${result.id}`);
     return result;
   }, [locked, payload, quote, router]);
@@ -219,7 +228,13 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
     startConvertTransition(async () => {
       try {
         const parsed = quotePayloadSchema.parse(payload());
-        const project = await approveAndConvertQuote(parsed) as { id: string; quote_id?: string; quote_number?: string };
+        const response = await approveAndConvertQuote(parsed);
+        if (!response.ok) {
+          setSaveState('error');
+          setValidation([response.message]);
+          return;
+        }
+        const project = response.data;
         const quoteId = savedRef.current?.id ?? project.quote_id;
         const next = { ...savedRef.current, id: quoteId, number: savedRef.current?.number ?? project.quote_number, project_id: project.id, status: 'approved' } as InitialQuote;
         savedRef.current = next;
@@ -254,7 +269,7 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
   }
 
   return <>
-    <Link className={styles.back} href="/cotizaciones">← Volver a cotizaciones</Link>
+    <Link className={styles.back} href="/cotizaciones">Volver a cotizaciones</Link>
     <header className={styles.sectionHead}>
       <div><h1>{saved?.number ?? 'Cotización pendiente'}</h1><p>Edite a todo el ancho; la vista previa conserva el documento completo.</p></div>
       <div className={styles.headerSide}>
@@ -289,15 +304,15 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
 
       <EditorSection number="2" title="Materiales y servicio" open>
         <Field label="Buscar en catálogo"><input value={catalogSearch} onChange={(event) => setCatalogSearch(event.target.value)} placeholder="Código o descripción" disabled={locked} /></Field>
-        <div className={styles.catalogResults} aria-live="polite">{!catalogSearch.trim() ? <p>Escriba código o descripción para buscar en el catálogo.</p> : searchResults.length ? searchResults.map((item) => <button type="button" key={item.id} className={styles.catalogResult} onClick={() => addItem(item)} disabled={locked}><span>{item.code} · {item.description}</span><small>{item.category === 'material' ? 'Material' : 'Mano de obra'} · {item.unit} · {money(item.base_unit_price)}</small></button>) : <p>No se encontraron coincidencias.</p>}</div>
+        <div className={styles.catalogResults} aria-live="polite">{!catalogSearch.trim() ? <p>Escriba código o descripción para buscar en el catálogo.</p> : searchResults.length ? searchResults.map((item) => <button type="button" key={item.id} className={styles.catalogResult} onClick={() => addItem(item)} disabled={locked}><span>{item.code} · {item.description}</span><small>{categoryText(item.category)} · {item.unit} · {money(item.base_unit_price)}</small></button>) : <p>No se encontraron coincidencias.</p>}</div>
         <div className={styles.materialEditor}>{items.map((item, index) => <MaterialRow key={item.localKey} item={item} index={index} line={totals.lines[index]} locked={locked} patch={patchItem} remove={removeItem} />)}</div>
         {!locked && <button type="button" className={styles.secondary} onClick={() => addItem()}>+ Agregar ítem manual</button>}
       </EditorSection>
 
       <EditorSection number="3" title="Resumen económico" open>
         <div className={styles.economicsGrid}>
-          <span>Costo directo ajustado</span><span>—</span><strong>{money(totals.directCost)}</strong>
-          <EconomicRow label="Incremento sobre materiales" field="material_increase_pct" value={form.material_increase_pct} amount="—" patch={patchForm} disabled={locked} />
+          <span>Costo directo ajustado</span><span>-</span><strong>{money(totals.directCost)}</strong>
+          <EconomicRow label="Incremento sobre materiales" field="material_increase_pct" value={form.material_increase_pct} amount="-" patch={patchForm} disabled={locked} />
           <EconomicRow label="Administración" field="administration_pct" value={form.administration_pct} amount={money(totals.administrationAmount)} patch={patchForm} disabled={locked} />
           <EconomicRow label="Imprevistos" field="contingency_pct" value={form.contingency_pct} amount={money(totals.contingencyAmount)} patch={patchForm} disabled={locked} />
           <EconomicRow label="Utilidad" field="utility_pct" value={form.utility_pct} amount={money(totals.utilityAmount)} patch={patchForm} disabled={locked} />
@@ -326,7 +341,7 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
           <Field label="Correo"><input type="email" value={manager.email} onChange={(event) => patchManager('email', event.target.value)} /></Field>
           <Field label="Dirección" full><input value={manager.address} onChange={(event) => patchManager('address', event.target.value)} /></Field>
         </div>
-        <div className={styles.managerActions}><button type="button" className={styles.secondary} onClick={saveManager} disabled={managerPending}>{managerPending ? 'Guardando…' : 'Guardar tarjeta'}</button>{managerMessage && <span role="status">{managerMessage}</span>}</div>
+        <div className={styles.managerActions}><button type="button" className={styles.secondary} onClick={saveManager} disabled={managerPending}>{managerPending ? 'Guardando' : 'Guardar tarjeta'}</button>{managerMessage && <span role="status">{managerMessage}</span>}</div>
       </EditorSection>
     </div>
 
@@ -367,7 +382,7 @@ function MaterialRow({ item, index, line, locked, patch, remove }: { item: Item;
   return <div className={styles.materialRow}>
     <Field label="Código"><input value={item.code} onChange={(event) => patch(item.localKey, 'code', event.target.value)} disabled={locked} /></Field>
     <Field label="Descripción"><input value={item.description} onChange={(event) => patch(item.localKey, 'description', event.target.value)} disabled={locked} /></Field>
-    <Field label="Categoría"><select required value={item.category} onChange={(event) => patch(item.localKey, 'category', event.target.value)} disabled={locked}><option value="">Elegir</option><option value="material">Material</option><option value="labor">Mano de obra</option></select></Field>
+    <Field label="Categoría"><select required value={item.category} onChange={(event) => patch(item.localKey, 'category', event.target.value)} disabled={locked}><option value="">Elegir</option>{categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>
     <Field label="Cant."><input type="number" min="0" step="0.01" value={item.quantity} onChange={(event) => patch(item.localKey, 'quantity', event.target.value)} disabled={locked} /></Field>
     <Field label="Unidad"><input value={item.unit} onChange={(event) => patch(item.localKey, 'unit', event.target.value)} disabled={locked} /></Field>
     <Field label="Precio base"><input type="number" min="0" step="0.01" value={item.base_unit_price} onChange={(event) => patch(item.localKey, 'base_unit_price', event.target.value)} disabled={locked} /></Field>

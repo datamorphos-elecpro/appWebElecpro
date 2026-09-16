@@ -32,7 +32,6 @@ app/
   (protected)/catalogo/page.tsx
   (protected)/proveedores/page.tsx
   (protected)/clientes/page.tsx
-  (protected)/finanzas/page.tsx
   (protected)/alertas/page.tsx
   (protected)/administracion/usuarios/page.tsx
   actions/
@@ -51,7 +50,7 @@ styles/
   tokens.css globals.css
 ```
 
-La ruta protegida raíz es el panel general. El layout consulta el perfil activo, impide el acceso de usuarios inactivos y muestra nombre, rol y navegación. `administracion/usuarios` exige `administrator` desde el servidor, no solo mediante ocultamiento visual.
+La ruta protegida raíz es el panel general. La ruta heredada `/finanzas` redirige a `/analisis?tab=management`. El layout consulta el perfil activo, impide el acceso de usuarios inactivos y muestra nombre, rol y navegación. `administracion/usuarios` exige `administrator` desde el servidor, no solo mediante ocultamiento visual.
 
 ## Capa de datos y acciones
 

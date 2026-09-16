@@ -1,13 +1,13 @@
 import Link from 'next/link';
-import { alertKinds } from '../../lib/calculations';
-import { dashboardData } from '../../lib/data';
-import { bogotaDate, money } from '../../lib/money';
-import { bogotaDateText } from '../../lib/presentation';
-import { FinancialBar } from '../../components/ui/FinancialBar';
-import { Empty, Metric, Page } from '../../components/ui/Page';
-import { Panel } from '../../components/ui/Panel';
-import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
-import { Status } from '../../components/ui/Status';
+import { alertKinds } from '../../../lib/calculations';
+import { dashboardData } from '../../../lib/data';
+import { bogotaDate, money } from '../../../lib/money';
+import { bogotaDateText } from '../../../lib/presentation';
+import { FinancialBar } from '../../../components/ui/FinancialBar';
+import { Empty, Metric, Page } from '../../../components/ui/Page';
+import { Panel } from '../../../components/ui/Panel';
+import { ResponsiveTable } from '../../../components/ui/ResponsiveTable';
+import { Status } from '../../../components/ui/Status';
 import styles from './dashboard.module.css';
 
 export default async function Dashboard() {

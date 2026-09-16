@@ -9,7 +9,9 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 900, height: 960 
     await page.goto('/login');
     await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
     await page.getByLabel(/contraseña/i).fill(process.env.E2E_TEST_PASSWORD!);
-    await page.getByRole('button', { name: /ingresar/i }).click();
+    await page.getByRole('button', { name: /iniciar sesión/i }).click();
+    await expect(page).toHaveURL(/\/panel$/);
+    await expect(page.getByRole('link', { name: /panel general/i })).toHaveAttribute('aria-current', 'page');
     await expect(page).toHaveScreenshot(`shell-${viewport.width}.png`, { fullPage: true });
   });
 }

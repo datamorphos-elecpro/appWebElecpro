@@ -1,18 +1,42 @@
 .workspace { display: grid; gap: 14px; }
+.workspace :global(.analysis-print-root) { display: grid; gap: 14px; }
 .control { display: grid; gap: 4px; color: var(--muted); font-size: 11px; }
 .control :is(select, input) { min-height: 36px; min-width: 142px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; background: var(--surface); color: var(--ink); }
-.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+.periodMetrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .grid > :last-child:nth-child(3) { grid-column: 1 / -1; }
-.chart { min-height: 210px; padding: 12px 14px 5px; }
-.chart svg { width: 100%; height: 180px; overflow: visible; }
+.chart { min-height: 210px; padding: 12px 14px 5px; overflow-x: auto; }
+.chart svg { width: 100%; min-width: 620px; height: auto; overflow: visible; }
 .chart rect { fill: var(--green-700); }
+.axis { stroke: var(--border); stroke-width: 2; }
+.axisLabel { fill: var(--muted); font-size: 10px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; color: var(--muted); font-size: 11px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 999px; }
 .chart text { font-size: 10px; fill: var(--ink); }
 .chart text:last-child { fill: var(--muted); }
 .chart g[role='button'] { cursor: pointer; }
 .chart g[role='button']:focus-visible rect { stroke: var(--ink); stroke-width: 3; }
 .tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 2px; color: var(--muted); font-size: 11px; }
 .reset { margin-left: auto; border: 0; background: transparent; color: var(--green-800); font-size: 11px; font-weight: 600; }
+.managementActions { display: flex; justify-content: flex-end; }
+.reportHeader { display: none; }
+.printButton { min-height: 38px; padding: 8px 13px; border: 1px solid var(--green-800); border-radius: 9px; background: var(--surface); color: var(--green-900); font-weight: 600; }
+.scope { margin: 0; color: var(--muted); font-size: 11px; }
+.shares { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.shares article { display: grid; gap: 5px; padding: 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--canvas); }
+.shares span { color: var(--muted); font-size: 11px; }
+.shares b { color: var(--green-900); font-size: 12px; }
 .empty { margin: 0; padding: 28px 0; color: var(--muted); text-align: center; font-size: 12px; }
-@media (max-width: 900px) { .metrics, .grid { grid-template-columns: 1fr; } .grid > :last-child:nth-child(3) { grid-column: auto; } }
+@media (max-width: 900px) { .metrics, .periodMetrics, .grid { grid-template-columns: 1fr; } .grid > :last-child:nth-child(3) { grid-column: auto; } }
 @media (max-width: 680px) { .metrics { grid-template-columns: 1fr; } .reset { width: 100%; margin-left: 0; text-align: left; } }
+@media print {
+  .workspace :global(.analysis-print-root) { gap: 9px; background: #fff; color: #17231f; }
+  .reportHeader { display: block; border-bottom: 2px solid #176458; }
+  .reportHeader h1 { margin: 0; color: #124f45; font-size: 20px; }
+  .reportHeader p { margin: 4px 0 9px; color: #52635c; font-size: 10px; }
+  .grid { grid-template-columns: 1fr; }
+  .chart { break-inside: avoid; }
+  .shares article { background: #fff; break-inside: avoid; }
+}

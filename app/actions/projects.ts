@@ -1,12 +1,12 @@
-'use server';
+﻿'use server';
 
 import { revalidateBusinessViews } from './revalidation';
 import { z } from 'zod';
 import { requireProfile } from '../../lib/auth';
 
-const decimal = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Use un importe no negativo con m?ximo dos decimales.');
-const positiveDecimal = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Use un importe v?lido.').refine((value) => Number(value) > 0, 'El importe debe ser mayor que cero.');
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use una fecha v?lida.');
+const decimal = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Use un importe no negativo con máximo dos decimales.');
+const positiveDecimal = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Use un importe válido.').refine((value) => Number(value) > 0, 'El importe debe ser mayor que cero.');
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use una fecha válida.');
 
 const projectSchema = z.object({
   id: z.string().uuid().optional(), client_id: z.string().uuid(), title: z.string().min(1), project_value: decimal,
@@ -20,11 +20,7 @@ const projectSchema = z.object({
 const paymentSchema = z.object({ project_id: z.string().uuid(), payment_date: date, amount: positiveDecimal, payment_method: z.string().min(1), note: z.string().optional() });
 const expenseSchema = z.object({ project_id: z.string().uuid(), expense_date: date, category: z.string().min(1), amount: positiveDecimal, payment_method: z.string().min(1), note: z.string().optional() });
 const budgetSchema = z.object({ project_id: z.string().uuid(), category: z.string().min(1), amount: decimal, note: z.string().optional() });
-const shareSchema = z.object({ project_id: z.string().uuid(), participant: z.string().min(1), mode: z.enum(['percent', 'fixed']), value: decimal, basis: z.enum(['project_value', 'real_profit']), is_paid: z.boolean(), paid_on: z.string().optional() }).refine((value) => !value.paid_on || value.is_paid, 'Una fecha de pago exige marcar la participaci?n como pagada.');
-
-function projectPath(id?: string) {
-  return id ? `/proyectos/${id}` : '/proyectos';
-}
+const shareSchema = z.object({ project_id: z.string().uuid(), participant: z.string().min(1), mode: z.enum(['percent', 'fixed']), value: decimal, basis: z.enum(['project_value', 'real_profit']), is_paid: z.boolean(), paid_on: z.string().optional() }).refine((value) => !value.paid_on || value.is_paid, 'Una fecha de pago exige marcar la participación como pagada.');
 
 export async function saveProject(input: unknown) {
   const value = projectSchema.parse(input);
@@ -52,4 +48,3 @@ export async function saveProjectRecord(kind: 'payment' | 'expense' | 'budget' |
   const projectId = values.project_id;
   revalidateBusinessViews(projectId);
 }
-

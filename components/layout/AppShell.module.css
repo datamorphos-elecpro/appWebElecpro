@@ -1,70 +1,14 @@
-.app { width: 100%; min-width: 0; background: var(--canvas); }
+.app { width: 100%; min-width: 0; padding: 18px; background: var(--canvas); }
 .layout { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 720px; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-shell); background: var(--canvas); box-shadow: var(--shadow); }
 .sidebar { z-index: 3; display: flex; flex-direction: column; gap: 22px; min-width: 0; padding: 22px 14px; background: light-dark(#f8fcfa, #0a1a15); border-right: 1px solid var(--border); transition: transform .22s ease, padding .22s ease; }
-.sidebarHead { display: flex; align-items: center; gap: 8px; }
-.logo { height: 58px; flex: 1; min-width: 0; padding: 7px 10px; border-radius: 12px; background: #fff; display: flex; align-items: center; }
-.logo img { width: 100%; max-width: 176px; height: auto; }
-.sidebarToggle, .menuToggle { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--green-900); }
-.sidebarToggle:hover, .menuToggle:hover { background: var(--green-50); }
-.nav { display: grid; gap: 5px; }
-.nav a { min-height: 43px; display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 11px; color: var(--muted); font-weight: 500; text-align: left; }
-.nav a:hover { background: var(--green-50); color: var(--green-900); }
-.nav a[aria-current='page'] { background: var(--green-100); color: var(--green-900); }
-.navIcon { width: 23px; flex: 0 0 23px; display: grid; place-items: center; }
-.navLabel { min-width: 0; }
-.sidebarFoot { margin-top: auto; padding: 12px; border-radius: 13px; background: var(--green-50); }
-.sidebarFoot strong { display: block; color: var(--green-900); font-size: 13px; }
-.sidebarFoot span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
-.main { min-width: 0; }
-.topbar { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.topbarStart { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.menuToggle { display: none; }
-.topbarTitle h1 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 500; }
-.topbarTitle p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
-.account { position: relative; flex: 0 0 auto; }
-.account summary { display: flex; align-items: center; gap: 10px; list-style: none; cursor: pointer; }
-.account summary::-webkit-details-marker { display: none; }
-.accountText { display: grid; gap: 3px; text-align: right; }
-.accountText strong { font-size: 13px; font-weight: 500; }
-.accountText small { color: var(--muted); font-size: 12px; }
-.avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: var(--green-800); color: #fff; font-size: 12px; font-weight: 600; }
-.accountMenu { position: absolute; top: calc(100% + 10px); right: 0; z-index: 6; display: grid; min-width: 210px; padding: 12px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface-raised); box-shadow: var(--shadow); }
-.accountMenu > strong { font-size: 13px; font-weight: 500; }
-.accountMenu > span { margin: 3px 0 9px; color: var(--muted); font-size: 11px; }
-.accountMenu a, .accountMenu button { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); font-size: 12px; text-align: left; }
-.accountMenu a:hover, .accountMenu button:hover { background: var(--green-50); color: var(--green-900); }
-.accountMenu form { margin: 4px -4px -4px; padding: 5px 4px 0; border-top: 1px solid var(--border); }
-.content { padding: 22px 24px 28px; }
-.backdrop { display: none; }
-.collapsed .layout { grid-template-columns: 72px minmax(0, 1fr); }
-.collapsed .sidebar { padding-inline: 10px; }
-.collapsed .logo, .collapsed .sidebarFoot { display: none; }
-.collapsed .sidebarHead { justify-content: center; }
-.collapsed .nav a { justify-content: center; padding-inline: 8px; }
-.collapsed .navLabel { display: none; }
-@media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; }
-  .sidebar { position: fixed; inset: 0 auto 0 0; width: min(280px, 82vw); transform: translateX(-105%); box-shadow: 18px 0 35px rgba(7, 19, 15, .18); }
-  .mobileOpen { transform: translateX(0); }
-  .backdrop { position: fixed; inset: 0; z-index: 2; display: block; border: 0; background: rgba(7, 19, 15, .46); }
-  .menuToggle { display: grid; }
-  .sidebarToggle { display: grid; }
-  .collapsed .sidebar { padding-inline: 14px; }
-  .collapsed .logo, .collapsed .sidebarFoot { display: flex; }
-  .collapsed .sidebarFoot { display: block; }
-  .collapsed .nav a { justify-content: flex-start; padding-inline: 11px; }
-  .collapsed .navLabel { display: inline; }
-}
-@media (max-width: 680px) {
-  .layout { min-height: 100vh; border: 0; border-radius: 14px; }
-  .topbar { padding: 13px 14px; align-items: flex-start; }
-  .topbarTitle p, .accountText { display: none; }
-  .content { padding: 16px 14px 22px; }
-}
-@media (max-width: 380px) {
-  .topbar { display: grid; }
-  .account { justify-self: stretch; }
-  .account summary { justify-content: space-between; }
-  .accountText { display: grid; text-align: left; }
-  .accountMenu { left: 0; right: auto; width: 100%; }
-}
+.sidebarHead { display: flex; align-items: center; gap: 8px; }.logo { height: 58px; flex: 1; min-width: 0; padding: 7px 10px; border-radius: 12px; background: #fff; display: flex; align-items: center; }.logo img { width: 100%; max-width: 176px; height: auto; }
+.sidebarToggle, .menuToggle { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--green-900); }.sidebarToggle:hover, .menuToggle:hover { background: var(--green-50); }
+.nav { display: grid; gap: 5px; }.nav a { min-height: 43px; display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 11px; color: var(--muted); font-weight: 500; text-align: left; }.nav a:hover { background: var(--green-50); color: var(--green-900); }.nav a[aria-current='page'] { background: var(--green-100); color: var(--green-900); }.navIcon { width: 23px; flex: 0 0 23px; display: grid; place-items: center; }.navLabel { min-width: 0; }
+.sidebarFoot { margin-top: auto; padding: 12px; border-radius: 13px; background: var(--green-50); }.sidebarFoot strong { display: block; color: var(--green-900); font-size: 13px; }.sidebarFoot span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+.main { min-width: 0; }.topbar { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 24px; background: var(--surface); border-bottom: 1px solid var(--border); }.topbarStart { display: flex; align-items: center; gap: 12px; min-width: 0; }.menuToggle { display: none; }.topbarTitle h1 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 500; }.topbarTitle p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.account { position: relative; flex: 0 0 auto; }.account summary { display: flex; align-items: center; gap: 10px; list-style: none; cursor: pointer; }.account summary::-webkit-details-marker { display: none; }.accountText { display: grid; gap: 3px; text-align: right; }.accountText strong { font-size: 13px; font-weight: 500; }.accountText small { color: var(--muted); font-size: 12px; }.avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: var(--green-800); color: #fff; font-size: 12px; font-weight: 600; }
+.accountMenu { position: absolute; top: calc(100% + 10px); right: 0; z-index: 6; display: grid; min-width: 210px; padding: 12px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface-raised); box-shadow: var(--shadow); }.accountMenu > strong { font-size: 13px; font-weight: 500; }.accountMenu > span { margin: 3px 0 9px; color: var(--muted); font-size: 11px; }.accountMenu a, .accountMenu button { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); font-size: 12px; text-align: left; }.accountMenu a:hover, .accountMenu button:hover { background: var(--green-50); color: var(--green-900); }.accountMenu form { margin: 4px -4px -4px; padding: 5px 4px 0; border-top: 1px solid var(--border); }
+.content { padding: 22px 24px 28px; }.backdrop { display: none; }.collapsed .layout { grid-template-columns: 72px minmax(0, 1fr); }.collapsed .sidebar { padding-inline: 10px; }.collapsed .logo, .collapsed .sidebarFoot { display: none; }.collapsed .sidebarHead { justify-content: center; }.collapsed .nav a { justify-content: center; padding-inline: 8px; }.collapsed .navLabel { display: none; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; }.sidebar { position: fixed; inset: 0 auto 0 0; width: min(280px, 82vw); transform: translateX(-105%); box-shadow: 18px 0 35px rgba(7, 19, 15, .18); }.mobileOpen { transform: translateX(0); }.backdrop { position: fixed; inset: 0; z-index: 2; display: block; border: 0; background: rgba(7, 19, 15, .46); }.menuToggle { display: grid; }.sidebarToggle { display: grid; }.collapsed .sidebar { padding-inline: 14px; }.collapsed .logo, .collapsed .sidebarFoot { display: flex; }.collapsed .sidebarFoot { display: block; }.collapsed .nav a { justify-content: flex-start; padding-inline: 11px; }.collapsed .navLabel { display: inline; } }
+@media (max-width: 680px) { .app { padding: 0; }.layout { min-height: 100vh; border: 0; border-radius: 14px; }.topbar { padding: 13px 14px; align-items: flex-start; }.topbarTitle p, .accountText { display: none; }.content { padding: 16px 14px 22px; } }
+@media (max-width: 380px) { .topbar { display: grid; }.account { justify-self: stretch; }.account summary { justify-content: space-between; }.accountText { display: grid; text-align: left; }.accountMenu { left: 0; right: auto; width: 100%; } }

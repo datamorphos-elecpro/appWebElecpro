@@ -1,6 +1,6 @@
 ﻿import { revalidatePath } from 'next/cache';
 
-const sharedPaths = ['/', '/proyectos', '/cotizaciones', '/finanzas', '/analisis', '/alertas'];
+const sharedPaths = ['/', '/proyectos', '/cotizaciones', '/analisis', '/alertas'];
 export function revalidateBusinessViews(projectId?: string) {
   for (const path of sharedPaths) revalidatePath(path);
   if (projectId) revalidatePath(`/proyectos/${projectId}`);

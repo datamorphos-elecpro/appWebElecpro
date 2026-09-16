@@ -3,17 +3,20 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireProfile } from '../../lib/auth';
+import { catalogCategoryValues } from '../../lib/validators/quote';
 import { revalidateCatalogViews, revalidateClientViews } from './revalidation';
 
 const amount = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Debe ser un importe no negativo con máximo dos decimales.');
+const optionalNullableText = z.string().trim().optional().transform((value) => value || null);
 const schemas = {
   clients: z.object({ id: z.string().uuid().optional(), name: z.string().min(1), client_type: z.string().min(1), contact_name: z.string().optional(), phone: z.string().optional(), email: z.string().optional(), address: z.string().optional() }),
-  suppliers: z.object({ id: z.string().uuid().optional(), name: z.string().min(1), phone: z.string().optional(), email: z.string().optional(), website: z.string().optional(), description: z.string().optional() }),
-  catalog_items: z.object({ id: z.string().uuid().optional(), code: z.string().min(1), description: z.string().min(1), unit: z.string().min(1), base_unit_price: amount, category: z.enum(['material', 'labor']) }),
+  suppliers: z.object({ id: z.string().uuid().optional(), name: z.string().trim().min(1), contact_name: optionalNullableText, phone: z.string().optional(), email: z.string().optional(), website: z.string().optional(), description: z.string().optional() }),
+  catalog_items: z.object({ id: z.string().uuid().optional(), code: z.string().optional(), description: z.string().min(1), unit: z.string().min(1), base_unit_price: amount, category: z.enum(catalogCategoryValues) }),
 };
 export async function saveBusiness(table: keyof typeof schemas, input: unknown) {
   const data = schemas[table].parse(input); const { supabase, profile } = await requireProfile(); const { id, ...values } = data; const database = supabase as any;
-  const query = id ? database.from(table).update({ ...values, updated_by: profile.id }).eq('id', id) : database.from(table).insert({ ...values, created_by: profile.id, updated_by: profile.id });
+  const body = table === 'catalog_items' ? Object.fromEntries(Object.entries(values).filter(([key]) => id || key !== 'code')) : values;
+  const query = id ? database.from(table).update({ ...body, updated_by: profile.id }).eq('id', id) : database.from(table).insert({ ...body, created_by: profile.id, updated_by: profile.id });
   const { error } = await query; if (error) throw new Error(error.message);
   if (table === 'clients') revalidateClientViews(); else if (table === 'catalog_items') revalidateCatalogViews(); else revalidatePath('/proveedores');
 }
@@ -30,5 +33,5 @@ export async function saveCompanySettings(input: unknown) {
 export async function savePortfolioShare(input: unknown) {
   const { id, paid_on, ...values } = portfolioShareSchema.parse(input); const { supabase, profile } = await requireProfile(); const body = { ...values, basis: 'portfolio_profit', paid_on: paid_on || null, updated_by: profile.id };
   const result = id ? await supabase.from('portfolio_shares').update(body).eq('id', id) : await supabase.from('portfolio_shares').insert({ ...body, created_by: profile.id });
-  if (result.error) throw new Error(`No fue posible guardar la distribución: ${result.error.message}`); revalidatePath('/finanzas');
+  if (result.error) throw new Error(`No fue posible guardar la distribución: ${result.error.message}`); revalidatePath('/analisis');
 }

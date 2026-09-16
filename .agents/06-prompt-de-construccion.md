@@ -11,7 +11,7 @@ Antes de construir pantallas, crea supabase/migrations/<timestamp>_initial_elecp
 
 Implementa autenticación por correo y contraseña mediante @supabase/ssr, clientes de navegador/servidor y proxy de renovación de sesión. El registro público está deshabilitado. Ambos roles, administrator y management, gestionan datos de negocio; solo administrator gestiona usuarios desde una pantalla de administración. Nunca expongas la clave de servicio en el cliente.
 
-Implementa los módulos Panel general, Análisis, Proyectos, Cotizaciones, Productos y servicios, Proveedores, Clientes, Finanzas y Alertas. La cotización debe calcular incremento no acumulativo solo para materiales, AIU e IVA sobre utilidad. El servidor y PostgreSQL son la fuente de verdad para cálculos. La conversión de cotización aprobada a proyecto debe ser transaccional, idempotente y conservar instantáneas de precios y presupuesto.
+Implementa los módulos Panel general, Análisis, Proyectos, Cotizaciones, Productos y servicios, Proveedores, Clientes y Alertas. Integra el consolidado financiero en la vista Gerencia y rentabilidad de Análisis. La cotización debe calcular incremento no acumulativo solo para materiales, AIU e IVA sobre utilidad. El servidor y PostgreSQL son la fuente de verdad para cálculos. La conversión de cotización aprobada a proyecto debe ser transaccional, idempotente y conservar instantáneas de precios y presupuesto.
 
 Implementa alertas internas calculadas. No implementes correos programados ni resúmenes semanales: déjalos documentados como trabajo futuro. Añade pruebas unitarias de cálculos, integración de RPC/acciones y pruebas de RLS, además de verificación responsive, accesibilidad de teclado e impresión exclusiva de cotización.
 

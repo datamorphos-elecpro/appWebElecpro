@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { alertKinds, calculateQuote, projectBalance, projectProfit, shareAmount } from '../lib/calculations';
 import { money } from '../lib/money';
 
@@ -8,16 +8,20 @@ describe('cálculos Elecpro', () => {
       { category: 'material', quantity: '1', baseUnitPrice: '100' },
       { category: 'material', quantity: '2', baseUnitPrice: '1250.5' },
       { category: 'labor', quantity: '1', baseUnitPrice: '50' },
+      { category: 'design', quantity: '1', baseUnitPrice: '70' },
+      { category: 'technical_visit', quantity: '1', baseUnitPrice: '80' },
     ], { materialIncreasePct: '10', administrationPct: '10', contingencyPct: '5', utilityPct: '20', vatUtilityPct: '19' });
 
     expect(result.lines[0].finalUnitPrice.toString()).toBe('110');
     expect(result.lines[1].finalUnitPrice.toString()).toBe('1375.55');
     expect(result.lines[1].finalTotal.toString()).toBe('2751.1');
     expect(result.lines[2].finalUnitPrice.toString()).toBe('50');
-    expect(result.directCost.toString()).toBe('2911.1');
-    expect(result.administrationAmount.toString()).toBe('291.11');
-    expect(result.utilityAmount.toString()).toBe('582.22');
-    expect(result.vatUtilityAmount.toString()).toBe('110.6218');
+    expect(result.lines[3].finalUnitPrice.toString()).toBe('70');
+    expect(result.lines[4].finalUnitPrice.toString()).toBe('80');
+    expect(result.directCost.toString()).toBe('3061.1');
+    expect(result.administrationAmount.toString()).toBe('306.11');
+    expect(result.utilityAmount.toString()).toBe('612.22');
+    expect(result.vatUtilityAmount.toString()).toBe('116.3218');
   });
 
   it('formatea COP desde el decimal exacto, sin coerción a number', () => {
@@ -37,4 +41,4 @@ describe('cálculos Elecpro', () => {
     expect(alertKinds({ status: 'finished', expectedEnd: '2026-09-01', actualEnd: '2026-09-03', expenses: '0', budget: '0', value: '0', paid: '0' }, '2026-09-09')).toContain('retraso');
     expect(alertKinds({ status: 'in_progress', expectedEnd: '2026-09-20', expenses: '0', budget: '0', value: '0', paid: '0' }, '2026-09-09')).toContain('finalizacion_proxima');
   });
-})
+});

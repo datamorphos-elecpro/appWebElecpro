@@ -1,2 +1,8 @@
-.toast { position: fixed; right: 24px; bottom: 24px; z-index: 20; display: flex; align-items: center; gap: 12px; max-width: min(420px, calc(100vw - 32px)); padding: 11px 14px; border-radius: 11px; background: var(--green-900); color: light-dark(#fff, #06251d); box-shadow: var(--shadow); font-size: 12px; }
-.toast button { border: 0; border-radius: 6px; background: transparent; color: inherit; font-size: 18px; line-height: 1; }
+﻿.toast { display: flex; align-items: flex-start; gap: 9px; max-width: min(420px, 100%); padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); font-size: 13px; }
+.toast svg { flex: 0 0 21px; margin-top: 1px; }
+.toast span { min-width: 0; }
+.toast button { margin-left: auto; border: 0; background: transparent; color: inherit; font-size: 18px; line-height: 1; }
+.success { border-color: var(--green-700); background: var(--green-50); color: var(--green-900); }
+.error { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+.warning { border-color: var(--warning); background: var(--warning-soft); color: var(--warning); }
+.info { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }

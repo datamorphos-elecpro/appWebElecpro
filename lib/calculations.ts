@@ -1,4 +1,5 @@
-import DecimalJs from 'decimal.js';
+﻿import DecimalJs from 'decimal.js';
+import type { CatalogCategory } from './presentation';
 
 /** Decimal arithmetic for every monetary and percentage calculation in Elecpro. */
 export const Decimal = DecimalJs.clone({ precision: 40, rounding: DecimalJs.ROUND_HALF_UP });
@@ -9,7 +10,7 @@ export function decimal(value: MoneyInput): InstanceType<typeof Decimal> {
   return new Decimal(value === null || value === undefined || value === '' ? 0 : value);
 }
 
-export type QuoteItem = { category: 'material' | 'labor'; quantity: DecimalInput; baseUnitPrice: DecimalInput };
+export type QuoteItem = { category: CatalogCategory; quantity: DecimalInput; baseUnitPrice: DecimalInput };
 export type QuoteRates = { materialIncreasePct: DecimalInput; administrationPct: DecimalInput; contingencyPct: DecimalInput; utilityPct: DecimalInput; vatUtilityPct: DecimalInput };
 
 export function calculateQuote(items: QuoteItem[], rates: QuoteRates) {
@@ -31,6 +32,12 @@ export function calculateQuote(items: QuoteItem[], rates: QuoteRates) {
 export const projectBalance = (value: DecimalInput, paid: DecimalInput) => Decimal.max(0, decimal(value).minus(decimal(paid)));
 export const projectProfit = (mode: 'value' | 'manual', value: DecimalInput, initial: DecimalInput, expenses: DecimalInput) => decimal(mode === 'value' ? value : initial).minus(decimal(expenses));
 export const shareAmount = (mode: 'percent' | 'fixed', value: DecimalInput, base: DecimalInput) => mode === 'percent' ? decimal(base).times(decimal(value)).div(100) : decimal(value);
+export const realPercent = (numerator: DecimalInput, denominator: DecimalInput, decimals = 1) => {
+  const total = decimal(denominator);
+  if (total.isZero()) return null;
+  return decimal(numerator).div(total).times(100).toDecimalPlaces(decimals);
+};
+export const visualPercent = (numerator: DecimalInput, denominator: DecimalInput) => realPercent(numerator, denominator, 0)?.clampedTo(0, 100).toNumber() ?? null;
 
 export function alertKinds(project: { status: string; expectedEnd: string; actualEnd?: string | null; expenses: DecimalInput; budget: DecimalInput; value: DecimalInput; paid: DecimalInput }, today: string) {
   const alerts: string[] = [];

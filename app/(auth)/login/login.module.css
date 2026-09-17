@@ -1,5 +1,0 @@
-.main { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(130deg, var(--green-dark), #087266); }
-.card { width: min(420px, 100%); background: var(--surface); border-radius: 20px; padding: 38px; box-shadow: 0 15px 55px #002d28; }
-.logo { margin-bottom: 30px; color: var(--green); font-size: 25px; font-weight: 800; }
-.card h1 { margin: 0; }.card p { color: var(--muted); }.card form { display: grid; gap: 16px; margin: 25px 0; }.card label, .password { display: grid; gap: 6px; font-weight: 700; }.card input { border: 1px solid var(--border); border-radius: 8px; padding: 11px; background: var(--surface); color: var(--ink); }.card > form > button { border: 0; border-radius: 8px; padding: 12px; background: var(--green); color: #fff; font-weight: 700; }.links { display: grid; gap: 10px; }.links a { color: var(--green); font-weight: 700; }.error { padding: 10px; border-radius: 7px; background: #fff0ee; color: var(--danger) !important; }
-@media (max-width: 480px) { .main { padding: 16px; }.card { padding: 30px 24px; } }

@@ -1,0 +1,23 @@
+.shell { position: relative; isolation: isolate; display: grid; min-height: 100svh; place-items: center; overflow: hidden; padding: clamp(20px, 4vw, 48px); background: linear-gradient(135deg, #0b4038 0%, #176458 48%, #087266 100%); }
+.shell::before, .shell::after { position: absolute; z-index: -1; width: min(62vw, 780px); aspect-ratio: 1; border-radius: 50%; content: ""; filter: blur(2px); opacity: .42; }
+.shell::before { top: -36%; left: -18%; background: radial-gradient(circle, rgba(223, 243, 237, .52), transparent 68%); }
+.shell::after { right: -22%; bottom: -42%; background: radial-gradient(circle, rgba(184, 242, 227, .42), transparent 70%); }
+.card { width: min(440px, 100%); padding: clamp(28px, 5vw, 42px); border: 1px solid color-mix(in srgb, var(--surface) 72%, transparent); border-radius: 24px; background: color-mix(in srgb, var(--surface) 96%, transparent); box-shadow: 0 24px 65px rgba(1, 35, 30, .34); }
+.brand { display: inline-flex; margin: 0 auto 26px; padding: 10px 13px; border-radius: 14px; background: #fff; box-shadow: 0 8px 22px rgba(7, 53, 46, .12); }
+.brand img { display: block; width: 176px; height: auto; }
+.header { text-align: center; }
+.header h1 { margin: 0; color: var(--green-950); font-size: clamp(1.8rem, 5vw, 2.2rem); letter-spacing: -.035em; }
+.header p { margin: 10px 0 0; color: var(--muted); font-size: 1rem; line-height: 1.55; }
+.error { margin: 22px 0 -2px; padding: 11px 12px; border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent); border-radius: var(--radius-sm); background: var(--danger-soft); color: var(--danger); font-size: .92rem; line-height: 1.45; }
+.card form { display: grid; gap: 17px; margin: 28px 0 24px; }
+.card label, .card form > div { display: grid; gap: 7px; color: var(--ink); font-size: .92rem; font-weight: 700; text-align: left; }
+.card input { width: 100%; min-height: 46px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--surface); color: var(--ink); transition: border-color .18s ease, box-shadow .18s ease; }
+.card input:hover { border-color: var(--green-700); }
+.card input:focus { border-color: var(--green-800); outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 44%, transparent); }
+.card form > button { min-height: 48px; border: 0; border-radius: var(--radius-sm); padding: 12px 16px; background: var(--green-800); color: #fff; font-weight: 800; transition: background-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+.card form > button:hover { background: var(--green-900); box-shadow: 0 8px 18px color-mix(in srgb, var(--green-950) 24%, transparent); transform: translateY(-1px); }
+.card form > button:active { transform: translateY(0); }
+.footer { display: grid; justify-items: center; gap: 11px; text-align: center; }
+.footer a { color: var(--green-800); font-size: .92rem; font-weight: 750; }
+.footer a:hover { color: var(--green-950); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 480px) { .shell { padding: 16px; }.card { border-radius: 20px; }.brand { margin-bottom: 22px; }.brand img { width: min(156px, 100%); }.card form { margin-top: 24px; } }

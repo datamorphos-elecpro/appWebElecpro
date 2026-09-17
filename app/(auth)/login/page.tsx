@@ -1,22 +1,21 @@
 import Link from 'next/link';
 import { signIn } from '../../actions/auth';
+import { AuthShell } from '../../../components/auth/AuthShell';
 import { PasswordField } from '../../../components/ui/PasswordField';
-import styles from './login.module.css';
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const params = await searchParams;
-  return <main className={styles.main}>
-    <section className={styles.card} aria-labelledby="titulo-inicio-sesion">
-      <div className={styles.logo}>⚡ Elecpro</div>
-      <h1 id="titulo-inicio-sesion">Bienvenido</h1>
-      <p>Ingresa a la operación de Elecpro.</p>
-      {params.error && <p role="alert" className={styles.error}>{params.error}</p>}
+  return <AuthShell
+    description="Ingresa a la operación de Elecpro."
+    error={params.error}
+    footer={<><Link href="/recuperar-acceso">¿Olvidaste tu contraseña?</Link><Link href="/">Volver al inicio</Link></>}
+    headingId="titulo-inicio-sesion"
+    title="Bienvenido"
+  >
       <form action={signIn}>
         <label>Correo electrónico<input required type="email" name="email" autoComplete="email" /></label>
-        <div className={styles.password}><label htmlFor="password">Contraseña</label><PasswordField id="password" /></div>
-        <button>Iniciar sesión</button>
+        <div><label htmlFor="password">Contraseña</label><PasswordField id="password" /></div>
+        <button type="submit">Iniciar sesión</button>
       </form>
-      <div className={styles.links}><Link href="/recuperar-acceso">¿Olvidaste tu contraseña?</Link><Link href="/">Volver al inicio</Link></div>
-    </section>
-  </main>;
+  </AuthShell>;
 }

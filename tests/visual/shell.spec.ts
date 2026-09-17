@@ -16,6 +16,48 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 900, height: 960 
   });
 }
 
+for (const viewport of [{ width: 680, height: 900 }, { width: 380, height: 820 }]) {
+  test(`cuenta móvil permanece arriba a la derecha en ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await signIn(page);
+
+    const menuToggle = page.getByRole('button', { name: 'Abrir navegación' });
+    const accountSummary = page.getByLabel('Abrir menú de cuenta');
+    const accountName = accountSummary.locator('strong');
+    const accountRole = accountSummary.locator('small');
+    const avatar = accountSummary.locator('span[aria-hidden="true"]');
+
+    await expect(accountName).toBeVisible();
+    await expect(accountRole).toBeVisible();
+    await expect(avatar).toBeVisible();
+
+    const menuBox = await menuToggle.boundingBox();
+    const accountBox = await accountSummary.boundingBox();
+    expect(menuBox).not.toBeNull();
+    expect(accountBox).not.toBeNull();
+    expect(accountBox!.y).toBeLessThan(menuBox!.y + menuBox!.height);
+    expect(accountBox!.y + accountBox!.height).toBeGreaterThan(menuBox!.y);
+    expect(accountBox!.x).toBeGreaterThan(menuBox!.x);
+    expect(accountBox!.x + accountBox!.width).toBeLessThanOrEqual(viewport.width);
+
+    await accountName.evaluate((element) => { element.textContent = 'Nombre de usuario excepcionalmente largo para móvil'; });
+    await accountRole.evaluate((element) => { element.textContent = 'Administrador con una descripción extensa'; });
+    await page.getByRole('heading', { name: 'Panel general' }).evaluate((element) => { element.textContent = 'Título de sección excepcionalmente largo para móvil'; });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+    await accountSummary.click();
+    const accountMenu = page.locator('details[open] > div');
+    await expect(accountMenu).toBeVisible();
+    const accountMenuBox = await accountMenu.boundingBox();
+    expect(accountMenuBox).not.toBeNull();
+    expect(accountMenuBox!.x).toBeGreaterThanOrEqual(0);
+    expect(accountMenuBox!.x + accountMenuBox!.width).toBeLessThanOrEqual(viewport.width);
+
+    await page.keyboard.press('Escape');
+    await expect(accountMenu).not.toBeVisible();
+  });
+}
+
 async function signIn(page: import('@playwright/test').Page) {
   await page.goto('/login');
   await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);

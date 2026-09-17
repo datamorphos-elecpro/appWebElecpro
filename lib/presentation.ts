@@ -52,6 +52,13 @@ export function bogotaDateText(value?: string | null, options: Intl.DateTimeForm
   if (!value) return 'Sin fecha';
   return new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', ...options }).format(new Date(`${value}T12:00:00-05:00`));
 }
+/** Presents the technical YYYY-MM key used in URLs as a Colombian month label. */
+export function monthText(value: string) {
+  if (!/^\d{4}-\d{2}$/.test(value)) return value;
+  return new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', month: 'short', year: 'numeric' })
+    .format(new Date(`${value}-01T12:00:00-05:00`))
+    .replace('.', '');
+}
 export function compactMoney(value: Parameters<typeof money>[0]) {
   const amount = decimal(value); const absolute = amount.abs();
   if (absolute.lessThan(1_000_000)) return money(amount);

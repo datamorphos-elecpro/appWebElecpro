@@ -1,7 +1,14 @@
-.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.metrics, .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
 .panel { margin-bottom: 14px; }
 .total { display: block; margin-top: 2px; color: var(--ink); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.list { margin-top: 14px; padding: 16px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
+.listHead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.listHead h2 { margin: 0; font-size: 16px; }
+.filters { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.filters label { display: grid; gap: 4px; color: var(--muted); font-size: 11px; }
+.filters input, .filters select, .filters button { min-height: 32px; border: 1px solid var(--border); border-radius: 7px; padding: 5px 7px; background: var(--surface); color: var(--ink); }
+.filters button { border-color: var(--green-800); background: var(--green-800); color: #fff; font-weight: 600; }
 .card { display: grid; gap: 13px; min-width: 0; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
 .cardHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .cardHead > div { min-width: 0; }
@@ -13,6 +20,6 @@
 .meta strong { display: block; margin-top: 3px; overflow-wrap: anywhere; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 12px; border: 1px solid var(--green-800); border-radius: 9px; background: var(--green-800); color: #fff; font-weight: 600; }
 .secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 12px; border: 1px solid var(--green-800); border-radius: 9px; background: var(--surface); color: var(--green-900); font-size: 12px; font-weight: 600; }
-@media (max-width: 900px) { .metrics, .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .metrics, .summary, .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
 @media (max-width: 380px) { .metrics { grid-template-columns: 1fr; } }

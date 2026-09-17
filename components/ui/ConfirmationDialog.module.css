@@ -1,3 +1,4 @@
+.error { margin: 0.75rem 0 0; color: var(--danger, #b42318); font-size: .9rem; }
 .content { display: grid; gap: 13px; color: var(--muted); }
 .content p { margin: 0; }
 .name { padding: 9px 10px; border-radius: 8px; background: var(--canvas); color: var(--ink); }

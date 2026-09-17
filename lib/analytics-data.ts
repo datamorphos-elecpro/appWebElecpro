@@ -2,6 +2,7 @@
 import { bogotaDate } from './money';
 import { projectStatusText, quoteDisplayStatus, quoteStatusText } from './presentation';
 import type { AnalyticsExpense, AnalyticsPayment, ProjectRecord, ProjectWithFinancialSummary, QuoteRecord } from './data';
+import type { ChartDatum, ChartUnit } from './chart-data';
 
 export type AnalyticsData = {
   projects: ProjectWithFinancialSummary<ProjectRecord>[];
@@ -14,8 +15,8 @@ export type AnalyticsData = {
 export type PortfolioShare = { id: string; participant: string; mode: 'percent' | 'fixed'; value: string; is_paid: boolean; paid_on: string | null };
 export type PortfolioFinancialSummary = { contracted: string; paid: string; balance: string; expenses: string; budget: string; real_profit: string; projected_profit: string };
 export type AnalyticsFilters = Record<string, string>;
-export type ChartUnit = 'money' | 'count' | 'percent';
-export type ChartDatum = { key: string; label: string; value: string; count?: number; unit?: ChartUnit; series?: string };
+export type { ChartDatum, ChartUnit } from './chart-data';
+export type ProjectCashDatum = { key: string; label: string; paid: string; expenses: string; difference: string };
 
 export const projectStates = ['draft', 'quoted', 'approved', 'in_progress', 'paused', 'finished', 'cancelled'];
 export const quoteStates = ['draft', 'sent', 'approved', 'rejected', 'expired'];
@@ -43,15 +44,14 @@ export function filterCommercialQuotes(data: AnalyticsData, filters: AnalyticsFi
 }
 
 function grouped<T>(records: T[], key: (record: T) => { key: string; label: string }, value: (record: T) => string, unit: ChartUnit = 'money') {
-  const values = new Map<string, { label: string; value: ReturnType<typeof decimal>; count: number }>();
+  const values = new Map<string, { label: string; value: ReturnType<typeof decimal> }>();
   for (const record of records) {
     const group = key(record);
-    const current = values.get(group.key) ?? { label: group.label, value: decimal(0), count: 0 };
+    const current = values.get(group.key) ?? { label: group.label, value: decimal(0) };
     current.value = current.value.plus(decimal(value(record)));
-    current.count += 1;
     values.set(group.key, current);
   }
-  return [...values.entries()].map(([key, value]) => ({ key, label: value.label, value: value.value.toString(), count: value.count, unit }));
+  return [...values.entries()].map(([key, value]) => ({ key, label: value.label, value: value.value.toString(), unit }));
 }
 
 function monthlyCash(payments: AnalyticsPayment[], expenses: AnalyticsExpense[], monthFilter?: string): ChartDatum[] {
@@ -77,6 +77,27 @@ function monthlyCash(payments: AnalyticsPayment[], expenses: AnalyticsExpense[],
   ]);
 }
 
+/** Mirrors the management RPC: cash movement only, top ten, stable by project ID. */
+export function cashByProject(data: AnalyticsData, filters: AnalyticsFilters): ProjectCashDatum[] {
+  const projects = filterManagementProjects(data, filters);
+  const allowed = new Map(projects.map((project) => [project.id, project]));
+  const totals = new Map<string, { paid: ReturnType<typeof decimal>; expenses: ReturnType<typeof decimal> }>();
+  for (const payment of data.payments) {
+    if (!allowed.has(payment.project_id) || !matches(monthOf(payment.payment_date), filters.month)) continue;
+    const total = totals.get(payment.project_id) ?? { paid: decimal(0), expenses: decimal(0) };
+    total.paid = total.paid.plus(payment.amount); totals.set(payment.project_id, total);
+  }
+  for (const expense of data.expenses) {
+    if (!allowed.has(expense.project_id) || !matches(monthOf(expense.expense_date), filters.month)) continue;
+    const total = totals.get(expense.project_id) ?? { paid: decimal(0), expenses: decimal(0) };
+    total.expenses = total.expenses.plus(expense.amount); totals.set(expense.project_id, total);
+  }
+  return [...totals.entries()].map(([key, total]) => {
+    const project = allowed.get(key)!;
+    return { key, label: [project.quote_number, project.title].filter(Boolean).join(' — '), paid: total.paid.toString(), expenses: total.expenses.toString(), difference: total.paid.minus(total.expenses).toString() };
+  }).sort((a, b) => decimal(b.paid).plus(b.expenses).comparedTo(decimal(a.paid).plus(a.expenses)) || a.key.localeCompare(b.key)).slice(0, 10);
+}
+
 export function managementAnalysis(data: AnalyticsData, filters: AnalyticsFilters) {
   const projects = filterManagementProjects(data, filters);
   const ids = new Set(projects.map((project) => project.id));
@@ -87,7 +108,7 @@ export function managementAnalysis(data: AnalyticsData, filters: AnalyticsFilter
     ...expensesData.map((expense) => ({ project_id: expense.project_id, date: expense.expense_date, amount: expense.amount, kind: 'expense' as const })),
   ].filter((movement) => matches(monthOf(movement.date), filters.month));
   const monthly = monthlyCash(payments, expensesData, filters.month);
-  const expenses = projects.map((project) => ({ key: project.id, label: project.quote_number || project.title, value: project.financialSummary.expenses, count: 1, unit: 'money' as const }));
+  const expenses = projects.map((project) => ({ key: project.id, label: project.quote_number || project.title, value: project.financialSummary.expenses, unit: 'money' as const }));
   const balances = grouped(projects, (project) => ({ key: project.client_id, label: clientName(project) }), (project) => project.financialSummary.balance).sort((a, b) => decimal(b.value).comparedTo(decimal(a.value)));
   const profitability = projects.flatMap((project) => [
     { key: `${project.id}:real`, label: `${project.quote_number || project.title} · actual`, value: project.financialSummary.real_profit, unit: 'money' as const, series: 'Actual' },
@@ -110,10 +131,12 @@ export function managementAnalysis(data: AnalyticsData, filters: AnalyticsFilter
   return { projects, movements, monthly, expenses, balances, profitability, costs, projectValue, paid, balance, expensesTotal, budget, profit, projectedProfit, periodPaid, periodExpenses, periodDifference };
 }
 
+export const unassignedResponsibleKey = '__unassigned__';
+
 export function operationAnalysis(data: AnalyticsData, filters: AnalyticsFilters) {
   const projects = filterOperationProjects(data, filters);
   const byStatus = grouped(projects, (project) => ({ key: project.status, label: projectStatusText(project.status) }), countValue, 'count');
-  const byResponsible = grouped(projects.filter((project) => activeProjectStates.has(project.status)), (project) => ({ key: project.responsible, label: project.responsible || 'Sin responsable' }), countValue, 'count');
+  const byResponsible = grouped(projects.filter((project) => activeProjectStates.has(project.status)), (project) => ({ key: project.responsible || unassignedResponsibleKey, label: project.responsible || 'Sin responsable' }), countValue, 'count');
   return { projects, byStatus, byResponsible };
 }
 

@@ -6,7 +6,7 @@ test.skip(!credentialsAvailable, 'Requiere credenciales de prueba autenticadas y
 async function login(page: Page) {
   await page.goto('/login');
   await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-  await page.getByLabel(/contraseña/i).fill(process.env.E2E_TEST_PASSWORD!);
+  await page.getByLabel(/contraseña/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
   await page.getByRole('button', { name: /ingresar/i }).click();
 }
 

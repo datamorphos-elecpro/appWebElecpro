@@ -1,0 +1,1 @@
+-- The aggregate must obey the same active-member RLS contract as the table.

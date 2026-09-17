@@ -1,0 +1,12 @@
+.switcher { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.switcher button { min-height: 32px; border: 0; border-radius: 7px; padding: 5px 10px; background: transparent; color: var(--muted); font-weight: 600; }
+.switcher .selected { background: var(--green-800); color: #fff; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.section { min-width: 0; padding: 16px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
+.section h2 { margin: 0 0 10px; font-size: 15px; }
+.hint { margin: 8px 0; color: var(--muted); font-size: 12px; }
+.tableWrap { overflow-x: auto; }
+.tableWrap table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tableWrap th, .tableWrap td { padding: 8px 6px; border-top: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tableWrap th:first-child { text-align: left; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }

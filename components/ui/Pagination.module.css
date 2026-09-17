@@ -1,5 +1,8 @@
-.pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 12px; color: var(--muted); font-size: 12px; }
-.pager label { display: inline-flex; align-items: center; gap: 4px; }
-.pager select, .pager button { min-height: 32px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); padding: 4px 8px; }
-.pager button:disabled { opacity: .5; }
+.pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 14px; color: var(--muted); font-size: 12px; }
+.pager label { display: inline-flex; align-items: center; gap: 7px; color: var(--green-900); font-weight: 700; }
+.pager select, .pager button { min-height: 40px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); padding: 7px 10px; }
+.pager select:hover, .pager button:hover:not(:disabled) { border-color: var(--green-700); background: var(--green-50); }
+.pager button:active:not(:disabled) { background: var(--green-800); color: #fff; }.pager button:disabled { cursor: not-allowed; opacity: .5; }
+.summary { margin-right: auto; }.navigation { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }.navigation span { min-width: 96px; text-align: center; color: var(--ink); font-weight: 600; }
+@media (max-width: 680px) { .pager { justify-content: stretch; }.summary { flex-basis: 100%; margin-right: 0; }.pager label, .navigation { flex: 1 1 100%; }.pager label select { flex: 1; }.navigation button { flex: 1 1 0; }.navigation span { flex-basis: 100%; order: -1; } }
 .empty { padding: 20px 0; color: var(--muted); text-align: center; }

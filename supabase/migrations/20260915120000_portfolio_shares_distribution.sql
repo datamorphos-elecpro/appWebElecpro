@@ -5,6 +5,15 @@ alter table public.portfolio_shares
   add column if not exists is_active boolean not null default true,
   add column if not exists paid_amount numeric(14,2);
 
+-- Backfill must happen before validating the paid snapshot check. Existing
+-- historical payments may legitimately have no known paid_on date.
+update public.portfolio_shares share
+set paid_amount = case when share.mode = 'percent'
+  then round(summary.real_profit * share.value / 100, 2)
+  else share.value end
+from public.portfolio_financial_summary summary
+where share.is_paid and share.paid_amount is null;
+
 alter table public.portfolio_shares
   drop constraint if exists portfolio_shares_percent_range,
   add constraint portfolio_shares_percent_range check (mode <> 'percent' or value between 0 and 100),

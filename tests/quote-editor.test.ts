@@ -21,6 +21,11 @@ describe('validación compartida del editor de cotizaciones', () => {
     expect(quotePayloadSchema.safeParse(validPayload).success).toBe(true);
   });
 
+  it('acepta una clave de reintento y rechaza una malformada', () => {
+    expect(quotePayloadSchema.safeParse({ ...validPayload, request_id: '11111111-1111-4111-8111-111111111111' }).success).toBe(true);
+    expect(quotePayloadSchema.safeParse({ ...validPayload, request_id: 'reintento' }).success).toBe(false);
+  });
+
   it('mantiene en memoria un ítem incompleto sin enviarlo al servidor', () => {
     const messages = quoteValidationMessages({ ...validPayload, items: [{ ...validPayload.items[0], description: '', category: '' }] });
     expect(messages).toContain('La descripción es obligatoria.');

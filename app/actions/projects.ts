@@ -3,9 +3,10 @@
 import { revalidateBusinessViews } from './revalidation';
 import { z } from 'zod';
 import { requireProfile } from '../../lib/auth';
+import { decimal as toDecimal } from '../../lib/calculations';
 
 const decimal = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Use un importe no negativo con máximo dos decimales.');
-const positiveDecimal = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Use un importe válido.').refine((value) => Number(value) > 0, 'El importe debe ser mayor que cero.');
+const positiveDecimal = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Use un importe válido.').refine((value) => toDecimal(value).greaterThan(0), 'El importe debe ser mayor que cero.');
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use una fecha válida.');
 
 const projectSchema = z.object({

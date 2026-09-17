@@ -18,6 +18,7 @@ export const quoteItemSchema = z.object({
 
 export const quotePayloadSchema = z.object({
   id: z.string().uuid().optional(),
+  request_id: z.string().uuid().optional(),
   client_id: z.string().uuid('Seleccione un cliente.'),
   status: z.enum(['draft', 'sent', 'approved', 'rejected']),
   issued_on: z.string().date('Ingrese una fecha de emisión válida.'),

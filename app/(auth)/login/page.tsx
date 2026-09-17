@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { signIn } from '../../actions/auth';
+import { PasswordField } from '../../../components/ui/PasswordField';
 import styles from './login.module.css';
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
@@ -12,7 +13,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
       {params.error && <p role="alert" className={styles.error}>{params.error}</p>}
       <form action={signIn}>
         <label>Correo electrónico<input required type="email" name="email" autoComplete="email" /></label>
-        <label>Contraseña<input required type="password" name="password" autoComplete="current-password" /></label>
+        <div className={styles.password}><label htmlFor="password">Contraseña</label><PasswordField id="password" /></div>
         <button>Iniciar sesión</button>
       </form>
       <div className={styles.links}><Link href="/recuperar-acceso">¿Olvidaste tu contraseña?</Link><Link href="/">Volver al inicio</Link></div>

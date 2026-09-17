@@ -7,9 +7,12 @@ import { approveAndConvertQuote, saveQuote } from '../../app/actions/quotes';
 import { saveCompanySettings } from '../../app/actions/business';
 import { calculateQuote } from '../../lib/calculations';
 import { bogotaDate, money } from '../../lib/money';
-import { categoryOptions, categoryText, type CatalogCategory } from '../../lib/presentation';
+import { categoryOptions, type CatalogCategory } from '../../lib/presentation';
 import { quotePayloadSchema, quoteValidationMessages } from '../../lib/validators/quote';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 import { Dialog } from '../ui/Dialog';
+import { RemoteSearchSelect } from '../ui/RemoteSearchSelect';
+import type { RemoteSearchResult } from '../../lib/remote-search';
 import { QuoteDocument } from './QuoteDocument';
 import { QuotePreviewDialog } from './QuotePreviewDialog';
 import styles from './QuoteEditor.module.css';
@@ -23,7 +26,6 @@ type InitialQuote = Record<string, unknown> & { id: string; number: string; proj
 type SaveState = 'dirty' | 'saving' | 'saved' | 'error';
 
 const decimalInput = (value: unknown, fallback = '0') => value === null || value === undefined ? fallback : String(value);
-const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-CO').trim();
 const datePlusDays = (date: string, days: number) => {
   const value = new Date(`${date}T12:00:00-05:00`);
   value.setUTCDate(value.getUTCDate() + days);
@@ -54,13 +56,13 @@ function initialItems(quote?: InitialQuote): Item[] {
   }));
 }
 
-export function QuoteEditor({ quote, clients, catalog, company }: { quote?: InitialQuote; clients: Client[]; catalog: Catalog[]; company: Company }) {
+export function QuoteEditor({ quote, initialClient, company }: { quote?: InitialQuote; initialClient?: Client | null; company: Company }) {
   const router = useRouter();
   const [form, setForm] = useState(() => initialForm(quote));
   const [items, setItems] = useState(() => initialItems(quote));
   const [saved, setSaved] = useState<InitialQuote | undefined>(quote);
   const [draftStarted, setDraftStarted] = useState(Boolean(quote));
-  const [catalogSearch, setCatalogSearch] = useState('');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(initialClient ?? null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>(quote ? 'saved' : 'dirty');
@@ -68,18 +70,21 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
   const [manager, setManager] = useState(company);
   const [managerMessage, setManagerMessage] = useState('');
   const [managerPending, startManagerTransition] = useTransition();
-  const [converting, startConvertTransition] = useTransition();
+  const [converting, setConverting] = useState(false);
   const revisionRef = useRef(0);
   const savedRevisionRef = useRef(0);
   const savePromiseRef = useRef<Promise<InitialQuote | null> | null>(null);
   const savedRef = useRef(saved);
+  // Una creación conserva su llave al reintentar; cada editor nuevo inicia una
+  // operación diferente al abrir el borrador.
+  const createRequestIdRef = useRef<string | undefined>(undefined);
   const currentRef = useRef({ form, items });
   const managerDirtyRef = useRef(false);
   const itemSequence = useRef(items.length + 1);
   const locked = Boolean(saved?.project_id);
 
-  currentRef.current = { form, items };
-  savedRef.current = saved;
+  useEffect(() => { currentRef.current = { form, items }; }, [form, items]);
+  useEffect(() => { savedRef.current = saved; }, [saved]);
 
   const totals = useMemo(() => calculateQuote(items.map((item) => ({
     category: (item.category || 'labor') as CatalogCategory, quantity: item.quantity, baseUnitPrice: item.base_unit_price,
@@ -88,14 +93,13 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
     utilityPct: form.utility_pct, vatUtilityPct: form.vat_utility_pct,
   }), [items, form.material_increase_pct, form.administration_pct, form.contingency_pct, form.utility_pct, form.vat_utility_pct]);
 
-  const selectedClient = clients.find((client) => client.id === form.client_id) ?? null;
-  const searchResults = useMemo(() => {
-    const query = normalize(catalogSearch);
-    return query ? catalog.filter((item) => normalize(item.code).includes(query) || normalize(item.description).includes(query)) : [];
-  }, [catalog, catalogSearch]);
-
   const payload = useCallback(() => {
-    return { ...currentRef.current.form, id: savedRef.current?.id, items: currentRef.current.items.map(({ localKey: _localKey, ...item }) => item) };
+    return {
+      ...currentRef.current.form,
+      id: savedRef.current?.id,
+      request_id: savedRef.current?.id ? undefined : createRequestIdRef.current,
+      items: currentRef.current.items.map(({ localKey: _localKey, ...item }) => item),
+    };
   }, []);
 
   function markDirty() {
@@ -120,8 +124,20 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
       localKey, catalog_item_id: catalogItem.id, code: catalogItem.code, description: catalogItem.description, unit: catalogItem.unit,
       category: catalogItem.category, quantity: '1', base_unit_price: decimalInput(catalogItem.base_unit_price),
     } : emptyItem(localKey)]);
-    setCatalogSearch('');
     markDirty();
+  }
+
+  function selectClient(result: RemoteSearchResult | null) {
+    if (!result) { setForm((current) => ({ ...current, client_id: '' })); setSelectedClient(null); return; }
+    const metadata = result.metadata as Record<string, unknown>;
+    setSelectedClient({ id: result.id, name: result.primary, contact_name: String(metadata.contact_name ?? ''), email: String(metadata.email ?? ''), address: String(metadata.address ?? '') });
+    patchForm('client_id', result.id);
+  }
+
+  function selectCatalogItem(result: RemoteSearchResult | null) {
+    if (!result) return;
+    const metadata = result.metadata as Record<string, unknown>;
+    addItem({ id: result.id, code: String(metadata.code ?? ''), description: String(metadata.description ?? ''), unit: String(metadata.unit ?? 'und'), base_unit_price: String(metadata.base_unit_price ?? '0'), category: String(metadata.category ?? 'labor') as Exclude<Category, ''> });
   }
 
   function removeItem(localKey: string) {
@@ -187,24 +203,14 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
       event.preventDefault();
       event.returnValue = '';
     };
-    const protectLinks = (event: MouseEvent) => {
-      if (!hasPendingChanges()) return;
-      const target = event.target instanceof Element ? event.target.closest('a[href]') : null;
-      if (!target || target.getAttribute('target') === '_blank' || target.hasAttribute('download')) return;
-      if (!window.confirm('Hay cambios pendientes de guardar. ¿Desea salir de todos modos?')) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    };
     window.addEventListener('beforeunload', beforeUnload);
-    document.addEventListener('click', protectLinks, true);
-    return () => { window.removeEventListener('beforeunload', beforeUnload); document.removeEventListener('click', protectLinks, true); };
+    return () => window.removeEventListener('beforeunload', beforeUnload);
   }, []);
 
   function startDraft(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    setForm((current) => ({ ...current, client_id: String(data.get('client_id') ?? ''), title: String(data.get('title') ?? ''), issued_on: String(data.get('issued_on') ?? ''), valid_until: String(data.get('valid_until') ?? '') }));
+    if (!form.client_id || !form.title.trim()) { setValidation(['Seleccione un cliente y escriba el nombre del proyecto o servicio.']); return; }
+    createRequestIdRef.current = crypto.randomUUID();
     setDraftStarted(true);
     markDirty();
   }
@@ -219,20 +225,19 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
   function requestConversion() {
     const messages = quoteValidationMessages(payload());
     if (messages.length) { setValidation(messages); return; }
-    if (form.status !== 'approved') setConfirmOpen(true);
-    else convertCurrent();
+    setConfirmOpen(true);
   }
 
-  function convertCurrent() {
-    setConfirmOpen(false);
-    startConvertTransition(async () => {
-      try {
+  async function convertCurrent() {
+    if (converting) return;
+    setConverting(true);
+    try {
         const parsed = quotePayloadSchema.parse(payload());
         const response = await approveAndConvertQuote(parsed);
         if (!response.ok) {
           setSaveState('error');
           setValidation([response.message]);
-          return;
+          throw new Error(response.message);
         }
         const project = response.data;
         const quoteId = savedRef.current?.id ?? project.quote_id;
@@ -243,11 +248,12 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
         savedRevisionRef.current = revisionRef.current;
         setSaveState('saved');
         if (!quote && quoteId) router.replace(`/cotizaciones/${quoteId}`);
-      } catch (error) {
+        setConfirmOpen(false);
+    } catch (error) {
         setSaveState('error');
         setValidation([error instanceof Error ? error.message : 'No se pudo convertir la cotización.']);
-      }
-    });
+        throw error;
+    } finally { setConverting(false); }
   }
 
   function patchManager(key: keyof Company, value: string) {
@@ -291,7 +297,7 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
     <div className={styles.editor}>
       <EditorSection number="1" title="Información principal" open>
         <div className={styles.formGrid}>
-          <Field label="Cliente"><select value={form.client_id} onChange={(event) => patchForm('client_id', event.target.value)} disabled={locked} required><option value="">Selecciona un cliente</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}</select></Field>
+          <Field label="Cliente"><RemoteSearchSelect kind="clients" value={form.client_id} defaultResult={selectedClient ? { id: selectedClient.id, primary: selectedClient.name, secondary: '', metadata: {} } : null} onSelect={selectClient} placeholder="Escriba al menos 2 caracteres" disabled={locked} /></Field>
           <Field label="Estado"><select value={form.status} onChange={(event) => patchForm('status', event.target.value)} disabled={locked}><option value="draft">Borrador</option><option value="sent">Enviada</option><option value="approved">Aprobada</option><option value="rejected">Rechazada</option></select></Field>
           <Field label="Fecha"><input type="date" value={form.issued_on} onChange={(event) => patchForm('issued_on', event.target.value)} disabled={locked} /></Field>
           <Field label="Válida hasta"><input type="date" value={form.valid_until} onChange={(event) => patchForm('valid_until', event.target.value)} disabled={locked} /></Field>
@@ -303,8 +309,7 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
       </EditorSection>
 
       <EditorSection number="2" title="Materiales y servicio" open>
-        <Field label="Buscar en catálogo"><input value={catalogSearch} onChange={(event) => setCatalogSearch(event.target.value)} placeholder="Código o descripción" disabled={locked} /></Field>
-        <div className={styles.catalogResults} aria-live="polite">{!catalogSearch.trim() ? <p>Escriba código o descripción para buscar en el catálogo.</p> : searchResults.length ? searchResults.map((item) => <button type="button" key={item.id} className={styles.catalogResult} onClick={() => addItem(item)} disabled={locked}><span>{item.code} · {item.description}</span><small>{categoryText(item.category)} · {item.unit} · {money(item.base_unit_price)}</small></button>) : <p>No se encontraron coincidencias.</p>}</div>
+        <Field label="Buscar en catálogo"><RemoteSearchSelect kind="catalog" value="" onSelect={selectCatalogItem} placeholder="Código o descripción (mínimo 2 caracteres)" disabled={locked} /></Field>
         <div className={styles.materialEditor}>{items.map((item, index) => <MaterialRow key={item.localKey} item={item} index={index} line={totals.lines[index]} locked={locked} patch={patchItem} remove={removeItem} />)}</div>
         {!locked && <button type="button" className={styles.secondary} onClick={() => addItem()}>+ Agregar ítem manual</button>}
       </EditorSection>
@@ -348,20 +353,16 @@ export function QuoteEditor({ quote, clients, catalog, company }: { quote?: Init
     <Dialog open={!draftStarted} title="Nueva cotización" onClose={() => router.push('/cotizaciones')}>
       <form className={styles.initialForm} onSubmit={startDraft}>
         <div className={styles.formGrid}>
-          <Field label="Cliente"><select name="client_id" defaultValue="" required><option value="">Selecciona un cliente</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}</select></Field>
-          <Field label="Nombre del proyecto o servicio" full><input name="title" required autoFocus /></Field>
-          <Field label="Fecha"><input name="issued_on" type="date" defaultValue={form.issued_on} required /></Field>
-          <Field label="Válida hasta"><input name="valid_until" type="date" defaultValue={form.valid_until} required /></Field>
+          <Field label="Cliente"><RemoteSearchSelect kind="clients" value={form.client_id} onSelect={selectClient} placeholder="Escriba al menos 2 caracteres" /></Field>
+          <Field label="Nombre del proyecto o servicio" full><input value={form.title} onChange={(event) => patchForm('title', event.target.value)} required autoFocus /></Field>
+          <Field label="Fecha"><input type="date" value={form.issued_on} onChange={(event) => patchForm('issued_on', event.target.value)} required /></Field>
+          <Field label="Válida hasta"><input type="date" value={form.valid_until} onChange={(event) => patchForm('valid_until', event.target.value)} required /></Field>
         </div>
-        {!clients.length && <p className={styles.validation}>Debe registrar un cliente activo antes de crear la cotización.</p>}
-        <div className={styles.dialogActions}><button type="button" className={styles.secondary} onClick={() => router.push('/cotizaciones')}>Cancelar</button><button type="submit" className={styles.primary} disabled={!clients.length}>Crear borrador</button></div>
+        <div className={styles.dialogActions}><button type="button" className={styles.secondary} onClick={() => router.push('/cotizaciones')}>Cancelar</button><button type="submit" className={styles.primary}>Crear borrador</button></div>
       </form>
     </Dialog>
 
-    <Dialog open={confirmOpen} title="Aprobar y convertir" onClose={() => setConfirmOpen(false)}>
-      <p>La cotización está en estado «{form.status === 'draft' ? 'Borrador' : form.status === 'sent' ? 'Enviada' : 'Rechazada'}». Esta acción la aprobará y creará el proyecto conservando la instantánea económica actual.</p>
-      <div className={styles.dialogActions}><button type="button" className={styles.secondary} onClick={() => setConfirmOpen(false)}>Cancelar</button><button type="button" className={styles.primary} onClick={convertCurrent}>Aprobar y convertir</button></div>
-    </Dialog>
+    <ConfirmationDialog open={confirmOpen} title="Aprobar y convertir" description={`La cotización está en estado «${form.status === 'draft' ? 'Borrador' : form.status === 'sent' ? 'Enviada' : form.status === 'approved' ? 'Aprobada' : 'Rechazada'}». Se creará el proyecto conservando la instantánea económica actual.`} recordName={saved?.number ?? form.title} confirmLabel="Aprobar y convertir" onClose={() => setConfirmOpen(false)} onConfirm={convertCurrent} />
 
     <QuotePreviewDialog open={previewOpen} title={`Vista previa · ${saved?.number ?? 'Pendiente de guardar'}`} onClose={() => setPreviewOpen(false)}>
       <QuoteDocument form={form} items={items} totals={totals} number={saved?.number ? String(saved.number) : undefined} client={selectedClient} company={manager} />

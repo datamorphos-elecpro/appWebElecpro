@@ -24,6 +24,12 @@ export async function deactivateBusiness(table: 'clients' | 'suppliers' | 'catal
   const { supabase } = await requireProfile(); const { error } = await supabase.from(table).update({ is_active: false }).eq('id', id); if (error) throw new Error(error.message);
   if (table === 'clients') revalidateClientViews(); else if (table === 'catalog_items') revalidateCatalogViews(); else revalidatePath('/proveedores');
 }
+export async function setBusinessActive(table: 'clients' | 'suppliers' | 'catalog_items', id: string, isActive: boolean) {
+  const { supabase } = await requireProfile();
+  const { error } = await supabase.from(table).update({ is_active: isActive }).eq('id', id);
+  if (error) throw new Error(error.message);
+  if (table === 'clients') revalidateClientViews(); else if (table === 'catalog_items') revalidateCatalogViews(); else revalidatePath('/proveedores');
+}
 const companySchema = z.object({ legal_name: z.string().min(1), manager_name: z.string().min(1), manager_role: z.string().min(1), professional_card: z.string().optional(), phone: z.string().optional(), email: z.string().email().or(z.literal('')), address: z.string().optional(), timezone: z.literal('America/Bogota'), currency_code: z.literal('COP') });
 const portfolioShareSchema = z.object({ id: z.string().uuid().optional(), participant: z.string().min(1), mode: z.enum(['percent', 'fixed']), value: amount, is_paid: z.boolean(), paid_on: z.string().optional() }).refine((value) => !value.paid_on || value.is_paid, 'Una fecha de pago exige marcar la distribución como pagada.');
 export async function saveCompanySettings(input: unknown) {

@@ -2,7 +2,7 @@
 
 import { decimal } from '../../lib/calculations';
 import { money } from '../../lib/money';
-import type { ChartDatum, ChartUnit } from '../../lib/analytics-data';
+import type { ChartDatum, ChartUnit } from '../../lib/chart-data';
 import styles from './AnalyticsWorkspace.module.css';
 
 const colors = ['var(--green-700)', 'var(--danger)', 'var(--blue)', 'var(--warning)', 'var(--green-900)'];
@@ -12,11 +12,11 @@ const formatValue = (value: string | number, unit: ChartUnit = 'money') => {
   return money(value);
 };
 
-export function AnalyticsBarChart({ data, label, count = false, onSelect }: { data: ChartDatum[]; label: string; count?: boolean; onSelect?: (key: string) => void }) {
+export function AnalyticsBarChart({ data, label, onSelect }: { data: ChartDatum[]; label: string; onSelect?: (key: string) => void }) {
   if (!data.length) return <p className={styles.empty}>No hay datos para los filtros seleccionados.</p>;
   const rows = data.map((datum) => {
-    const unit = count ? 'count' as const : datum.unit ?? 'money';
-    const rawValue = unit === 'count' ? String(datum.count ?? 0) : datum.value;
+    const unit = datum.unit ?? 'money';
+    const rawValue = datum.value;
     return { ...datum, unit, rawValue, amount: decimal(rawValue) };
   });
   const maxAbs = rows.reduce((current, datum) => Decimal.max(current, datum.amount.abs()), decimal(0));

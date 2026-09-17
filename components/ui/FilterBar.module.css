@@ -1,4 +1,15 @@
-.bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; margin-bottom: 12px; background: var(--green-50); border: 1px solid var(--border); border-radius: 13px; }
-.bar :is(select, input) { min-height: 36px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; background: var(--surface); color: var(--ink); }
+.bar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 14px; margin-bottom: 14px; background: var(--green-50); border: 1px solid color-mix(in srgb, var(--green-800) 24%, var(--border)); border-radius: var(--radius); }
+.fields, .actions { display: flex; flex: 1 1 0; flex-wrap: wrap; align-items: end; gap: 10px; min-width: 0; }
+.actions { flex: 0 1 auto; justify-content: flex-end; }
+.bar label { display: grid; flex: 1 1 150px; gap: 5px; min-width: min(100%, 150px); color: var(--green-900); font-size: 12px; font-weight: 700; }
+.bar :is(select, input) { width: 100%; min-height: 40px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface); color: var(--ink); }
+.bar :is(select, input):hover { border-color: var(--green-700); }
+.bar :is(select, input):disabled, .bar button:disabled { cursor: not-allowed; opacity: .55; }
+.bar button { min-height: 40px; border: 1px solid var(--green-800); border-radius: var(--radius-sm); padding: 8px 13px; background: var(--surface); color: var(--green-900); font-weight: 700; }
+.bar button:hover:not(:disabled) { background: var(--green-100); }
+.bar button:active:not(:disabled) { background: var(--green-800); color: #fff; }
+.bar :global(.primary) { background: var(--green-800); color: #fff; }
+.bar :global(.primary):hover:not(:disabled) { background: var(--green-900); }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 14px; color: var(--muted); font-size: 11px; }
 .tag { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 4px 8px; color: var(--green-900); }
+@media (max-width: 680px) { .bar, .fields, .actions { align-items: stretch; }.fields { flex-basis: 100%; }.actions { flex: 1 1 100%; justify-content: stretch; }.actions > * { flex: 1 1 auto; }.bar label { flex-basis: 100%; } }

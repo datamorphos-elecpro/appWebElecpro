@@ -3,7 +3,7 @@
 .shell::before { top: -36%; left: -18%; background: radial-gradient(circle, rgba(223, 243, 237, .52), transparent 68%); }
 .shell::after { right: -22%; bottom: -42%; background: radial-gradient(circle, rgba(184, 242, 227, .42), transparent 70%); }
 .card { width: min(440px, 100%); padding: clamp(28px, 5vw, 42px); border: 1px solid color-mix(in srgb, var(--surface) 72%, transparent); border-radius: 24px; background: color-mix(in srgb, var(--surface) 96%, transparent); box-shadow: 0 24px 65px rgba(1, 35, 30, .34); }
-.brand { display: inline-flex; margin: 0 auto 26px; padding: 10px 13px; border-radius: 14px; background: #fff; box-shadow: 0 8px 22px rgba(7, 53, 46, .12); }
+.brand { display: flex; width: fit-content; margin: 0 auto 26px; padding: 10px 13px; border-radius: 14px; background: #fff; box-shadow: 0 8px 22px rgba(7, 53, 46, .12); }
 .brand img { display: block; width: 176px; height: auto; }
 .header { text-align: center; }
 .header h1 { margin: 0; color: var(--green-950); font-size: clamp(1.8rem, 5vw, 2.2rem); letter-spacing: -.035em; }
@@ -20,4 +20,4 @@
 .footer { display: grid; justify-items: center; gap: 11px; text-align: center; }
 .footer a { color: var(--green-800); font-size: .92rem; font-weight: 750; }
 .footer a:hover { color: var(--green-950); text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 480px) { .shell { padding: 16px; }.card { border-radius: 20px; }.brand { margin-bottom: 22px; }.brand img { width: min(156px, 100%); }.card form { margin-top: 24px; } }
+@media (max-width: 480px) { .shell { padding: 16px; }.card { border-radius: 20px; }.brand { width: 182px; margin-bottom: 22px; }.brand img { width: 156px; }.card form { margin-top: 24px; } }

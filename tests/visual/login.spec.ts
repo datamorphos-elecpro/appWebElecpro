@@ -16,8 +16,11 @@ for (const viewport of viewports) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
       const box = await card.boundingBox();
+      const logoBox = await logo.boundingBox();
       expect(box).not.toBeNull();
+      expect(logoBox).not.toBeNull();
       expect(Math.abs((box!.x + box!.width / 2) - viewport.width / 2)).toBeLessThanOrEqual(2);
+      expect(Math.abs((logoBox!.x + logoBox!.width / 2) - (box!.x + box!.width / 2))).toBeLessThanOrEqual(2);
     }
   });
 }

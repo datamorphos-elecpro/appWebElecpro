@@ -5,16 +5,22 @@ html, body { min-height: 100%; margin: 0; background: var(--canvas); }
 body { color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
+form :is(input:not([type='checkbox']):not([type='radio']):not([type='hidden']), select, textarea) { min-height: 40px; border-radius: 8px; }
+form button:not([aria-label]) { min-height: 40px; border-radius: 8px; }
+form button[type='button']:not([class]):not([aria-label]) { border: 1px solid var(--green-800); padding: 8px 13px; background: var(--surface); color: var(--green-900); font-weight: 700; }
+form button[type='button']:not([class]):not([aria-label]):hover { background: var(--green-50); }
+form:has(:is(input:not([type='hidden']), select, textarea)) button[type='submit']:not([class]):not([aria-label]) { border: 1px solid var(--green-800); padding: 8px 13px; background: var(--green-800); color: #fff; font-weight: 700; }
+button:disabled { cursor: not-allowed; }
+.multiFilter { display: grid; gap: 6px; min-width: 155px; flex: 1 1 155px; font-size: 12px; font-weight: 700; color: var(--green-900); }
 a { color: inherit; text-decoration: none; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .srOnly, .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media print {
   @page { margin: 12mm; }
   html, body { padding: 0 !important; background: #fff !important; color-scheme: light; }
-  body * { visibility: hidden !important; }
-  .quote-print-root, .quote-print-root *, .analysis-print-root, .analysis-print-root * { visibility: visible !important; }
-  .quote-print-root, .analysis-print-root { position: absolute !important; inset: 0 auto auto 0; width: 100% !important; background: #fff !important; }
-  .analysis-print-root { padding: 0 !important; color: #17231f !important; color-scheme: light; }
+  body:has(.quote-print-portal) > :not(.quote-print-portal) { display: none !important; }
+  .quote-print-portal { display: block !important; width: 100%; }
+  .analysis-print-root { color: #17231f !important; color-scheme: light; }
   [data-print-control] { display: none !important; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

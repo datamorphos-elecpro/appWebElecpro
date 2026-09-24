@@ -14,13 +14,13 @@ export function distributionMetrics(rows: Distribution[], profit: string): Distr
   return { result: profit, assigned: assigned.toString(), paid: paid.toString(), pending: pending.toString(), available: available.toString(), overAssigned: available.isNegative() };
 }
 
-export async function getDistributionPage(input: { q?: string; activity?: string; payment?: string; page: number; pageSize: PageSize }) {
+export async function getDistributionPage(input: { q?: string; activity?: string[]; payment?: string[]; page: number; pageSize: PageSize }) {
   const supabase = await createClient();
   const range = pageRange(input.page, input.pageSize);
-  const args = { p_q: input.q || null, p_activity: input.activity || null, p_payment: input.payment || null };
+  const args = { p_q: input.q || null, p_activities: input.activity ?? [], p_payments: input.payment ?? [] };
   const [rowsResult, snapshotResult] = await Promise.all([
-    supabase.rpc('distribution_page', { ...args, p_offset: range.from, p_limit: input.pageSize }),
-    supabase.rpc('distribution_snapshot', args),
+    supabase.rpc('distribution_page_multi', { ...args, p_offset: range.from, p_limit: input.pageSize }),
+    supabase.rpc('distribution_snapshot_multi', args),
   ]);
   if (rowsResult.error || snapshotResult.error) throw new Error(rowsResult.error?.message ?? snapshotResult.error?.message ?? 'No fue posible cargar las distribuciones.');
   const rawRows = (rowsResult.data ?? []) as Array<Distribution & { total_count: number }>;

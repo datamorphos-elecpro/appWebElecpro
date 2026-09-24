@@ -24,6 +24,8 @@ export const quotePayloadSchema = z.object({
   issued_on: z.string().date('Ingrese una fecha de emisión válida.'),
   valid_until: z.string().date('Ingrese una fecha de vigencia válida.'),
   title: z.string().trim().min(1, 'El título es obligatorio.'),
+  address: z.string().default(''),
+  city: z.string().default(''),
   material_increase_pct: quoteDecimalString(5),
   administration_pct: quoteDecimalString(5),
   contingency_pct: quoteDecimalString(5),

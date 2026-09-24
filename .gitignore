@@ -47,3 +47,6 @@ Thumbs.db
 *.pem
 .idea/
 .vscode/
+
+# Propuestas comerciales locales
+/propuestas/

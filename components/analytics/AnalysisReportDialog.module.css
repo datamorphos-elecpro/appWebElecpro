@@ -1,0 +1,7 @@
+.dialog { width: min(1200px, calc(100vw - 24px)); height: min(96vh, 1100px); padding: 0; border: 0; border-radius: 14px; background: #fff; color: #17231f; box-shadow: var(--shadow); }
+.dialog::backdrop { background: rgba(5, 22, 17, .68); }
+.dialog header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+.dialog header div { display: flex; flex-wrap: wrap; gap: 8px; }
+.dialog p { padding: 12px 18px; }
+.dialog iframe { width: 100%; height: calc(100% - 65px); border: 0; background: #fff; }
+@media (max-width: 680px) { .dialog { width: 100%; height: 100%; border-radius: 0; } .dialog header { align-items: flex-start; } }

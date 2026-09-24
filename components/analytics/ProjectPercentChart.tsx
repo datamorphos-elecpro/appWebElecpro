@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { decimal } from '../../lib/calculations';
 import { createPercentChartScale } from '../../lib/percent-chart-scale';
 import type { BudgetExecutionDatum, ProfitMarginDatum } from '../../lib/analytics-queries';
@@ -11,19 +12,24 @@ type ChartRow = { key: string; label: string; values: string[]; overBudget: bool
 const percent = (value: string) => `${decimal(value).toDecimalPlaces(1).toFixed(1)}%`;
 const barStyle = (position: { left: number; width: number }) => ({ left: `${position.left}%`, width: `${position.width}%` });
 
-export function ProjectPercentChart({ data, kind, label, onSelect }: { data: Item[]; kind: 'execution' | 'margin'; label: string; onSelect?: (key: string) => void }) {
+export function ProjectPercentChart({ data, kind, label, onSelect, paginate = false }: { data: Item[]; kind: 'execution' | 'margin'; label: string; onSelect?: (key: string) => void; paginate?: boolean }) {
+  const [requestedPage, setPage] = useState(1);
   if (!data.length) return <p className={styles.empty}>No hay proyectos calculables para los filtros seleccionados.</p>;
 
-  const rows: ChartRow[] = data.map((item) => kind === 'execution'
+  const allRows: ChartRow[] = data.map((item) => kind === 'execution'
     ? { key: item.key, label: item.label, values: [(item as BudgetExecutionDatum).value], overBudget: (item as BudgetExecutionDatum).overBudget }
     : { key: item.key, label: item.label, values: [(item as ProfitMarginDatum).current, (item as ProfitMarginDatum).projected], overBudget: false });
-  const scale = createPercentChartScale(rows.flatMap((row) => row.values), kind);
+  const scale = createPercentChartScale(allRows.flatMap((row) => row.values), kind);
+  const pageCount = Math.max(1, Math.ceil(allRows.length / 5));
+  const page = Math.min(requestedPage, pageCount);
+  const rows = paginate ? allRows.slice((page - 1) * 5, page * 5) : allRows;
   const headings = kind === 'margin' ? ['A la fecha', 'Proyectado'] : ['Ejecución'];
 
   return <div className={styles.percentChart} data-testid={`project-percent-chart-${kind}`}>
     <div className={styles.percentRows}>
       {rows.map((row) => <ProjectRow key={row.key} row={row} kind={kind} headings={headings} scale={scale} onSelect={onSelect} />)}
     </div>
+    {paginate && pageCount > 1 && <nav className={styles.chartPagination} aria-label={`Páginas de ${label}`}><button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>Anterior</button><span>Página {page} de {pageCount} · {allRows.length} proyectos</span><button type="button" disabled={page === pageCount} onClick={() => setPage(page + 1)}>Siguiente</button></nav>}
     <table className="srOnly"><caption>{label}</caption><thead><tr><th scope="col">Proyecto</th>{headings.map((heading) => <th key={heading} scope="col">{heading}</th>)}</tr></thead><tbody>{rows.map((row) => <tr key={row.key}><th scope="row">{row.label}</th>{row.values.map((value, index) => <td key={headings[index]}>{percent(value)}</td>)}</tr>)}</tbody></table>
   </div>;
 }

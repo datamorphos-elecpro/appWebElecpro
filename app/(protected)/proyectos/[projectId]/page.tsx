@@ -3,6 +3,7 @@ import { Page } from '../../../../components/ui/Page';
 import { ProjectWorkspace, type ProjectDetailSection } from '../../../../components/projects/ProjectWorkspace';
 import { createClient } from '../../../../lib/supabase/server';
 import { defaultPageSize, pageRange, pagination, type PageSize, parsePageSize, parsePositiveInteger } from '../../../../lib/pagination';
+import { projectStatusText } from '../../../../lib/presentation';
 
 const sections = ['summary', 'payments', 'costs', 'shares', 'dates'] as const;
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -36,5 +37,5 @@ export default async function ProjectDetail({ params, searchParams }: { params: 
   const pages = { payments_page: payments?.page.page ?? query.payments, expenses_page: expenses?.page.page ?? query.expenses, budgets_page: budgets?.page.page ?? query.budgets, shares_page: shares?.page.page ?? query.shares };
   const canonical = detailHref(projectId, section, query, pages); const incomingValues = new URLSearchParams(); for (const [key, value] of Object.entries(raw)) { if (typeof value === 'string') incomingValues.set(key, value); else if (Array.isArray(value)) incomingValues.set(`invalid_${key}`, '1'); } const incoming = `/proyectos/${projectId}${incomingValues.size ? `?${incomingValues}` : ''}`;
   if (incoming !== canonical) redirect(canonical);
-  return <Page title={project.title} description={`${project.clients?.name ?? 'Cliente'} · ${project.status}`}><ProjectWorkspace project={project} summary={summary} section={section} payments={payments} expenses={expenses} budgets={budgets} shares={shares} /></Page>;
+  return <Page title={project.title} description={`${project.clients?.name ?? 'Cliente'} · ${projectStatusText(project.status)}`}><ProjectWorkspace project={project} summary={summary} section={section} payments={payments} expenses={expenses} budgets={budgets} shares={shares} /></Page>;
 }

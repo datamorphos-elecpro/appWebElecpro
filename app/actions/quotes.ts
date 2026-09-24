@@ -51,6 +51,6 @@ export async function saveQuote(input: unknown) {
 }
 
 export async function approveAndConvertQuote(input: unknown) {
-  try { return await callQuoteRpc<{ id: string; quote_id?: string; quote_number?: string }>('approve_and_convert_quote', quotePayloadSchema.parse(input)); }
+  try { return await callQuoteRpc<{ id: string; quote_id?: string; quote_number?: string; source_quote_number?: string }>('approve_and_convert_quote', quotePayloadSchema.parse(input)); }
   catch (error) { return actionFailure(error, 'No se pudo convertir la cotización.'); }
 }

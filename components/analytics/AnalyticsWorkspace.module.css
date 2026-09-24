@@ -6,6 +6,9 @@
 .periodMetrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .grid > :nth-child(n + 3) { grid-column: 1 / -1; }
+.commercialGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.commercialGrid > :first-child { grid-column: 1 / -1; }
+.commercialGrid > :first-child .chart { max-height: 450px; overflow: auto; }
 .chart { min-height: 210px; padding: 12px 14px 5px; overflow-x: auto; }
 .chart svg { width: 100%; min-width: 620px; height: auto; overflow: visible; }
 .chart rect { fill: var(--green-700); }
@@ -50,7 +53,7 @@ button.percentItem:focus-visible { outline: 3px solid var(--focus); outline-offs
 .shares span { color: var(--muted); font-size: 11px; }
 .shares b { color: var(--green-900); font-size: 12px; }
 .empty { margin: 0; padding: 28px 0; color: var(--muted); text-align: center; font-size: 12px; }
-@media (max-width: 900px) { .metrics, .periodMetrics, .grid { grid-template-columns: 1fr; } .grid > :nth-child(n + 3) { grid-column: auto; } }
+@media (max-width: 900px) { .metrics, .periodMetrics, .grid, .commercialGrid { grid-template-columns: 1fr; } .grid > :nth-child(n + 3) { grid-column: auto; } }
 @media (max-width: 680px) { .metrics { grid-template-columns: 1fr; } .reset { width: 100%; margin-left: 0; text-align: left; } .percentItem { padding: 10px; } .percentSeries { grid-template-columns: 70px minmax(0, 1fr) 52px; gap: 6px; } .percentSeriesLabel, .percentValue { font-size: 10px; } }
 @media print {
   .workspace :global(.analysis-print-root) { gap: 9px; background: #fff; color: #17231f; }
@@ -62,3 +65,6 @@ button.percentItem:focus-visible { outline: 3px solid var(--focus); outline-offs
   .percentChart, .percentItem { break-inside: avoid; }
   .shares article { background: #fff; break-inside: avoid; }
 }
+.chartPagination { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 12px; font-size: 12px; }
+.chartPagination button { border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--green-900); padding: 6px 9px; }
+.chartPagination button:disabled { opacity: .45; cursor: default; }

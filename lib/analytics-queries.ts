@@ -37,25 +37,25 @@ export async function getFilterOptions(view: Exclude<AnalyticsTab, 'distribution
   return result;
 }
 
-export async function getManagement(input: { client: string; project: string; status: string; month: string; page: number; pageSize: PageSize }) {
+export async function getManagement(input: { client: string[]; project: string[]; status: string[]; month: string; page: number; pageSize: PageSize }) {
   const supabase = await createClient(); const range = pageRange(input.page, input.pageSize);
-  const args = { p_client: nullable(input.client), p_project: nullable(input.project), p_status: nullable(input.status) };
-  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_management_snapshot', { ...args, p_month: nullable(input.month) }), supabase.rpc('analytics_management_page', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
+  const args = { p_clients: input.client, p_projects: input.project, p_statuses: input.status };
+  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_management_snapshot_multi', { ...args, p_month: nullable(input.month) }), supabase.rpc('analytics_management_page_multi', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
   if (snapshot.error || table.error) error(snapshot.error?.message ?? table.error?.message ?? 'respuesta inválida');
   return { snapshot: snapshot.data as ManagementSnapshot, table: rows<ManagementRow>(table.data, input.page, input.pageSize) };
 }
 
-export async function getOperation(input: { client: string; responsible: string; status: string; priority: string; page: number; pageSize: PageSize }) {
+export async function getOperation(input: { client: string[]; responsible: string[]; status: string[]; priority: string[]; page: number; pageSize: PageSize }) {
   const supabase = await createClient(); const range = pageRange(input.page, input.pageSize);
-  const args = { p_client: nullable(input.client), p_responsible: nullable(input.responsible), p_status: nullable(input.status), p_priority: nullable(input.priority) };
-  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_operation_snapshot', args), supabase.rpc('analytics_operation_page', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
+  const args = { p_clients: input.client, p_responsibles: input.responsible, p_statuses: input.status, p_priorities: input.priority };
+  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_operation_snapshot_multi', args), supabase.rpc('analytics_operation_page_multi', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
   if (snapshot.error || table.error) error(snapshot.error?.message ?? table.error?.message ?? 'respuesta inválida');
   return { snapshot: snapshot.data as OperationSnapshot, table: rows<OperationRow>(table.data, input.page, input.pageSize) };
 }
 
-export async function getCommercial(input: { client: string; status: string; month: string; page: number; pageSize: PageSize }) {
-  const supabase = await createClient(); const range = pageRange(input.page, input.pageSize); const args = { p_client: nullable(input.client), p_status: nullable(input.status), p_month: nullable(input.month) };
-  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_commercial_snapshot', args), supabase.rpc('analytics_commercial_page', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
+export async function getCommercial(input: { client: string[]; status: string[]; month: string; page: number; pageSize: PageSize }) {
+  const supabase = await createClient(); const range = pageRange(input.page, input.pageSize); const args = { p_clients: input.client, p_statuses: input.status, p_month: nullable(input.month) };
+  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_commercial_snapshot_multi', args), supabase.rpc('analytics_commercial_page_multi', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
   if (snapshot.error || table.error) error(snapshot.error?.message ?? table.error?.message ?? 'respuesta inválida');
   return { snapshot: snapshot.data as CommercialSnapshot, table: rows<CommercialRow>(table.data, input.page, input.pageSize) };
 }

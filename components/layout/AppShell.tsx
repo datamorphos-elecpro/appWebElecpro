@@ -105,7 +105,7 @@ export function AppShell({ children, name, role }: { children: React.ReactNode; 
   const sidebarLabel = isMobile ? 'Cerrar navegación' : (collapsed ? 'Expandir menú' : 'Contraer menú');
 
   return <div className={`${styles.app} ${desktopCollapsed ? styles.collapsed : ''}`}>
-    <div className={styles.layout}>
+    <div className={styles.layout} data-app-shell>
       <aside id="app-sidebar" className={`${styles.sidebar} ${isMobile && mobileOpen ? styles.mobileOpen : ''}`} aria-label="Navegación principal" aria-hidden={isMobile && !mobileOpen ? true : undefined} inert={isMobile && !mobileOpen ? true : undefined}>
         <div className={styles.sidebarHead}>
           <div className={styles.logo}><Image src="/images/elecpro-logo.png" width={238} height={104} sizes="176px" preload alt="Elecpro Ingeniería Eléctrica" /></div>

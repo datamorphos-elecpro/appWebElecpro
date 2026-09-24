@@ -1,0 +1,40 @@
+.report { max-width: 1300px; min-height: 100vh; margin: auto; padding: 28px 34px; background: #fff; color: #17231f; }
+.controls { display: flex; justify-content: space-between; margin-bottom: 18px; }
+.report[data-preview="true"] .controls { display: none; }
+.controls a, .controls button { padding: 9px 13px; border: 1px solid #176458; border-radius: 8px; background: #fff; color: #124f45; font-weight: 600; }
+.header { display: flex; align-items: center; gap: 24px; border-bottom: 2px solid #176458; padding-bottom: 15px; margin-bottom: 20px; }
+.header img { object-fit: contain; }
+.header small { font-weight: 800; font-size: 10px; letter-spacing: .13em; color: #176458; }
+.header h1 { color: #124f45; font-size: 23px; margin: 4px 0 8px; }
+.header p { font-size: 11px; margin: 4px 0; color: #4c6258; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 9px; margin-bottom: 18px; }
+.metric { display: grid; gap: 6px; padding: 12px; border: 1px solid #cbded5; border-top: 3px solid #176458; border-radius: 5px; font-size: 11px; break-inside: avoid; }
+.metric strong { font-size: 16px; color: #124f45; }
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.chart { min-width: 0; border: 1px solid #cbded5; padding: 12px; break-inside: avoid; }
+.chart h2, .tableSection h2 { color: #124f45; font-size: 14px; }
+.chartChunk { break-inside: avoid; }
+.chartChunk h3 { color: #124f45; font-size: 12px; }
+.chart > div { overflow: auto; }
+.tableSection { margin-top: 22px; }
+.tableSection table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.tableSection th, .tableSection td { padding: 7px; border: 1px solid #cbded5; text-align: left; }
+.tableSection th { background: #e8f3ee; color: #124f45; }
+.numeric { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 700px) { .charts { grid-template-columns: 1fr; } .report { padding: 12px; } }
+@media print {
+  @page { size: A4 landscape; margin: 12mm; }
+  .report, .report * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .report { max-width: none; margin: 0; padding: 0; }
+  .controls { display: none; }
+  .metrics { grid-template-columns: repeat(3, 1fr); break-inside: avoid; }
+  .charts { display: block; }
+  .chart { margin-bottom: 12px; break-inside: auto; overflow: visible; }
+  .chart > div { overflow: visible; }
+  .chart :global(button), .chart :global(article) { break-inside: avoid; }
+  .chart :global(svg) { max-width: 100%; min-width: 0 !important; }
+  .tableSection h2 { break-after: avoid; }
+  .tableSection table { font-size: 8pt; }
+  .tableSection thead { display: table-header-group; }
+  .tableSection tr { break-inside: avoid; }
+}

@@ -46,6 +46,7 @@ export function QuoteDocument({ form, items, totals, number, client, company }: 
         <div className={styles.kicker}>Propuesta técnico-económica</div>
         <h2>{number ?? 'Pendiente de guardar'}</h2>
         <p>Fecha: {bogotaDateText(form.issued_on)} · Válida hasta: {bogotaDateText(form.valid_until)}</p>
+        {(form.address || form.city) && <p>Ejecución: {[form.address, form.city].filter(Boolean).join(' · ')}</p>}
       </div>
       <Image src="/images/elecpro-logo.png" width={155} height={71} alt="Elecpro Ingeniería Eléctrica" />
     </header>

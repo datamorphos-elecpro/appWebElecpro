@@ -5,7 +5,7 @@ import { pageRange, paginated, pagination, type PageSize } from './pagination';
 export type ClientReference = { name: string; contact_name?: string | null; email?: string | null; address?: string | null };
 export type CompanySettings = { legal_name: string; manager_name: string; manager_role: string; professional_card: string | null; phone: string | null; email: string | null; address: string | null; timezone: 'America/Bogota'; currency_code: 'COP' };
 export type ProjectFinancialSummary = { id: string; project_value: string; paid: string; balance: string; expenses: string; budget: string; real_profit: string; projected_profit: string };
-export type ProjectRecord = { id: string; client_id: string; title: string; quote_number: string; status: string; priority: string; responsible: string; location: string; start_date: string; expected_end_date: string; actual_end_date: string | null; project_value: string; observations: string; profit_mode: 'value' | 'manual'; initial_profit: string; created_at: string; clients: ClientReference | null };
+export type ProjectRecord = { id: string; client_id: string; title: string; quote_number: string; status: string; priority: string; responsible: string; location: string; address?: string; city?: string; start_date: string; expected_end_date: string; actual_end_date: string | null; project_value: string; observations: string; profit_mode: 'value' | 'manual'; initial_profit: string; created_at: string; clients: ClientReference | null };
 export type QuoteRecord = { id: string; number: string; title: string; status: string; client_id: string; issued_on: string; valid_until: string; total_amount: string; project_id?: string | null; clients: ClientReference | null; quote_items: { quantity: string }[] };
 export type QuoteListRecord = { id: string; number: string; title: string; client_name: string; client_contact: string | null; issued_on: string; valid_until: string; status: string; visible_status: string; total_amount: string; project_id: string | null; item_count: number };
 export type StatusSummary = { status: string; count: number; total: string; average: string; share: string };
@@ -17,7 +17,7 @@ export type ProjectWithFinancialSummary<T extends { id: string } = { id: string 
 type QueryResult<T> = { data: T | null; error: { message: string } | null };
 type SupabaseLike = { from: (table: string) => any };
 const summaryFields = 'id,project_value,paid,balance,expenses,budget,real_profit,projected_profit';
-const projectFields = 'id,client_id,title,quote_number,status,priority,responsible,location,start_date,expected_end_date,actual_end_date,project_value,observations,profit_mode,initial_profit,created_at,clients(name,contact_name,address)';
+const projectFields = 'id,client_id,title,quote_number,status,priority,responsible,location,address,city,start_date,expected_end_date,actual_end_date,project_value,observations,profit_mode,initial_profit,created_at,clients(name,contact_name,address)';
 const quoteFields = 'id,number,title,status,client_id,issued_on,valid_until,total_amount,project_id,clients(name,contact_name,address),quote_items(quantity)';
 const summaryBatchSize = 500;
 function queryError(label: string, error: { message: string } | null) { if (!error) return; console.error(`[datos] ${label}`, error); throw new Error(`No fue posible cargar ${label}: ${error.message}`); }

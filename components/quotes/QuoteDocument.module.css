@@ -37,3 +37,8 @@
   .table tr { break-inside: avoid; }
   .managerCard { break-inside: avoid; }
 }
+
+.document, .tableWrap { min-width: 0; }
+.managerCard { overflow-wrap: anywhere; }
+@media (max-width: 480px) { .managerCard { grid-template-columns: minmax(0, 1fr); } .managerCard img { max-width: 110px; } }
+@media print { .table { table-layout: fixed; } .table td, .table th { overflow-wrap: anywhere; white-space: normal; } }

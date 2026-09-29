@@ -5,3 +5,11 @@
 .sourceQuote a { text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
 @media(max-width:900px){.projectHeader{display:grid}.headerMetrics{grid-template-columns:repeat(2,1fr)}.summaryGrid,.twoCol,.distributionGrid{grid-template-columns:1fr}}
 @media(max-width:680px){.form,.compact{grid-template-columns:1fr}.workspace,.section{padding:14px}.tabs{margin:0 0 16px}.form h2,.section h2{grid-column:auto}.projectHeader{padding:14px}.headerMetrics{grid-template-columns:1fr 1fr}.headerButton{justify-self:stretch}}
+
+.workspace, .section, .tabs, .tableWrap, .headerMetrics > *, .summaryGrid > * { min-width: 0; }
+.headerMetrics b, .distributionGrid article, .projectHeader p { overflow-wrap: anywhere; }
+.summaryGrid, .twoCol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.summaryGrid dl, .dateGrid { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.sectionHead { flex-wrap: wrap; }
+@media (max-width: 900px) { .summaryGrid, .twoCol { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 680px) { .projectHeader { grid-template-columns: minmax(0, 1fr); } }

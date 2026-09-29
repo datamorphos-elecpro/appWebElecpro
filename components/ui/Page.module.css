@@ -10,3 +10,6 @@
 .note { display: block; margin-top: 7px; color: var(--muted); font-size: 11px; }
 .empty { padding: 24px 14px; border: 1px dashed var(--border); border-radius: var(--radius); color: var(--muted); text-align: center; font-size: 12px; }
 @media (max-width: 680px) { .header { display: grid; }.actions { justify-content: flex-start; } }
+
+.header { flex-wrap: wrap; }
+.header > *, .actions { min-width: 0; max-width: 100%; }

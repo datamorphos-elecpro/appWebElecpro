@@ -68,3 +68,14 @@ button.percentItem:focus-visible { outline: 3px solid var(--focus); outline-offs
 .chartPagination { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 12px; font-size: 12px; }
 .chartPagination button { border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--green-900); padding: 6px 9px; }
 .chartPagination button:disabled { opacity: .45; cursor: default; }
+
+.workspace, .control, .shares article, .percentItem { min-width: 0; }
+.shares article, .tags { overflow-wrap: anywhere; }
+.percentSeries { grid-template-columns: 82px minmax(40px, 1fr) minmax(58px, max-content); }
+.chartPagination { flex-wrap: wrap; }
+@media (max-width: 680px) {
+  .percentSeries { grid-template-columns: minmax(0, 1fr) max-content; }
+  .percentSeriesLabel { grid-column: 1; }
+  .percentTrack { grid-column: 1 / -1; grid-row: 2; }
+  .percentValue { grid-column: 2; grid-row: 1; white-space: normal; overflow-wrap: anywhere; max-width: 150px; }
+}

@@ -24,3 +24,9 @@ a { color: inherit; text-decoration: none; }
   [data-print-control] { display: none !important; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* Let semantic layout and form containers shrink; preserve local table scrolling. */
+:where(main, section, article, header, footer, form, fieldset, label) { min-width: 0; }
+:where(h1, h2, h3, p, dd, output, label, button, a) { overflow-wrap: anywhere; }
+:where(input, select, textarea) { min-width: 0; max-width: 100%; }
+.multiFilter { min-width: min(155px, 100%); }

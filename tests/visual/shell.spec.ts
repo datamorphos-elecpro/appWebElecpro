@@ -1,15 +1,12 @@
+import { credentialsAvailable, login } from './auth';
 import { expect, test } from '@playwright/test';
 
-const credentialsAvailable = Boolean(process.env.E2E_TEST_EMAIL && process.env.E2E_TEST_PASSWORD);
 test.skip(!credentialsAvailable, 'Requiere credenciales de prueba autenticadas, no datos ni secretos versionados.');
 
 for (const viewport of [{ width: 1440, height: 960 }, { width: 900, height: 960 }, { width: 680, height: 900 }, { width: 380, height: 820 }]) {
   test(`shell ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await page.goto('/login');
-    await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-    await page.getByLabel(/contraseña/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-    await page.getByRole('button', { name: /iniciar sesión/i }).click();
+    await login(page);
     await expect(page).toHaveURL(/\/panel$/);
     await expect(page.getByRole('link', { name: /panel general/i })).toHaveAttribute('aria-current', 'page');
     await expect(page).toHaveScreenshot(`shell-${viewport.width}.png`, { fullPage: true });
@@ -19,9 +16,9 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 900, height: 960 
 for (const viewport of [{ width: 680, height: 900 }, { width: 380, height: 820 }]) {
   test(`cuenta móvil permanece arriba a la derecha en ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await signIn(page);
+    await login(page);
 
-    const menuToggle = page.getByRole('button', { name: 'Abrir navegación' });
+    const menuToggle = page.locator('main button[aria-controls="app-sidebar"]');
     const accountSummary = page.getByLabel('Abrir menú de cuenta');
     const accountName = accountSummary.locator('strong');
     const accountRole = accountSummary.locator('small');
@@ -58,22 +55,14 @@ for (const viewport of [{ width: 680, height: 900 }, { width: 380, height: 820 }
   });
 }
 
-async function signIn(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-  await page.getByLabel(/contraseña/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-  await page.getByRole('button', { name: /iniciar sesión/i }).click();
-  await expect(page).toHaveURL(/\/panel$/);
-}
-
 for (const viewport of [{ width: 900, height: 960 }, { width: 680, height: 900 }, { width: 380, height: 820 }]) {
   test(`mobile navigation ${viewport.width}px opens without moving content and closes through every control`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await signIn(page);
+    await login(page);
 
     const main = page.locator('main');
     const sidebar = page.locator('#app-sidebar');
-    const menuToggle = page.getByRole('button', { name: 'Abrir navegación' });
+    const menuToggle = page.locator('main button[aria-controls="app-sidebar"]');
     const before = await main.boundingBox();
 
     await expect(menuToggle).toHaveAttribute('aria-controls', 'app-sidebar');
@@ -124,7 +113,7 @@ for (const viewport of [{ width: 900, height: 960 }, { width: 680, height: 900 }
 
 test('desktop sidebar still collapses and expands', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 960 });
-  await signIn(page);
+  await login(page);
 
   const sidebarToggle = page.locator('#app-sidebar').getByRole('button', { name: 'Contraer menú' });
   await sidebarToggle.click();

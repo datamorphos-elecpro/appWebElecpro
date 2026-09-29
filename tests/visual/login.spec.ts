@@ -1,3 +1,4 @@
+import { credentialsAvailable, login } from './auth';
 import { expect, test } from '@playwright/test';
 
 const viewports = [{ width: 1440, height: 960 }, { width: 900, height: 960 }, { width: 680, height: 900 }, { width: 380, height: 820 }];
@@ -56,14 +57,9 @@ test('la contraseña se puede mostrar sin enviar el formulario ni perder el foco
   await expect(page.getByRole('button', { name: 'Ocultar contraseña' })).toBeVisible();
 });
 
-const credentialsAvailable = Boolean(process.env.E2E_TEST_EMAIL && process.env.E2E_TEST_PASSWORD);
-
 test('los filtros del listado conservan tamaño y reinician la página', async ({ page }) => {
   test.skip(!credentialsAvailable, 'Requiere credenciales de prueba autenticadas y fixtures deterministas.');
-  await page.goto('/login');
-  await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-  await page.getByLabel('Contraseña', { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-  await page.getByRole('button', { name: /iniciar sesión/i }).click();
+  await login(page);
   await page.goto('/cotizaciones?page=2&pageSize=50&sort=number&direction=asc');
   await page.getByLabel('Buscar').fill('prueba');
   await page.getByRole('button', { name: 'Aplicar' }).click();

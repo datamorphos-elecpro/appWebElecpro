@@ -12,3 +12,14 @@
 @media (max-width: 900px) { .layout, .collapsed .layout { grid-template-columns: 1fr; }.sidebar { position: fixed; inset: 0 auto 0 0; width: min(280px, 82vw); transform: translateX(-105%); box-shadow: 18px 0 35px rgba(7, 19, 15, .18); }.mobileOpen { transform: translateX(0); }.backdrop { position: fixed; inset: 0; z-index: 2; display: block; border: 0; background: rgba(7, 19, 15, .46); }.menuToggle { display: grid; }.sidebarToggle { display: grid; }.logo { height: 80px; justify-content: center; overflow: hidden; }.logo img { width: 100%; height: 100%; max-width: 176px; max-height: 100%; object-fit: contain; }.collapsed .sidebar { padding-inline: 14px; }.collapsed .logo, .collapsed .sidebarFoot { display: flex; }.collapsed .sidebarFoot { display: block; }.collapsed .nav a { justify-content: flex-start; padding-inline: 11px; }.collapsed .navLabel { display: inline; } }
 @media (max-width: 680px) { .app { padding: 0; }.layout { min-height: 100vh; border: 0; border-radius: 14px; }.topbar { padding: 13px 14px; align-items: flex-start; gap: 8px; }.topbarStart { flex: 1 1 0; gap: 8px; }.topbarTitle { min-width: 0; }.topbarTitle h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.topbarTitle p { display: none; }.account { min-width: 0; max-width: min(44vw, 176px); }.account summary { gap: 8px; min-width: 0; }.accountText { display: grid; min-width: 0; overflow: hidden; text-align: right; }.accountText strong, .accountText small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.content { padding: 16px 14px 22px; } }
 @media (max-width: 380px) { .topbar { gap: 6px; }.topbarStart { gap: 6px; }.accountMenu { right: 0; left: auto; width: min(260px, calc(100vw - 28px)); min-width: 0; } }
+
+.layout { overflow: visible; }
+.sidebar { overflow-y: auto; max-height: 100dvh; }
+.topbarTitle, .accountText { min-width: 0; overflow-wrap: anywhere; }
+.account { max-width: 45%; }
+.avatar { flex: 0 0 38px; }
+.accountMenu { width: min(280px, calc(100vw - 28px)); min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 680px) {
+  .topbar { flex-wrap: wrap; }
+  .topbarTitle h1 { white-space: normal; overflow: visible; }
+}

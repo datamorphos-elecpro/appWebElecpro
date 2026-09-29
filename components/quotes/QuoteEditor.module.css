@@ -61,3 +61,12 @@
   .sectionBody { padding: 12px; }
 }
 @media (max-width: 380px) { .materialRow, .economicsGrid { grid-template-columns: 1fr; }.economicsGrid strong { padding-bottom: 7px; text-align: left; }.actions, .dialogActions { display: grid; grid-template-columns: 1fr; width: 100%; }.actions > *, .dialogActions > * { width: 100%; } }
+
+.editor, .sectionBody, .materialEditor, .materialRow, .headerSide { min-width: 0; }
+.field output, .economicsGrid strong, .economicsTotal strong { overflow-wrap: anywhere; min-width: 0; }
+.economicsGrid { grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr); }
+.economicsTotal { flex-wrap: wrap; gap: 8px; }
+.catalogResult { max-width: 100%; min-width: 0; }
+.catalogResult span { white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 1180px) and (min-width: 681px) { .materialRow { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 380px) { .economicsGrid { grid-template-columns: minmax(0, 1fr); } }

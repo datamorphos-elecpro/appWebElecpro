@@ -59,12 +59,12 @@ export function AppShell({ children, name, role }: { children: React.ReactNode; 
     const close = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       setMobileOpen(false);
-      if (accountRef.current?.open) accountRef.current.open = false;
-      if (isMobile) requestAnimationFrame(() => menuToggleRef.current?.focus());
+      if (accountRef.current?.open) { accountRef.current.open = false; accountRef.current.querySelector('summary')?.focus(); return; }
+      if (isMobile && mobileOpen) requestAnimationFrame(() => menuToggleRef.current?.focus());
     };
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
-  }, [isMobile]);
+  }, [isMobile, mobileOpen]);
 
   useEffect(() => {
     if (!isMobile || !mobileOpen) return;
@@ -115,7 +115,7 @@ export function AppShell({ children, name, role }: { children: React.ReactNode; 
         <div className={styles.sidebarFoot}><strong>Elecpro</strong><span>Control de proyectos y rentabilidad</span></div>
       </aside>
       {isMobile && mobileOpen && <button type="button" className={styles.backdrop} data-navigation-backdrop aria-label="Cerrar navegación" onClick={closeMobileMenu} />}
-      <main className={styles.main}>
+      <main className={styles.main} inert={isMobile && mobileOpen ? true : undefined}>
         <header className={styles.topbar}>
           <div className={styles.topbarStart}><button ref={menuToggleRef} className={styles.menuToggle} type="button" aria-controls="app-sidebar" aria-label={navigationLabel} aria-expanded={mobileOpen} onClick={toggleNavigation}><Icon name={mobileOpen ? 'close' : 'menu_open'} /></button><div className={styles.topbarTitle}><h1>{section.title}</h1><p>{section.subtitle}</p></div></div>
           <details ref={accountRef} className={styles.account}><summary aria-label="Abrir menú de cuenta"><span className={styles.accountText}><strong>{name || 'Usuario Elecpro'}</strong><small>{roleLabel}</small></span><span className={styles.avatar} aria-hidden="true">{initials(name || 'Elecpro')}</span></summary><div className={styles.accountMenu}><strong>{name || 'Usuario Elecpro'}</strong><span>{roleLabel}</span>{role === 'administrator' && <Link href="/administracion/usuarios" onClick={closeMenu}><Icon name="admin_panel_settings" />Administración</Link>}<form action={signOut}><button type="submit"><Icon name="logout" />Cerrar sesión</button></form></div></details>

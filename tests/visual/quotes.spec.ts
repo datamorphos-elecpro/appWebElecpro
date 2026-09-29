@@ -1,14 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
+import { credentialsAvailable, login } from './auth';
+import { expect, test } from '@playwright/test';
 
-const credentialsAvailable = Boolean(process.env.E2E_TEST_EMAIL && process.env.E2E_TEST_PASSWORD);
 test.skip(!credentialsAvailable, 'Requiere credenciales de prueba autenticadas y fixtures deterministas.');
-
-async function login(page: Page) {
-  await page.goto('/login');
-  await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-  await page.getByLabel(/contraseña/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-  await page.getByRole('button', { name: /ingresar/i }).click();
-}
 
 for (const viewport of [{ width: 1440, height: 960 }, { width: 900, height: 960 }, { width: 680, height: 900 }, { width: 380, height: 820 }]) {
   test(`listado y modal inicial de cotizaciones ${viewport.width}px`, async ({ page }) => {

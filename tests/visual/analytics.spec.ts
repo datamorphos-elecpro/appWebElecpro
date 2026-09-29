@@ -1,14 +1,11 @@
+import { credentialsAvailable, login } from './auth';
 import { expect, test } from '@playwright/test';
 
-const credentialsAvailable = Boolean(process.env.E2E_TEST_EMAIL && process.env.E2E_TEST_PASSWORD);
 test.skip(!credentialsAvailable, 'Requiere credenciales de prueba autenticadas y datos deterministas.');
 
 test('análisis cambia de vista por clic y conserva los filtros de cada submódulo', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 960 });
-  await page.goto('/login');
-  await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-  await page.getByLabel(/contrase(?:ñ|n)a/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-  await page.getByRole('button', { name: /ingresar/i }).click();
+  await login(page);
   await page.goto('/analisis?management_status=approved&operation_status=in_progress&commercial_status=sent&distribution_activity=active');
 
   const management = page.getByRole('tab', { name: /gerencia/i });
@@ -53,10 +50,7 @@ test('análisis cambia de vista por clic y conserva los filtros de cada submódu
 
 test('los gráficos porcentuales muestran etiquetas completas sin desbordar y filtran con teclado', async ({ page }) => {
   await page.setViewportSize({ width: 380, height: 820 });
-  await page.goto('/login');
-  await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-  await page.getByLabel(/contrase(?:ñ|n)a/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-  await page.getByRole('button', { name: /ingresar/i }).click();
+  await login(page);
   await page.goto('/analisis');
 
   const execution = page.getByTestId('project-percent-chart-execution');
@@ -74,10 +68,7 @@ test('los gráficos porcentuales muestran etiquetas completas sin desbordar y fi
 });
 
 test('el informe abre en un modal y conserva filtros múltiples', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-  await page.getByLabel(/contrase(?:ñ|n)a/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-  await page.getByRole('button', { name: /ingresar/i }).click();
+  await login(page);
   await page.goto('/analisis?management_status=approved&management_status=in_progress');
   await expect(page.getByLabel(/Estado: 2 seleccionados/)).toBeVisible();
   await page.getByRole('button', { name: 'Imprimir / guardar PDF' }).click();
@@ -94,10 +85,7 @@ test('el informe abre en un modal y conserva filtros múltiples', async ({ page 
 });
 
 test('solo un filtro de análisis permanece abierto', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-  await page.getByLabel(/contrase(?:ñ|n)a/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-  await page.getByRole('button', { name: /ingresar/i }).click();
+  await login(page);
   await page.goto('/analisis');
   const client = page.getByRole('button', { name: /Cliente: Todos/ });
   const project = page.getByRole('button', { name: /Proyecto: Todos/ });
@@ -114,12 +102,9 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 900, height: 960 
   for (const tab of ['management', 'operation', 'commercial']) {
     test(`análisis ${tab} ${viewport.width}px`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      await page.goto('/login');
-      await page.getByLabel(/correo/i).fill(process.env.E2E_TEST_EMAIL!);
-      await page.getByLabel(/contrase(?:ñ|n)a/i, { exact: true }).fill(process.env.E2E_TEST_PASSWORD!);
-      await page.getByRole('button', { name: /ingresar/i }).click();
+      await login(page);
       await page.goto(`/analisis?tab=${tab}`);
-      await expect(page.getByRole('tab', { name: new RegExp(tab === 'management' ? 'gerencia' : tab, 'i') })).toHaveAttribute('aria-selected', 'true');
+      await expect(page.getByRole('tab', { name: new RegExp(tab === 'management' ? 'gerencia' : tab === 'operation' ? 'operación' : 'comercial', 'i') })).toHaveAttribute('aria-selected', 'true');
       await expect(page).toHaveScreenshot(`analytics-${tab}-${viewport.width}.png`, { fullPage: true });
     });
   }

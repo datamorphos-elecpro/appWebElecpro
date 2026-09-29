@@ -30,7 +30,7 @@ export function ProjectPercentChart({ data, kind, label, onSelect, paginate = fa
       {rows.map((row) => <ProjectRow key={row.key} row={row} kind={kind} headings={headings} scale={scale} onSelect={onSelect} />)}
     </div>
     {paginate && pageCount > 1 && <nav className={styles.chartPagination} aria-label={`Páginas de ${label}`}><button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>Anterior</button><span>Página {page} de {pageCount} · {allRows.length} proyectos</span><button type="button" disabled={page === pageCount} onClick={() => setPage(page + 1)}>Siguiente</button></nav>}
-    <table className="srOnly"><caption>{label}</caption><thead><tr><th scope="col">Proyecto</th>{headings.map((heading) => <th key={heading} scope="col">{heading}</th>)}</tr></thead><tbody>{rows.map((row) => <tr key={row.key}><th scope="row">{row.label}</th>{row.values.map((value, index) => <td key={headings[index]}>{percent(value)}</td>)}</tr>)}</tbody></table>
+    <div className="srOnly"><table><caption>{label}</caption><thead><tr><th scope="col">Proyecto</th>{headings.map((heading) => <th key={heading} scope="col">{heading}</th>)}</tr></thead><tbody>{rows.map((row) => <tr key={row.key}><th scope="row">{row.label}</th>{row.values.map((value, index) => <td key={headings[index]}>{percent(value)}</td>)}</tr>)}</tbody></table></div>
   </div>;
 }
 

@@ -38,3 +38,8 @@
   .tableSection thead { display: table-header-group; }
   .tableSection tr { break-inside: avoid; }
 }
+
+.header, .controls { flex-wrap: wrap; gap: 12px; }
+.metric { min-width: 0; overflow-wrap: anywhere; }
+.tableSection { min-width: 0; overflow-x: auto; }
+@media print { .tableSection { overflow: visible; } .tableSection table { table-layout: fixed; } .tableSection td, .tableSection th { overflow-wrap: anywhere; white-space: normal; } }

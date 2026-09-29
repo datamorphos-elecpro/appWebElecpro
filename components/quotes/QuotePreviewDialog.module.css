@@ -16,7 +16,7 @@
 .actions button { min-height: 38px; padding: 8px 12px; border-radius: 9px; font-weight: 600; }
 .secondary { border: 1px solid var(--green-800); background: var(--surface); color: var(--green-900); }
 .primary { border: 1px solid var(--green-800); background: var(--green-800); color: #fff; }
-.scroll { height: calc(100% - 64px); overflow: auto; padding: 24px; }
+.scroll { flex: 1; min-height: 0; overflow: auto; padding: 24px; }
 .print { max-width: 860px; margin: auto; }
 @media (max-width: 680px) {
   .dialog { width: 100%; height: 100%; border-radius: 0; }
@@ -35,3 +35,9 @@
   .scroll { height: auto; overflow: visible; padding: 0; background: #fff; }
   .print { max-width: none; margin: 0; background: #fff; }
 }
+
+.dialog { max-height: 96dvh; }
+.dialog[open] { display: flex; flex-direction: column; }
+.dialog header { flex: 0 0 auto; flex-wrap: wrap; min-width: 0; max-height: 50dvh; overflow-y: auto; }
+.dialog iframe { display: block; }
+@media print { .dialog[open] { display: block; max-height: none; } }

@@ -17,7 +17,7 @@ a { color: inherit; text-decoration: none; }
 .srOnly, .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .quote-print-portal { display: none; }
 @media print {
-  @page { margin: 12mm; }
+  @page { size: auto; margin: 12mm; }
   html, body { padding: 0 !important; background: #fff !important; color-scheme: light; }
   body:has(.quote-print-portal) > :not(.quote-print-portal) { display: none !important; }
   .quote-print-portal { display: block !important; width: 100%; }

@@ -54,16 +54,16 @@ export function QuoteDocument({ form, items, totals, number, client, company, pr
     </header>
     <div className={styles.intro}>
       <strong>Señores<br />{client?.name ?? 'Cliente por definir'}</strong><br />
-      {contact}<br /><br />
-      {form.greeting || 'Sin información registrada.'}
+      {contact}
     </div>
+    <p className={styles.justified}>{form.greeting || 'Sin información registrada.'}</p>
     <DocumentSection title="Objetivo del servicio" value={form.objective} />
     <section className={styles.section}>
       <h3>Materiales y servicios</h3>
       <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <thead><tr><th>Ítem</th><th>Código</th><th>Descripción</th><th>Cant.</th><th>Unidad</th><th>Valor unit.</th><th>Valor total</th></tr></thead>
-          <tbody>{items.length ? items.map((item, index) => <tr key={`${item.code}-${index}`}><td>{index + 1}</td><td>{item.code || '—'}</td><td>{item.description || 'Sin descripción'}</td><td className={styles.number}>{item.quantity}</td><td>{item.unit}</td><td className={styles.number}>{money(totals.lines[index]?.finalUnitPrice as never)}</td><td className={styles.number}>{money(totals.lines[index]?.finalTotal as never)}</td></tr>) : <tr><td colSpan={7}>Sin ítems registrados</td></tr>}</tbody>
+        <table className={`${styles.table} ${styles.itemsTable}`} aria-label="Materiales y servicios">
+          <thead><tr><th>Ítem</th><th>Código</th><th className={styles.description}>Descripción</th><th className={styles.number}>Cant.</th><th>Unidad</th><th className={styles.number}>Valor unit.</th><th className={styles.number}>Valor total</th></tr></thead>
+          <tbody>{items.length ? items.map((item, index) => <tr key={`${item.code}-${index}`}><td>{index + 1}</td><td className={styles.code}>{item.code || '—'}</td><td className={`${styles.description} ${styles.justified}`}>{item.description || 'Sin descripción'}</td><td className={styles.number}>{item.quantity}</td><td>{item.unit}</td><td className={styles.number}>{money(totals.lines[index]?.finalUnitPrice as never)}</td><td className={styles.number}>{money(totals.lines[index]?.finalTotal as never)}</td></tr>) : <tr><td colSpan={7}>Sin ítems registrados</td></tr>}</tbody>
         </table>
       </div>
     </section>
@@ -71,8 +71,8 @@ export function QuoteDocument({ form, items, totals, number, client, company, pr
       <h3>Información del proyecto</h3>
       <div className={styles.tableWrap}>
         <table className={styles.table}><tbody>
-          <tr><th className={styles.rowHeading}>Descripción</th><td>{form.project_description || 'Sin información registrada.'}</td></tr>
-          <tr><th className={styles.rowHeading}>Notas importantes</th><td className={styles.multiline}>{form.notes || 'Sin información registrada.'}</td></tr>
+          <tr><th className={styles.rowHeading}>Descripción</th><td className={styles.justified}>{form.project_description || 'Sin información registrada.'}</td></tr>
+          <tr><th className={styles.rowHeading}>Notas importantes</th><td className={styles.justified}>{form.notes || 'Sin información registrada.'}</td></tr>
         </tbody></table>
       </div>
     </section>
@@ -80,7 +80,7 @@ export function QuoteDocument({ form, items, totals, number, client, company, pr
       <h3>Resumen económico</h3>
       <div className={styles.tableWrap}>
         <table className={styles.table}>
-          <thead><tr><th>Concepto</th><th>Porcentaje</th><th>Valor</th></tr></thead>
+          <thead><tr><th>Concepto</th><th>Porcentaje</th><th className={styles.number}>Valor</th></tr></thead>
           <tbody>{economicRows.map(([label, percentage, amount]) => <tr key={label}><td>{label}</td><td>{percentage}</td><td className={styles.number}>{money(amount as never)}</td></tr>)}<tr className={styles.totalRow}><td colSpan={2}>TOTAL PROPUESTA</td><td className={styles.number}>{money(totals.totalAmount as never)}</td></tr></tbody>
         </table>
       </div>
@@ -105,5 +105,5 @@ export function QuoteDocument({ form, items, totals, number, client, company, pr
 }
 
 function DocumentSection({ title, value }: { title: string; value?: string }) {
-  return <section className={styles.section}><h3>{title}</h3><p>{value || 'Sin información registrada.'}</p></section>;
+  return <section className={styles.section}><h3>{title}</h3><p className={styles.justified}>{value || 'Sin información registrada.'}</p></section>;
 }

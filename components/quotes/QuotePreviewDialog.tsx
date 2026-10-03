@@ -8,6 +8,7 @@ export function QuotePreviewDialog({ open, title, children, onClose, printSize, 
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
+  const printHintId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -38,7 +39,10 @@ export function QuotePreviewDialog({ open, title, children, onClose, printSize, 
       <strong id={titleId}>{title}</strong>
       <div className={styles.actions}>
         <label className={styles.sizeControl}>Tamaño de letra<select value={printSize} onChange={(event) => onPrintSizeChange(event.target.value as QuotePrintSize)}><option value="compact">Compacto</option><option value="normal">Normal</option><option value="large">Grande</option></select></label>
-        <button type="button" className={styles.secondary} onClick={() => window.print()}>Imprimir / guardar PDF</button>
+        <div className={styles.printControl}>
+          <button type="button" className={styles.secondary} aria-describedby={printHintId} onClick={() => window.print()}>Imprimir / guardar PDF</button>
+          <span id={printHintId} className={styles.printHint}>En el diálogo de impresión puedes elegir orientación, papel y más opciones</span>
+        </div>
         <button type="button" className={styles.primary} onClick={close}>Volver a editar</button>
       </div>
     </header>

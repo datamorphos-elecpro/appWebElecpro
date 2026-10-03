@@ -68,21 +68,21 @@ export function QuoteDocument({ form, items, totals, number, client, company, pr
       </div>
     </section>
     <section className={styles.section}>
-      <h3>Información del proyecto</h3>
-      <div className={styles.tableWrap}>
-        <table className={styles.table}><tbody>
-          <tr><th className={styles.rowHeading}>Descripción</th><td className={styles.justified}>{form.project_description || 'Sin información registrada.'}</td></tr>
-          <tr><th className={styles.rowHeading}>Notas importantes</th><td className={styles.justified}>{form.notes || 'Sin información registrada.'}</td></tr>
-        </tbody></table>
-      </div>
-    </section>
-    <section className={styles.section}>
       <h3>Resumen económico</h3>
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead><tr><th>Concepto</th><th>Porcentaje</th><th className={styles.number}>Valor</th></tr></thead>
           <tbody>{economicRows.map(([label, percentage, amount]) => <tr key={label}><td>{label}</td><td>{percentage}</td><td className={styles.number}>{money(amount as never)}</td></tr>)}<tr className={styles.totalRow}><td colSpan={2}>TOTAL PROPUESTA</td><td className={styles.number}>{money(totals.totalAmount as never)}</td></tr></tbody>
         </table>
+      </div>
+    </section>
+    <section className={styles.section}>
+      <h3>Información del proyecto</h3>
+      <div className={styles.tableWrap}>
+        <table className={styles.table}><tbody>
+          <tr><th className={styles.rowHeading}>Descripción</th><td className={styles.justified}>{form.project_description || 'Sin información registrada.'}</td></tr>
+          <tr><th className={styles.rowHeading}>Notas importantes</th><td className={styles.justified}>{form.notes || 'Sin información registrada.'}</td></tr>
+        </tbody></table>
       </div>
     </section>
     <DocumentSection title="Alcance y actividades del servicio" value={form.scope} />

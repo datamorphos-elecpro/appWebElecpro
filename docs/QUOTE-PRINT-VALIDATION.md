@@ -30,7 +30,7 @@ No se pudo operar el diálogo real: el control visual no tiene navegadores dispo
 Para completar esta comprobación en ambos navegadores:
 
 1. Abrir una cotización de varias páginas y pulsar «Imprimir / guardar PDF».
-2. Elegir Guardar como PDF, probar Carta y A4 y alternar vertical/horizontal. Confirmar que las elecciones del diálogo se aplican.
+2. Elegir Guardar como PDF, probar Carta y A4 y alternar vertical/horizontal. Confirmar que las elecciones del diálogo se aplican.<!--  -->
 3. Probar márgenes personalizados distintos de 12 mm, por ejemplo 20 mm; comprobar visualmente las guías y el PDF guardado. Registrar navegador, versión y resultado.
 4. Comprobar que el diálogo ofrece las opciones disponibles para el destino elegido, incluidos páginas, escala y, cuando corresponda, copias.
 

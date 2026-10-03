@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { money } from '../../lib/money';
 import { bogotaDateText } from '../../lib/presentation';
+import type { QuotePrintSize } from '../../lib/quote-print';
 import styles from './QuoteDocument.module.css';
 
 type DocumentItem = { code: string; description: string; quantity: string; unit: string };
@@ -23,7 +24,8 @@ type DocumentCompany = {
   address?: string | null;
 };
 
-export function QuoteDocument({ form, items, totals, number, client, company }: {
+export function QuoteDocument({ form, items, totals, number, client, company, printSize = 'normal' }: {
+  printSize?: QuotePrintSize;
   form: Record<string, string>;
   items: DocumentItem[];
   totals: DocumentTotals;
@@ -40,7 +42,7 @@ export function QuoteDocument({ form, items, totals, number, client, company }: 
   ] as const;
   const contact = [client?.contact_name, client?.email].filter(Boolean).join(' · ');
 
-  return <article className={`${styles.document} quote-print-root`} aria-label="Documento de cotización">
+  return <article className={`${styles.document} quote-print-root`} data-print-size={printSize} aria-label="Documento de cotización">
     <header className={styles.header}>
       <div>
         <div className={styles.kicker}>Propuesta técnico-económica</div>

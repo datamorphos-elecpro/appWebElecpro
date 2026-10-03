@@ -41,3 +41,6 @@
 .dialog header { flex: 0 0 auto; flex-wrap: wrap; min-width: 0; max-height: 50dvh; overflow-y: auto; }
 .dialog iframe { display: block; }
 @media print { .dialog[open] { display: block; max-height: none; } }
+
+.sizeControl { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; }
+.sizeControl select { min-height: 38px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 9px; color: var(--ink); background: var(--surface); }

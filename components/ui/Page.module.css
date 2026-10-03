@@ -13,3 +13,7 @@
 
 .header { flex-wrap: wrap; }
 .header > *, .actions { min-width: 0; max-width: 100%; }
+
+.metricLink { display: block; color: var(--ink); text-decoration: none; }
+.metricLink:hover { border-color: var(--green-700); }
+.metricLink:focus-visible { outline: 3px solid var(--green-700); outline-offset: 3px; }

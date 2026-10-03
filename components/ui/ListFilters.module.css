@@ -1,0 +1,3 @@
+.filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; font-size: 12px; }
+.filters span { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.filters a { margin-left: 8px; color: var(--green-800); }

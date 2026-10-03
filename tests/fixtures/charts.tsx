@@ -10,6 +10,7 @@ import '../../app/globals.css';
 function Fixture() {
   const [selected, select] = useState('');
   const [open, setOpen] = useState(false);
+  const [printSize, setPrintSize] = useState<'compact' | 'normal' | 'large'>('normal');
   const [large, setLarge] = useState(false);
   const [changed, setChanged] = useState(false);
   const values = [changed ? '999999999999999999999.99' : '999999999999.99', '-123456789012.34', '0', '12', '-800000000000'];
@@ -31,7 +32,7 @@ function Fixture() {
         <DistributionComparisonChart participants={data.slice(0, 5).map((row) => ({ key: row.key, label: row.label, value: '999999999999', paid: '999999999999', pending: '999999999999' }))} />
       </>}
     </section>
-    <QuotePreviewDialog open={open} title="Vista previa con cabecera extensa y acciones accesibles" onClose={() => setOpen(false)}><AnalyticsBarChart data={data} label="Informe" /></QuotePreviewDialog>
+    <QuotePreviewDialog printSize={printSize} onPrintSizeChange={setPrintSize} open={open} title="Vista previa con cabecera extensa y acciones accesibles" onClose={() => setOpen(false)}><AnalyticsBarChart data={data} label="Informe" /></QuotePreviewDialog>
   </main>;
 }
 createRoot(document.getElementById('root')!).render(<Fixture />);

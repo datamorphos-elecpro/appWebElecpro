@@ -1,4 +1,4 @@
-﻿import { decimal } from './calculations';
+import { decimal } from './calculations';
 import { createClient } from './supabase/server';
 import { pageRange, paginated, pagination, type PageSize } from './pagination';
 
@@ -48,13 +48,16 @@ export function attachFinancialSummaries<T extends { id: string }>(projects: T[]
 async function loadFinancialSummaries(supabase: SupabaseLike, projectIds: string[]) { const batches: string[][] = []; for (let index = 0; index < projectIds.length; index += summaryBatchSize) batches.push(projectIds.slice(index, index + summaryBatchSize)); return (await Promise.all(batches.map((ids) => typedRows<ProjectFinancialSummary>('resúmenes financieros de proyectos', supabase.from('project_financial_summary').select(summaryFields).in('id', ids))))).flat(); }
 async function loadProjectsWithFinancialSummary<T extends { id: string }>(supabase: SupabaseLike, request: PromiseLike<QueryResult<any>>, label: string) { const projects = await typedRows<T>(label, request); if (!projects.length) return [] as ProjectWithFinancialSummary<T>[]; return attachFinancialSummaries(projects, await loadFinancialSummaries(supabase, projects.map((project) => project.id))); }
 export async function getProjectsWithFinancialSummary(label = 'proyectos') { const supabase = await createClient(); return loadProjectsWithFinancialSummary<ProjectRecord>(supabase, supabase.from('projects').select(projectFields).order('created_at', { ascending: false }), label); }
-export async function getProjectPage(input: { q: string; status: string; sort: string; direction: 'asc' | 'desc'; page: number; pageSize: PageSize }) {
-  const supabase = await createClient(); const allowed = ['created_at', 'title', 'status', 'expected_end_date', 'project_value']; const sort = allowed.includes(input.sort) ? input.sort : 'created_at';
-  const apply = (query: any) => { if (input.q) query = query.or(`title.ilike.%${input.q.replace(/[%,()]/g, '')}%,quote_number.ilike.%${input.q.replace(/[%,()]/g, '')}%`); if (input.status) query = query.eq('status', input.status); return query; };
-  const count = await apply(supabase.from('projects').select('id', { count: 'exact', head: true })); if (count.error) throw new Error(count.error.message);
-  const info = pagination(count.count ?? 0, input.page, input.pageSize); const range = pageRange(info.page, input.pageSize);
-  const projects = await loadProjectsWithFinancialSummary<ProjectRecord>(supabase, apply(supabase.from('projects').select(projectFields).order(sort, { ascending: input.direction === 'asc' }).order('id', { ascending: true }).range(range.from, range.to)), 'proyectos');
-  return paginated(projects, info.total, info.page, input.pageSize);
+export async function getProjectPage(input: { q: string; status: string; segment?: string; sort: string; direction: 'asc' | 'desc'; page: number; pageSize: PageSize }) {
+  const supabase = await createClient(); const range = pageRange(input.page, input.pageSize);
+  const { data, error } = await supabase.rpc('projects_list_page', {
+    p_q: input.q || null, p_status: input.status || null, p_segment: input.segment || null,
+    p_sort: input.sort, p_direction: input.direction, p_offset: range.from, p_limit: input.pageSize,
+  });
+  queryError('proyectos', error);
+  const result = data as { records: ProjectWithFinancialSummary<ProjectRecord>[]; total: number; page: number } | null;
+  if (!result) throw new Error('No fue posible cargar proyectos.');
+  return paginated(result.records, result.total, result.page, input.pageSize);
 }
 export type ClientWithStats = { id: string; name: string; client_type: string; contact_name: string | null; phone: string | null; email: string | null; address: string | null; is_active: boolean; projectCount: number; contracted: string };
 export async function getClientsWithStats() {
@@ -68,7 +71,7 @@ export async function getClientsWithStats() {
   return clients.map((client) => ({ ...client, projectCount: totals.get(client.id)?.count ?? 0, contracted: (totals.get(client.id)?.contracted ?? decimal(0)).toString() }));
 }export async function getQuotesWithPresentationData(label = 'cotizaciones') { const supabase = await createClient(); return typedRows<QuoteRecord>(label, supabase.from('quotes').select(quoteFields).order('issued_on', { ascending: false })); }
 export async function getQuoteProjectDashboard() { const supabase = await createClient(); const { data, error } = await supabase.rpc('quote_project_dashboard_snapshot'); if (error || !data) throw new Error(`No fue posible cargar los resúmenes comerciales: ${error?.message ?? 'sin datos'}`); return data as QuoteProjectDashboard; }
-export async function getQuotePage(input: { q: string; status: string; sort: string; direction: 'asc' | 'desc'; page: number; pageSize: PageSize }) { const supabase = await createClient(); const range = pageRange(input.page, input.pageSize); const { data, error } = await supabase.rpc('quotes_page', { p_q: input.q || null, p_status: input.status || null, p_sort: input.sort, p_direction: input.direction, p_offset: range.from, p_limit: input.pageSize }); if (error) throw new Error(`No fue posible cargar cotizaciones: ${error.message}`); const rows = (data ?? []) as Array<QuoteListRecord & { total_count: number }>; const info = pagination(rows[0]?.total_count ?? 0, input.page, input.pageSize); return paginated(rows.map(({ total_count: _total, ...row }) => row), info.total, info.page, input.pageSize); }
+export async function getQuotePage(input: { q: string; status: string; segment?: string; sort: string; direction: 'asc' | 'desc'; page: number; pageSize: PageSize }) { const supabase = await createClient(); const range = pageRange(input.page, input.pageSize); const { data, error } = await supabase.rpc('quotes_page', { p_q: input.q || null, p_status: input.status || null, p_segment: input.segment || null, p_sort: input.sort, p_direction: input.direction, p_offset: range.from, p_limit: input.pageSize }); if (error) throw new Error(`No fue posible cargar cotizaciones: ${error.message}`); const rows = (data ?? []) as Array<QuoteListRecord & { total_count: number }>; const info = pagination(rows[0]?.total_count ?? 0, input.page, input.pageSize); return paginated(rows.map(({ total_count: _total, ...row }) => row), info.total, info.page, input.pageSize); }
 export async function getCompanySettings(label = 'configuración de empresa') { const supabase = await createClient(); return typedSingle<CompanySettings>(label, supabase.from('company_settings').select('legal_name,manager_name,manager_role,professional_card,phone,email,address,timezone,currency_code').eq('id', true).single()); }
 export async function dashboardData() { const supabase = await createClient(); const [projects, quotes, financial] = await Promise.all([loadProjectsWithFinancialSummary<ProjectRecord>(supabase, supabase.from('projects').select(projectFields).order('created_at', { ascending: false }), 'proyectos del panel'), typedRows<QuoteRecord>('cotizaciones del panel', supabase.from('quotes').select(quoteFields).order('issued_on', { ascending: false })), typedSingle<any>('consolidado financiero del panel', supabase.from('portfolio_financial_summary').select('contracted,paid,balance,expenses,budget,real_profit,projected_profit').single())]); return { projects, quotes, financial }; }
 export function sortProjectsByProfit<T extends { financialSummary: ProjectFinancialSummary }>(projects: T[]): T[] { return [...projects].sort((a, b) => decimal(a.financialSummary.real_profit).comparedTo(decimal(b.financialSummary.real_profit))); }

@@ -1,9 +1,10 @@
 'use client';
 
 import { type ReactNode, useEffect, useId, useRef } from 'react';
+import type { QuotePrintSize } from '../../lib/quote-print';
 import styles from './QuotePreviewDialog.module.css';
 
-export function QuotePreviewDialog({ open, title, children, onClose }: { open: boolean; title: string; children: ReactNode; onClose: () => void }) {
+export function QuotePreviewDialog({ open, title, children, onClose, printSize, onPrintSizeChange }: { printSize: QuotePrintSize; onPrintSizeChange: (size: QuotePrintSize) => void; open: boolean; title: string; children: ReactNode; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
@@ -36,6 +37,7 @@ export function QuotePreviewDialog({ open, title, children, onClose }: { open: b
     <header className={styles.header}>
       <strong id={titleId}>{title}</strong>
       <div className={styles.actions}>
+        <label className={styles.sizeControl}>Tamaño de letra<select value={printSize} onChange={(event) => onPrintSizeChange(event.target.value as QuotePrintSize)}><option value="compact">Compacto</option><option value="normal">Normal</option><option value="large">Grande</option></select></label>
         <button type="button" className={styles.secondary} onClick={() => window.print()}>Imprimir / guardar PDF</button>
         <button type="button" className={styles.primary} onClick={close}>Volver a editar</button>
       </div>

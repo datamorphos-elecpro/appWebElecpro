@@ -3,6 +3,7 @@
 import { type RefObject, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { saveBusiness, setBusinessActive } from '../../app/actions/business';
+import { basePriceMessage, finishBasePrice, normalizeBasePrice, normalizeUnit, uppercaseUnit } from '../../lib/item-input';
 import { money } from '../../lib/money';
 import { useNativeFormDraft } from '../../lib/local-draft';
 import type { PageInfo } from '../../lib/pagination';
@@ -35,4 +36,45 @@ export function CatalogManager({ kind, rows, page }: { kind: Kind; rows: Row[]; 
   </>;
 }
 function display(key: string, value: unknown) { if (key === 'base_unit_price') return money(String(value ?? 0)); if (key === 'category') return categoryText(String(value)); if (key === 'website' && value) return <a href={String(value)} target="_blank" rel="noreferrer">{String(value)}</a>; return String(value || '—'); }
-function BusinessForm({ kind, row, first, pending, onClose, onSubmit }: { kind: Kind; row: Row; first: RefObject<HTMLInputElement | null>; pending: boolean; onClose: () => void; onSubmit: (data: FormData, clear: () => void) => void }) { const editing = Boolean(row.id); const { formRef, available, conflict, capture, restore, discard, clearFields, clearDraft } = useNativeFormDraft(kind, String(row.id ?? 'new'), String(row.updated_at ?? '')); return <form ref={formRef} onInput={capture} onChange={capture} onSubmit={(event) => { event.preventDefault(); onSubmit(new FormData(event.currentTarget), clearDraft); }} className={styles.form}>{available && <div role="status">{conflict ? 'El registro cambió desde el borrador.' : 'Hay un borrador sin guardar.'}<button type="button" onClick={restore}>Recuperar borrador</button><button type="button" onClick={discard}>Usar versión actual</button></div>}{editing && <input type="hidden" name="id" value={String(row.id)} />}{columns[kind].map((key, index) => <label key={key}>{labels[key]}{key === 'category' ? <select name={key} defaultValue={String(row[key] ?? 'material')}>{categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : key === 'client_type' ? <select name={key} defaultValue={String(row[key] ?? 'Empresa')}><option>Empresa</option><option>Persona natural</option><option>Entidad pública</option></select> : key === 'description' && kind === 'suppliers' ? <textarea name={key} defaultValue={String(row[key] ?? '')} /> : <input ref={index === 0 ? first : undefined} name={key} defaultValue={String(row[key] ?? '')} readOnly={key === 'code'} required={['name', 'client_type', 'description', 'unit', 'base_unit_price'].includes(key)} type={key === 'email' ? 'email' : key === 'website' ? 'url' : key === 'base_unit_price' ? 'number' : 'text'} min={key === 'base_unit_price' ? '0' : undefined} step={key === 'base_unit_price' ? '0.01' : undefined} />}</label>)}<footer><button type="button" className={styles.cancel} onClick={onClose}>Cancelar</button><button type="button" onClick={clearFields}>Limpiar campos</button><button disabled={pending} className={styles.primary}>{pending ? 'Guardando…' : 'Guardar'}</button></footer></form>; }
+function BusinessForm({ kind, row, first, pending, onClose, onSubmit }: { kind: Kind; row: Row; first: RefObject<HTMLInputElement | null>; pending: boolean; onClose: () => void; onSubmit: (data: FormData, clear: () => void) => void }) {
+  const editing = Boolean(row.id);
+  const { formRef, available, conflict, capture, restore, discard, clearFields, clearDraft } = useNativeFormDraft(kind, String(row.id ?? 'new'), String(row.updated_at ?? ''));
+  function normalizeForm() {
+    const unit = formRef.current?.elements.namedItem('unit');
+    if (unit instanceof HTMLInputElement) unit.value = normalizeUnit(unit.value);
+    const price = formRef.current?.elements.namedItem('base_unit_price');
+    if (price instanceof HTMLInputElement) price.setCustomValidity(normalizeBasePrice(price.value) === null ? basePriceMessage : '');
+  }
+  function restoreForm() { restore(); normalizeForm(); }
+  function clearForm() { clearFields(); normalizeForm(); }
+  return <form ref={formRef} onInput={capture} onChange={capture} onSubmit={(event) => {
+    event.preventDefault();
+    const price = event.currentTarget.elements.namedItem('base_unit_price');
+    if (price instanceof HTMLInputElement) {
+      price.setCustomValidity(normalizeBasePrice(price.value) === null ? basePriceMessage : '');
+      if (!price.reportValidity()) return;
+    }
+    onSubmit(new FormData(event.currentTarget), clearDraft);
+  }} className={styles.form}>
+    {available && <div role="status">{conflict ? 'El registro cambi? desde el borrador.' : 'Hay un borrador sin guardar.'}<button type="button" onClick={restoreForm}>Recuperar borrador</button><button type="button" onClick={discard}>Usar versión actual</button></div>}
+    {editing && <input type="hidden" name="id" value={String(row.id)} />}
+    {columns[kind].map((key, index) => <label key={key}>{labels[key]}{key === 'category' ? <select name={key} defaultValue={String(row[key] ?? 'material')}>{categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : key === 'client_type' ? <select name={key} defaultValue={String(row[key] ?? 'Empresa')}><option>Empresa</option><option>Persona natural</option><option>Entidad pública</option></select> : key === 'description' && kind === 'suppliers' ? <textarea name={key} defaultValue={String(row[key] ?? '')} /> : <input
+      ref={index === 0 ? first : undefined} name={key}
+      defaultValue={key === 'unit' ? normalizeUnit(String(row[key] ?? 'UND')) : String(row[key] ?? '')}
+      readOnly={key === 'code'} required={['name', 'client_type', 'description', 'unit', 'base_unit_price'].includes(key)}
+      type={key === 'email' ? 'email' : key === 'website' ? 'url' : 'text'}
+      inputMode={key === 'base_unit_price' ? 'decimal' : undefined}
+      onInput={(event) => {
+        const input = event.currentTarget;
+        if (key === 'unit') input.value = uppercaseUnit(input.value);
+        if (key === 'base_unit_price') input.setCustomValidity(normalizeBasePrice(input.value) === null ? basePriceMessage : '');
+      }}
+      onBlur={(event) => {
+        if (key !== 'base_unit_price') return;
+        const input = event.currentTarget; input.value = finishBasePrice(input.value);
+        input.setCustomValidity(normalizeBasePrice(input.value) === null ? basePriceMessage : ''); capture();
+      }}
+    />}</label>)}
+    <footer><button type="button" className={styles.cancel} onClick={onClose}>Cancelar</button><button type="button" onClick={clearForm}>Limpiar campos</button><button disabled={pending} className={styles.primary}>{pending ? 'Guardando?' : 'Guardar'}</button></footer>
+  </form>;
+}

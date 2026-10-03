@@ -1,9 +1,9 @@
-﻿'use server';
+'use server';
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireProfile } from '../../lib/auth';
-import { catalogCategoryValues } from '../../lib/validators/quote';
+import { basePriceSchema, catalogCategoryValues, unitSchema } from '../../lib/validators/quote';
 import { revalidateCatalogViews, revalidateClientViews } from './revalidation';
 
 const amount = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Debe ser un importe no negativo con máximo dos decimales.');
@@ -11,7 +11,7 @@ const optionalNullableText = z.string().trim().optional().transform((value) => v
 const schemas = {
   clients: z.object({ id: z.string().uuid().optional(), name: z.string().min(1), client_type: z.string().min(1), contact_name: z.string().optional(), phone: z.string().optional(), email: z.string().optional(), address: z.string().optional() }),
   suppliers: z.object({ id: z.string().uuid().optional(), name: z.string().trim().min(1), contact_name: optionalNullableText, phone: z.string().optional(), email: z.string().optional(), website: z.string().optional(), description: z.string().optional() }),
-  catalog_items: z.object({ id: z.string().uuid().optional(), code: z.string().optional(), description: z.string().min(1), unit: z.string().min(1), base_unit_price: amount, category: z.enum(catalogCategoryValues) }),
+  catalog_items: z.object({ id: z.string().uuid().optional(), code: z.string().optional(), description: z.string().min(1), unit: unitSchema, base_unit_price: basePriceSchema, category: z.enum(catalogCategoryValues) }),
 };
 export async function saveBusiness(table: keyof typeof schemas, input: unknown) {
   const data = schemas[table].parse(input); const { supabase, profile } = await requireProfile(); const { id, ...values } = data; const database = supabase as any;

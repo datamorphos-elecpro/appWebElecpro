@@ -1,4 +1,11 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
+import { basePriceMessage, normalizeBasePrice, normalizeUnit } from '../item-input';
+export const basePriceSchema = z.string().transform((value, context) => {
+  const normalized = normalizeBasePrice(value);
+  if (normalized === null) { context.addIssue({ code: z.ZodIssueCode.custom, message: basePriceMessage }); return z.NEVER; }
+  return normalized;
+});
+export const unitSchema = z.string().transform(normalizeUnit).pipe(z.string().min(1, 'La unidad es obligatoria.'));
 
 export const catalogCategoryValues = ['material', 'design', 'technical_visit', 'labor'] as const;
 export const quoteDecimalString = (integerDigits: number) => z.string().trim().regex(
@@ -12,8 +19,8 @@ export const quoteItemSchema = z.object({
   description: z.string().trim().min(1, 'La descripción es obligatoria.'),
   category: z.enum(catalogCategoryValues, { required_error: 'La categoría es obligatoria.', invalid_type_error: 'La categoría es obligatoria.' }),
   quantity: quoteDecimalString(12),
-  unit: z.string().trim().min(1, 'La unidad es obligatoria.'),
-  base_unit_price: quoteDecimalString(12),
+  unit: unitSchema,
+  base_unit_price: basePriceSchema,
 });
 
 export const quotePayloadSchema = z.object({

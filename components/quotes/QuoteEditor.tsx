@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { approveAndConvertQuote, saveQuote } from '../../app/actions/quotes';
 import { saveCompanySettings } from '../../app/actions/business';
 import { calculateQuote } from '../../lib/calculations';
+import { basePriceMessage, finishBasePrice, normalizeBasePrice, normalizeUnit, uppercaseUnit } from '../../lib/item-input';
+import { useQuotePrintSize } from './useQuotePrintSize';
 import { bogotaDate, money } from '../../lib/money';
 import { useLocalDraft } from '../../lib/local-draft';
 import { categoryOptions, type CatalogCategory } from '../../lib/presentation';
@@ -34,7 +36,7 @@ const datePlusDays = (date: string, days: number) => {
   value.setUTCDate(value.getUTCDate() + days);
   return bogotaDate(value);
 };
-const emptyItem = (localKey: string): Item => ({ localKey, code: '', description: '', unit: 'und', category: '', quantity: '1', base_unit_price: '0' });
+const emptyItem = (localKey: string): Item => ({ localKey, code: '', description: '', unit: 'UND', category: '', quantity: '1', base_unit_price: '0' });
 
 function initialForm(quote?: InitialQuote) {
   const today = bogotaDate();
@@ -55,7 +57,7 @@ function initialItems(quote?: InitialQuote): Item[] {
   if (!quote?.quote_items?.length) return [emptyItem('draft-item-1')];
   return [...quote.quote_items].sort((a, b) => Number(a.position ?? 0) - Number(b.position ?? 0)).map((item, index) => ({
     localKey: String(item.id ?? `saved-item-${index}`), catalog_item_id: item.catalog_item_id ? String(item.catalog_item_id) : null,
-    code: String(item.code ?? ''), description: String(item.description ?? ''), unit: String(item.unit ?? 'und'), category: String(item.category ?? '') as Category,
+    code: String(item.code ?? ''), description: String(item.description ?? ''), unit: quote?.project_id ? String(item.unit ?? 'UND') : normalizeUnit(String(item.unit ?? 'UND')), category: String(item.category ?? '') as Category,
     quantity: decimalInput(item.quantity), base_unit_price: decimalInput(item.base_unit_price),
   }));
 }
@@ -68,6 +70,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   const [draftStarted, setDraftStarted] = useState(Boolean(quote));
   const [selectedClient, setSelectedClient] = useState<Client | null>(initialClient ?? null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const { printSize, changePrintSize } = useQuotePrintSize();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [managerConfirmOpen, setManagerConfirmOpen] = useState(false);
@@ -112,7 +115,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   useEffect(() => { window.addEventListener('pagehide', persistDraft); return () => window.removeEventListener('pagehide', persistDraft); }, [persistDraft]);
   function restoreDraft() {
     const stored = draft.read(); if (!stored) return;
-    setForm(stored.value.form); setItems(stored.value.items); setSelectedClient(stored.value.client?.id === stored.value.form.client_id ? stored.value.client : null);
+    setForm(stored.value.form); setItems(stored.value.items.map((item) => ({ ...item, unit: normalizeUnit(item.unit) }))); setSelectedClient(stored.value.client?.id === stored.value.form.client_id ? stored.value.client : null);
     setSections(stored.value.sections ?? [true, true, true, false, false]);
     createRequestIdRef.current = stored.value.requestId;
     setDraftStarted(stored.value.started ?? true); markDirty(); setDraftAvailable(false); setDraftConflict(false);
@@ -125,7 +128,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   }
 
   const totals = useMemo(() => calculateQuote(items.map((item) => ({
-    category: (item.category || 'labor') as CatalogCategory, quantity: item.quantity, baseUnitPrice: item.base_unit_price,
+    category: (item.category || 'labor') as CatalogCategory, quantity: item.quantity, baseUnitPrice: normalizeBasePrice(item.base_unit_price) ?? '0',
   })), {
     materialIncreasePct: form.material_increase_pct, administrationPct: form.administration_pct, contingencyPct: form.contingency_pct,
     utilityPct: form.utility_pct, vatUtilityPct: form.vat_utility_pct,
@@ -152,14 +155,14 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   }
 
   function patchItem(localKey: string, key: keyof Omit<Item, 'localKey'>, value: string) {
-    setItems((current) => current.map((item) => item.localKey === localKey ? { ...item, [key]: value } : item));
+    setItems((current) => current.map((item) => item.localKey === localKey ? { ...item, [key]: key === 'unit' ? uppercaseUnit(value) : value } : item));
     markDirty();
   }
 
   function addItem(catalogItem?: Catalog) {
     const localKey = `item-${itemSequence.current++}`;
     setItems((current) => [...current, catalogItem ? {
-      localKey, catalog_item_id: catalogItem.id, code: catalogItem.code, description: catalogItem.description, unit: catalogItem.unit,
+      localKey, catalog_item_id: catalogItem.id, code: catalogItem.code, description: catalogItem.description, unit: normalizeUnit(catalogItem.unit),
       category: catalogItem.category, quantity: '1', base_unit_price: decimalInput(catalogItem.base_unit_price),
     } : emptyItem(localKey)]);
     markDirty();
@@ -176,7 +179,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   function selectCatalogItem(result: RemoteSearchResult | null) {
     if (!result) return;
     const metadata = result.metadata as Record<string, unknown>;
-    addItem({ id: result.id, code: String(metadata.code ?? ''), description: String(metadata.description ?? ''), unit: String(metadata.unit ?? 'und'), base_unit_price: String(metadata.base_unit_price ?? '0'), category: String(metadata.category ?? 'labor') as Exclude<Category, ''> });
+    addItem({ id: result.id, code: String(metadata.code ?? ''), description: String(metadata.description ?? ''), unit: String(metadata.unit ?? 'UND'), base_unit_price: String(metadata.base_unit_price ?? '0'), category: String(metadata.category ?? 'labor') as Exclude<Category, ''> });
   }
 
   function removeItem(localKey: string) {
@@ -395,10 +398,10 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
     <ConfirmationDialog open={saveConfirmOpen} title="Confirmar guardado" description="Se guardará la cotización y sus ítems en Elecpro." recordName={saved?.number ?? form.title} confirmLabel="Guardar cotización" onClose={() => setSaveConfirmOpen(false)} onConfirm={async () => { const result = await saveLatest(true); if (!result || savedRevisionRef.current !== revisionRef.current) throw new Error('Revise los datos de la cotización.'); setSaveConfirmOpen(false); }} />
     <ConfirmationDialog open={managerConfirmOpen} title="Guardar tarjeta del gerente" description="Los nuevos datos de firma se mostrarán en las cotizaciones." recordName={manager.manager_name || 'Gerencia Elecpro'} confirmLabel="Guardar tarjeta" onClose={() => setManagerConfirmOpen(false)} onConfirm={async () => { await saveCompanySettings(manager); managerDraft.clear(); managerDirtyRef.current = false; setManagerMessage('Tarjeta guardada'); setManagerConfirmOpen(false); }} />
 
-    <QuotePreviewDialog open={previewOpen} title={`Vista previa · ${saved?.number ?? 'Pendiente de guardar'}`} onClose={() => setPreviewOpen(false)}>
-      <QuoteDocument form={form} items={items} totals={totals} number={saved?.number ? String(saved.number) : undefined} client={selectedClient} company={manager} />
+    <QuotePreviewDialog printSize={printSize} onPrintSizeChange={changePrintSize} open={previewOpen} title={`Vista previa · ${saved?.number ?? 'Pendiente de guardar'}`} onClose={() => setPreviewOpen(false)}>
+      <QuoteDocument printSize={printSize} form={form} items={items} totals={totals} number={saved?.number ? String(saved.number) : undefined} client={selectedClient} company={manager} />
     </QuotePreviewDialog>
-    {previewOpen && typeof document !== 'undefined' && createPortal(<div className="quote-print-portal"><QuoteDocument form={form} items={items} totals={totals} number={saved?.number ? String(saved.number) : undefined} client={selectedClient} company={manager} /></div>, document.body)}
+    {previewOpen && typeof document !== 'undefined' && createPortal(<div className="quote-print-portal"><QuoteDocument printSize={printSize} form={form} items={items} totals={totals} number={saved?.number ? String(saved.number) : undefined} client={selectedClient} company={manager} /></div>, document.body)}
   </>;
 }
 
@@ -417,7 +420,7 @@ function MaterialRow({ item, index, line, locked, patch, remove }: { item: Item;
     <Field label="Categoría"><select required value={item.category} onChange={(event) => patch(item.localKey, 'category', event.target.value)} disabled={locked}><option value="">Elegir</option>{categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>
     <Field label="Cant."><input type="number" min="0" step="0.01" value={item.quantity} onChange={(event) => patch(item.localKey, 'quantity', event.target.value)} disabled={locked} /></Field>
     <Field label="Unidad"><input value={item.unit} onChange={(event) => patch(item.localKey, 'unit', event.target.value)} disabled={locked} /></Field>
-    <Field label="Precio base"><input type="number" min="0" step="0.01" value={item.base_unit_price} onChange={(event) => patch(item.localKey, 'base_unit_price', event.target.value)} disabled={locked} /></Field>
+    <Field label="Precio base"><input type="text" inputMode="decimal" value={item.base_unit_price} aria-invalid={normalizeBasePrice(item.base_unit_price) === null} onChange={(event) => patch(item.localKey, 'base_unit_price', event.target.value)} onBlur={(event) => { const completed = finishBasePrice(event.target.value); if (completed !== event.target.value) patch(item.localKey, 'base_unit_price', completed); }} disabled={locked} />{normalizeBasePrice(item.base_unit_price) === null && <small role="status">{basePriceMessage}</small>}</Field>
     <Field label="Precio final"><output>{money(line?.finalUnitPrice as never)}</output></Field>
     <Field label="Total"><output>{money(line?.finalTotal as never)}</output></Field>
     {!locked && <button type="button" className={styles.iconButton} onClick={() => remove(item.localKey)} aria-label={`Eliminar ítem ${index + 1}`}>×</button>}

@@ -33,7 +33,7 @@ Elecpro centraliza la operación comercial, técnica y financiera de proyectos d
 
 - Cliente: nombre, tipo, contacto, teléfono, correo y dirección. El nombre es obligatorio.
 - Proveedor: nombre, contacto o asesor opcional, teléfono, correo, sitio web y descripción. El nombre es obligatorio.
-- Ítem de catálogo: código, descripción, unidad, precio base y categoría `Material` o `Mano de obra`. Código, descripción, unidad, precio y categoría son obligatorios; el precio no puede ser negativo.
+- Ítem de catálogo: código, descripción, unidad, precio base y categoría Material, Diseño, Visita Técnica, Servicio MO, Todocosto o Transporte. Código, descripción, unidad, precio y categoría son obligatorios; el precio no puede ser negativo.
 - Eliminar clientes con cotizaciones o proyectos, catálogo usado o proveedores asociados a datos futuros debe quedar bloqueado o usar un campo `is_active`; la primera implementación debe preferir desactivación para conservar historial.
 
 ### Proyectos
@@ -52,7 +52,7 @@ Campos: tipo/título, cliente, valor, estado, prioridad, responsable, lugar de e
 
 Campos principales: número, cliente, título, emisión, vigencia, estado, saludo, descripción, objetivo, notas, alcance, beneficios, exclusiones, condiciones de pago, tiempo de ejecución y entregable.
 
-Cada ítem tiene código, descripción, categoría, cantidad, unidad, precio base y referencia opcional al catálogo. La categoría es obligatoria antes de aplicar incremento a materiales. El código y descripción se pueden conservar como texto aunque el ítem proceda del catálogo, para mantener la instantánea.
+Cada ítem tiene código, descripción, categoría, cantidad, unidad, precio base, IVA (%) opcional y referencia opcional al catálogo. IVA inicia en 0; vacío equivale a 0 y admite hasta dos decimales entre 0 y 100. Se define por cotización, no en catálogo, y no se desglosa en el documento del cliente. La categoría es obligatoria antes de aplicar incremento a materiales. El código y descripción se pueden conservar como texto aunque el ítem proceda del catálogo, para mantener la instantánea.
 
 Una cotización aprobada se convierte una sola vez. Después de hacerlo queda bloqueada para edición comercial y el botón abre el proyecto vinculado.
 
@@ -61,8 +61,11 @@ Una cotización aprobada se convierte una sola vez. Después de hacerlo queda bl
 Para cada ítem `i`:
 
 ```text
-precio_final_i = precio_base_i × (1 + incremento_materiales / 100)  si categoría = Material
-precio_final_i = precio_base_i                                en otro caso
+costo_unitario_i = precio_base_i × (1 + iva_item_i / 100)
+precio_final_i = costo_unitario_i × (1 + incremento_materiales / 100)  si categoría = Material
+precio_final_i = costo_unitario_i                                    en otro caso
+total_base_i = cantidad_i × precio_base_i
+total_costo_i = cantidad_i × costo_unitario_i
 subtotal_i = cantidad_i × precio_final_i
 costo_directo = Σ subtotal_i
 administración = costo_directo × administración_pct / 100
@@ -94,7 +97,7 @@ La operación debe ejecutarse en una única transacción en base de datos.
 1. Bloquear la cotización y verificar que no tiene proyecto vinculado.
 2. Verificar que está en estado `Aprobada` o aprobarla como parte de la misma operación explícita.
 3. Crear el proyecto con cliente, título, total comercial, descripción, responsable configurado, dirección del cliente, fechas predeterminadas y modo de ganancia `value`.
-4. Copiar cada ítem como presupuesto con importes base y finales ya calculados; no apuntar al precio actual del catálogo.
+4. Copiar cada ítem como presupuesto con importes base y finales ya calculados, porcentaje de IVA y `cost_total`; el monto presupuestado incluye IVA y excluye incremento comercial. No apuntar al precio actual del catálogo.
 5. Vincular proyecto y cotización, registrar auditoría y devolver el proyecto creado.
 6. Si el proyecto ya existe, devolver ese mismo proyecto sin crear otro.
 

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { approveAndConvertQuote, saveQuote } from '../../app/actions/quotes';
 import { saveCompanySettings } from '../../app/actions/business';
 import { calculateQuote } from '../../lib/calculations';
-import { basePriceMessage, finishBasePrice, normalizeBasePrice, normalizeUnit, uppercaseUnit } from '../../lib/item-input';
+import { basePriceMessage, finishBasePrice, itemVatMessage, normalizeBasePrice, normalizeItemVat, normalizeUnit, uppercaseUnit } from '../../lib/item-input';
 import { useQuotePrintSize } from './useQuotePrintSize';
 import { bogotaDate, money } from '../../lib/money';
 import { useLocalDraft } from '../../lib/local-draft';
@@ -24,7 +24,7 @@ import styles from './QuoteEditor.module.css';
 type Category = CatalogCategory | '';
 type Client = { id: string; name: string; contact_name?: string | null; email?: string | null; address?: string | null };
 type Catalog = { id: string; code: string; description: string; unit: string; base_unit_price: string; category: Exclude<Category, ''> };
-type Item = { localKey: string; catalog_item_id?: string | null; code: string; description: string; unit: string; category: Category; quantity: string; base_unit_price: string };
+type Item = { localKey: string; catalog_item_id?: string | null; code: string; description: string; unit: string; category: Category; quantity: string; base_unit_price: string; vat_pct: string };
 type Company = { legal_name: string; manager_name: string; manager_role: string; professional_card: string; phone: string; email: string; address: string; timezone: 'America/Bogota'; currency_code: 'COP' };
 type InitialQuote = Record<string, unknown> & { id: string; number: string; project_id?: string | null; quote_items?: Array<Record<string, unknown>> };
 type SaveState = 'dirty' | 'saving' | 'saved' | 'error';
@@ -36,7 +36,7 @@ const datePlusDays = (date: string, days: number) => {
   value.setUTCDate(value.getUTCDate() + days);
   return bogotaDate(value);
 };
-const emptyItem = (localKey: string): Item => ({ localKey, code: '', description: '', unit: 'UND', category: '', quantity: '1', base_unit_price: '0' });
+const emptyItem = (localKey: string): Item => ({ localKey, code: '', description: '', unit: 'UND', category: '', quantity: '1', base_unit_price: '0', vat_pct: '0' });
 
 function initialForm(quote?: InitialQuote) {
   const today = bogotaDate();
@@ -58,7 +58,7 @@ function initialItems(quote?: InitialQuote): Item[] {
   return [...quote.quote_items].sort((a, b) => Number(a.position ?? 0) - Number(b.position ?? 0)).map((item, index) => ({
     localKey: String(item.id ?? `saved-item-${index}`), catalog_item_id: item.catalog_item_id ? String(item.catalog_item_id) : null,
     code: String(item.code ?? ''), description: String(item.description ?? ''), unit: quote?.project_id ? String(item.unit ?? 'UND') : normalizeUnit(String(item.unit ?? 'UND')), category: String(item.category ?? '') as Category,
-    quantity: decimalInput(item.quantity), base_unit_price: decimalInput(item.base_unit_price),
+    quantity: decimalInput(item.quantity), base_unit_price: decimalInput(item.base_unit_price), vat_pct: decimalInput(item.vat_pct),
   }));
 }
 
@@ -115,7 +115,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   useEffect(() => { window.addEventListener('pagehide', persistDraft); return () => window.removeEventListener('pagehide', persistDraft); }, [persistDraft]);
   function restoreDraft() {
     const stored = draft.read(); if (!stored) return;
-    setForm(stored.value.form); setItems(stored.value.items.map((item) => ({ ...item, unit: normalizeUnit(item.unit) }))); setSelectedClient(stored.value.client?.id === stored.value.form.client_id ? stored.value.client : null);
+    setForm(stored.value.form); setItems(stored.value.items.map((item) => ({ ...item, unit: normalizeUnit(item.unit), vat_pct: decimalInput(item.vat_pct) }))); setSelectedClient(stored.value.client?.id === stored.value.form.client_id ? stored.value.client : null);
     setSections(stored.value.sections ?? [true, true, true, false, false]);
     createRequestIdRef.current = stored.value.requestId;
     setDraftStarted(stored.value.started ?? true); markDirty(); setDraftAvailable(false); setDraftConflict(false);
@@ -129,6 +129,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
 
   const totals = useMemo(() => calculateQuote(items.map((item) => ({
     category: (item.category || 'labor') as CatalogCategory, quantity: item.quantity, baseUnitPrice: normalizeBasePrice(item.base_unit_price) ?? '0',
+    vatPct: normalizeItemVat(item.vat_pct) ?? '0',
   })), {
     materialIncreasePct: form.material_increase_pct, administrationPct: form.administration_pct, contingencyPct: form.contingency_pct,
     utilityPct: form.utility_pct, vatUtilityPct: form.vat_utility_pct,
@@ -163,7 +164,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
     const localKey = `item-${itemSequence.current++}`;
     setItems((current) => [...current, catalogItem ? {
       localKey, catalog_item_id: catalogItem.id, code: catalogItem.code, description: catalogItem.description, unit: normalizeUnit(catalogItem.unit),
-      category: catalogItem.category, quantity: '1', base_unit_price: decimalInput(catalogItem.base_unit_price),
+      category: catalogItem.category, quantity: '1', base_unit_price: decimalInput(catalogItem.base_unit_price), vat_pct: '0',
     } : emptyItem(localKey)]);
     markDirty();
   }
@@ -420,7 +421,10 @@ function MaterialRow({ item, index, line, locked, patch, remove }: { item: Item;
     <Field label="Categoría"><select required value={item.category} onChange={(event) => patch(item.localKey, 'category', event.target.value)} disabled={locked}><option value="">Elegir</option>{categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>
     <Field label="Cant."><input type="number" min="0" step="0.01" value={item.quantity} onChange={(event) => patch(item.localKey, 'quantity', event.target.value)} disabled={locked} /></Field>
     <Field label="Unidad"><input value={item.unit} onChange={(event) => patch(item.localKey, 'unit', event.target.value)} disabled={locked} /></Field>
-    <Field label="Precio base"><input type="text" inputMode="decimal" value={item.base_unit_price} aria-invalid={normalizeBasePrice(item.base_unit_price) === null} onChange={(event) => patch(item.localKey, 'base_unit_price', event.target.value)} onBlur={(event) => { const completed = finishBasePrice(event.target.value); if (completed !== event.target.value) patch(item.localKey, 'base_unit_price', completed); }} disabled={locked} />{normalizeBasePrice(item.base_unit_price) === null && <small role="status">{basePriceMessage}</small>}</Field>
+    <div className={styles.priceAndVat}>
+      <Field label="Precio base"><input type="text" inputMode="decimal" value={item.base_unit_price} aria-invalid={normalizeBasePrice(item.base_unit_price) === null} onChange={(event) => patch(item.localKey, 'base_unit_price', event.target.value)} onBlur={(event) => { const completed = finishBasePrice(event.target.value); if (completed !== event.target.value) patch(item.localKey, 'base_unit_price', completed); }} disabled={locked} />{normalizeBasePrice(item.base_unit_price) === null && <small role="status">{basePriceMessage}</small>}</Field>
+      <Field label="IVA (%)"><input type="text" inputMode="decimal" aria-label="IVA (%)" value={item.vat_pct} aria-invalid={normalizeItemVat(item.vat_pct) === null} aria-describedby={normalizeItemVat(item.vat_pct) === null ? `vat-help-${item.localKey}` : undefined} onChange={(event) => patch(item.localKey, 'vat_pct', event.target.value)} onBlur={(event) => { const completed = finishBasePrice(event.target.value); if (completed !== event.target.value) patch(item.localKey, 'vat_pct', completed); }} disabled={locked} />{normalizeItemVat(item.vat_pct) === null && <small id={`vat-help-${item.localKey}`} role="status">{itemVatMessage}</small>}</Field>
+    </div>
     <Field label="Precio final"><output>{money(line?.finalUnitPrice as never)}</output></Field>
     <Field label="Total"><output>{money(line?.finalTotal as never)}</output></Field>
     {!locked && <button type="button" className={styles.iconButton} onClick={() => remove(item.localKey)} aria-label={`Eliminar ítem ${index + 1}`}>×</button>}

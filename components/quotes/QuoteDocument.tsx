@@ -62,8 +62,8 @@ export function QuoteDocument({ form, items, totals, number, client, company, pr
       <h3>Materiales y servicios</h3>
       <div className={styles.tableWrap}>
         <table className={`${styles.table} ${styles.itemsTable}`} aria-label="Materiales y servicios">
-          <thead><tr><th>Ítem</th><th>Código</th><th className={styles.description}>Descripción</th><th className={styles.number}>Cant.</th><th>Unidad</th><th className={styles.number}>Valor unit.</th><th className={styles.number}>Valor total</th></tr></thead>
-          <tbody>{items.length ? items.map((item, index) => <tr key={`${item.code}-${index}`}><td>{index + 1}</td><td className={styles.code}>{item.code || '—'}</td><td className={`${styles.description} ${styles.justified}`}>{item.description || 'Sin descripción'}</td><td className={styles.number}>{item.quantity}</td><td>{item.unit}</td><td className={styles.number}>{money(totals.lines[index]?.finalUnitPrice as never)}</td><td className={styles.number}>{money(totals.lines[index]?.finalTotal as never)}</td></tr>) : <tr><td colSpan={7}>Sin ítems registrados</td></tr>}</tbody>
+          <thead><tr><th>Ítem</th><th>Código</th><th className={styles.description}>Descripción</th><th className={styles.number}>Cant.</th><th>Unidad</th><th className={styles.number}>Valor Unitario</th><th className={styles.number}>Total</th></tr></thead>
+          <tbody>{items.length ? items.map((item, index) => <tr key={`${item.code}-${index}`}><td>{index + 1}</td><td><span className={styles.codeText}>{item.code || '—'}</span></td><td className={`${styles.description} ${styles.justified}`}>{item.description || 'Sin descripción'}</td><td className={styles.number}>{item.quantity}</td><td>{item.unit}</td><td className={styles.number}>{money(totals.lines[index]?.finalUnitPrice as never)}</td><td className={styles.number}>{money(totals.lines[index]?.finalTotal as never)}</td></tr>) : <tr><td colSpan={7}>Sin ítems registrados</td></tr>}</tbody>
         </table>
       </div>
     </section>

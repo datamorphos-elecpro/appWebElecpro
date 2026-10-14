@@ -7,3 +7,5 @@ Los documentos nuevos usan `COT-AAAAMMDDXXXXXX` y `PRY-AAAAMMDDXXXXXX`, con fech
 Los filtros categóricos de Análisis y Distribuciones aceptan varios valores mediante parámetros URL repetidos. Las funciones RPC con sufijo `_multi` combinan los valores de un mismo filtro con OR y filtros diferentes con AND. Una lista vacía equivale a Todos. Las funciones anteriores permanecen para compatibilidad. Los informes consultan los conjuntos completos filtrados; la paginación de gráficos solo afecta la pantalla.
 
 Los borradores del editor de cotizaciones se guardan por usuario y registro en este navegador. Contienen campos, ítems, etapa, secciones y posición. Recuperar o descartar se decide en el modal; un cambio posterior del registro en el servidor muestra una advertencia. No se sincronizan borradores entre dispositivos.
+
+La actualización del 13 de octubre agrega Todocosto/Transporte e IVA opcional por ítem, con costo presupuestado que incluye IVA. Aplicar `20261013100000_expand_quote_categories.sql`, confirmar y luego `20261013101000_quote_item_vat.sql`. El detalle de fórmulas, compatibilidad y pruebas está en [IVA por ítem](../docs/QUOTE-ITEM-VAT.md).

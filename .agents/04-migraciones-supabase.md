@@ -48,7 +48,7 @@ Las políticas deben llamar estas funciones con `(select private.is_active_membe
 - Requerir miembro activo y validar cliente activo, estado, porcentajes e ítems.
 - Asignar consecutivo al crear, o bloquear y cargar la cotización existente al editar.
 - Rechazar editar una cotización ya vinculada a un proyecto.
-- Para cada ítem, calcular precios final, total base y total final en PostgreSQL, aplicando incremento solo a `material`.
+- Para cada ítem, validar IVA opcional de 0 a 100 con dos decimales; calcular costo con IVA, total base sin IVA y precios comerciales con incremento solo a `material`. Guardar `vat_pct` y `cost_total` sin confiar en los importes enviados por el navegador.
 - Recalcular todos los importes AIU, IVA y total desde los ítems calculados.
 - Reemplazar los ítems en una transacción conservando su orden y devolver la cotización persistida.
 
@@ -61,7 +61,7 @@ No aceptar totales enviados por cliente como fuente de verdad. Devolver errores 
 - Requerir miembro activo, bloquear la fila de cotización (`FOR UPDATE`) y verificar que está aprobada.
 - Retornar el proyecto existente cuando `project_id` ya tiene valor; esta es la propiedad de idempotencia.
 - Validar que cliente y configuración estén activos/disponibles.
-- Crear el proyecto y sus presupuestos de origen `quote_snapshot` en la misma transacción con las instantáneas de cada `quote_item`.
+- Crear el proyecto y sus presupuestos de origen `quote_snapshot` en la misma transacción con las instantáneas de cada `quote_item`, copiando IVA y costo; el monto presupuestado usa `cost_total`.
 - Asignar la referencia bidireccional de cotización y proyecto, escribir auditoría `convert_quote` y devolver el proyecto.
 - No crear pagos, gastos ni participaciones de forma implícita.
 

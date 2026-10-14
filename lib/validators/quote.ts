@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { basePriceMessage, normalizeBasePrice, normalizeUnit } from '../item-input';
+import { basePriceMessage, itemVatMessage, normalizeBasePrice, normalizeItemVat, normalizeUnit } from '../item-input';
 export const basePriceSchema = z.string().transform((value, context) => {
   const normalized = normalizeBasePrice(value);
   if (normalized === null) { context.addIssue({ code: z.ZodIssueCode.custom, message: basePriceMessage }); return z.NEVER; }
@@ -7,7 +7,12 @@ export const basePriceSchema = z.string().transform((value, context) => {
 });
 export const unitSchema = z.string().transform(normalizeUnit).pipe(z.string().min(1, 'La unidad es obligatoria.'));
 
-export const catalogCategoryValues = ['material', 'design', 'technical_visit', 'labor'] as const;
+export const catalogCategoryValues = ['material', 'design', 'technical_visit', 'labor', 'all_inclusive', 'transport'] as const;
+export const itemVatSchema = z.string().default('0').transform((value, context) => {
+  const normalized = normalizeItemVat(value);
+  if (normalized === null) { context.addIssue({ code: z.ZodIssueCode.custom, message: itemVatMessage }); return z.NEVER; }
+  return normalized;
+});
 export const quoteDecimalString = (integerDigits: number) => z.string().trim().regex(
   new RegExp(`^\\d{1,${integerDigits}}(?:\\.\\d{1,2})?$`),
   'Debe ser un decimal no negativo con máximo dos decimales.',
@@ -21,6 +26,7 @@ export const quoteItemSchema = z.object({
   quantity: quoteDecimalString(12),
   unit: unitSchema,
   base_unit_price: basePriceSchema,
+  vat_pct: itemVatSchema,
 });
 
 export const quotePayloadSchema = z.object({

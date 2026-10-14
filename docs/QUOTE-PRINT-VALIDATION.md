@@ -1,16 +1,20 @@
 # Presentación e impresión de cotizaciones
 
-Validación del 2 de octubre de 2026.
+Validación inicial del 2 de octubre de 2026; actualización del 13 de octubre de 2026.
 
 ## Cambios
 
-`QuoteDocument` usa una tabla de ítems con distribución automática, descripción preferente del 45% y columnas cortas ajustadas al contenido. En pantalla conserva un ancho mínimo de 720 px dentro de un contenedor desplazable; en impresión se adapta al papel. Los códigos largos se parten sin recortarse y cantidades e importes conservan su alineación a la derecha. Los encabezados se repiten y las filas que caben completas evitan cortes de página.
+`QuoteDocument` usa una tabla de ítems con distribución automática: las seis columnas compactas toman el ancho necesario y Descripción recibe el restante. En pantalla conserva un ancho mínimo de 720 px dentro de un contenedor desplazable; en impresión se adapta al papel. Ítem, Código, Cant., Unidad, Valor Unitario y Total están centrados horizontal y verticalmente, sin saltos de línea. Códigos normales como MO-001 quedan completos; cadenas excepcionales admiten división dentro de un contenedor de máximo 12ch. Descripción conserva texto justificado y alineación superior. Los encabezados se repiten y las filas que caben completas evitan cortes de página.
 
 El saludo tiene su propio párrafo, separado del destinatario. Se justifican las descripciones y todos los textos narrativos solicitados, con última línea a la izquierda y saltos escritos por el usuario conservados. Las reglas móviles de cabecera y firma se limitan a pantalla para que no cambien según el papel al imprimir.
 
 El botón mantiene `window.print()`, el selector conserva los tres tamaños de letra y se añade la indicación sobre las opciones del diálogo. La regla de página es `size: auto; margin: 12mm`, conforme a [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40page/size).
 
 ## Comprobaciones automatizadas y revisión PDF
+
+El IVA por ítem se incluye en los importes comerciales, sin columna ni desglose en el documento. El resumen mantiene IVA sobre utilidad y su alineación previa. La suite incorpora verificaciones de centrado en ambos ejes, MO-001 en una línea y valores comerciales con IVA. Para cálculos y migraciones, consultar [IVA por ítem](QUOTE-ITEM-VAT.md).
+
+Los resultados siguientes corresponden a la validación inicial; los resultados de la actualización se registran en la sección final.
 
 - `npm test`: 75 pruebas unitarias aprobadas.
 - `npm run lint`: aprobado.
@@ -34,4 +38,8 @@ Para completar esta comprobación en ambos navegadores:
 3. Probar márgenes personalizados distintos de 12 mm, por ejemplo 20 mm; comprobar visualmente las guías y el PDF guardado. Registrar navegador, versión y resultado.
 4. Comprobar que el diálogo ofrece las opciones disponibles para el destino elegido, incluidos páginas, escala y, cuando corresponda, copias.
 
-No se requieren migraciones ni cambios de datos para estos ajustes.
+Los ajustes de alineación no requieren cambios de datos; el IVA por ítem y las categorías sí requieren las dos migraciones del 13 de octubre, descritas en [IVA por ítem](QUOTE-ITEM-VAT.md).
+
+## Validación del 13 de octubre
+
+Pasaron 106 pruebas unitarias y 29 pruebas de navegador (21 del documento y 8 del editor). Se verificaron centrado horizontal/vertical, código MO-001 en una línea, IVA incorporado en los valores sin columna adicional, desplazamiento móvil y encabezados repetidos. Se rasterizaron las 12 combinaciones PDF con PDFium: entre 4 y 7 páginas por documento, con revisión visual de formatos y páginas representativas sin texto recortado ni superpuesto. La compilación de producción, TypeScript y lint fueron aprobados. Los PDF y capturas automatizados quedan en `test-results/`; la revisión rasterizada temporal queda en `.supabase/pdf-review/`.

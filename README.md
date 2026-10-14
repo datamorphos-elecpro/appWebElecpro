@@ -15,7 +15,7 @@ npm run start
 
 ## Migraciones de Supabase
 
-Instalación nueva: ejecute estas seis migraciones en SQL Editor, exactamente en este orden:
+Instalación nueva: ejecute todos los archivos SQL directamente dentro de `supabase/migrations` por nombre ascendente; excluya la carpeta `manual`. Estos son los seis primeros:
 
 1. `20260909000000_initial_elecpro.sql`
 2. `20260909100000_fix_audit_entity_id.sql`
@@ -28,7 +28,9 @@ Actualización de una base existente: compruebe primero el historial real de mig
 
 La aplicación verifica en lecturas autenticadas las vistas `project_financial_summary` y `portfolio_financial_summary`, incluyendo `projected_profit`, `balance` y `budget`. Un error de consulta se muestra como error de la ruta, nunca como un estado vacío.
 
-En Authentication, mantenga Email habilitado y las inscripciones públicas desactivadas. Cree el primer usuario y asígnele el rol de administrador desde SQL Editor. No hay correos programados ni resumen semanal: las alertas se calculan al consultar. Las categorías vigentes son Material, Diseño, Visita Técnica y Servicio MO; el incremento comercial aplica únicamente a Material.
+En Authentication, mantenga Email habilitado y las inscripciones públicas desactivadas. Cree el primer usuario y asígnele el rol de administrador desde SQL Editor. No hay correos programados ni resumen semanal: las alertas se calculan al consultar. Las categorías vigentes son Material, Diseño, Visita Técnica, Servicio MO, Todocosto y Transporte; el incremento comercial aplica únicamente a Material.
+
+Para la actualización de IVA por ítem, aplique `20261013100000_expand_quote_categories.sql`, confirme su transacción y después aplique `20261013101000_quote_item_vat.sql`. Despliegue el código al terminar y recargue los editores abiertos. Consulte [reglas, migraciones y validación](docs/QUOTE-ITEM-VAT.md).
 
 ## Validación
 

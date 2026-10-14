@@ -19,6 +19,8 @@
 | Cotización | Un material con incremento de 10 % aplica el factor solo una vez; mano de obra conserva el precio base. |
 | Cotización | AIU se calcula sobre costo directo e IVA solo sobre utilidad; el total coincide en editor, vista previa y proyecto convertido. |
 | Cotización | No se permite incremento cuando hay ítems sin categoría. |
+| Cotización | IVA por ítem inicia en 0, admite vacío/coma/punto, aumenta el costo y precio; Material aplica incremento una vez y Todocosto/Transporte no lo reciben. |
+| Impresión | Las seis columnas distintas de Descripción están centradas en ambos ejes y no parten códigos normales; IVA por ítem no se desglosa. |
 | Conversión | Dos solicitudes simultáneas para una cotización aprobada producen el mismo proyecto, nunca dos. |
 | Historial | Cambiar o desactivar un ítem de catálogo no modifica cotizaciones ni presupuestos ya guardados. |
 | Proyecto | Anticipos actualizan pagado y saldo; gastos actualizan ganancia y alertan al exceder presupuesto. |

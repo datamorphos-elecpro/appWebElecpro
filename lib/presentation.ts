@@ -4,7 +4,7 @@ import { bogotaDate, money } from './money';
 export const projectStatusLabel: Record<string, string> = { draft: 'Borrador', quoted: 'Cotizado', approved: 'Aprobado', in_progress: 'En proceso', paused: 'Pausado', finished: 'Finalizado', cancelled: 'Cancelado' };
 export const quoteStatusLabel: Record<string, string> = { draft: 'Borrador', sent: 'Enviada', approved: 'Aprobada', rejected: 'Rechazada', expired: 'Vencida' };
 export const priorityLabel: Record<string, string> = { low: 'Baja', medium: 'Media', high: 'Alta', critical: 'Crítica' };
-export const categoryLabel: Record<string, string> = { material: 'Material', design: 'Diseño', technical_visit: 'Visita Técnica', labor: 'Servicio MO' };
+export const categoryLabel: Record<string, string> = { material: 'Material', design: 'Diseño', technical_visit: 'Visita Técnica', labor: 'Servicio MO', all_inclusive: 'Todocosto', transport: 'Transporte' };
 export const roleLabel: Record<string, string> = { administrator: 'Administrador', management: 'Gerencia' };
 export const profitModeLabel: Record<string, string> = { value: 'Valor del proyecto', manual: 'Ganancia manual' };
 export const shareModeLabel: Record<string, string> = { percent: 'Porcentaje', fixed: 'Valor fijo' };
@@ -14,6 +14,8 @@ export const categoryOptions = [
   { value: 'design', label: categoryLabel.design, prefix: 'DIS' },
   { value: 'technical_visit', label: categoryLabel.technical_visit, prefix: 'VIS' },
   { value: 'labor', label: categoryLabel.labor, prefix: 'MO' },
+  { value: 'all_inclusive', label: categoryLabel.all_inclusive, prefix: 'TODO' },
+  { value: 'transport', label: categoryLabel.transport, prefix: 'TRA' },
 ] as const;
 export type CatalogCategory = (typeof categoryOptions)[number]['value'];
 export type ControlledDomain = 'project' | 'quote' | 'priority' | 'category' | 'role' | 'profitMode' | 'shareMode' | 'shareBasis';

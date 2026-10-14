@@ -9,10 +9,11 @@ import '../../app/globals.css';
 
 const stress = new URLSearchParams(location.search).has('stress');
 const items = Array.from({ length: 36 }, (_, index) => ({
-  code: stress && index === 0 ? 'CODIGOEXTENSOSINESPACIOS'.repeat(4) : `MAT-${index}`,
+  code: stress && index === 0 ? 'CODIGOEXTENSOSINESPACIOS'.repeat(4) : index === 15 ? 'MO-001' : `MAT-${index}`,
   description: stress && index === 0 ? 'Descripción extensa con saltos escritos por el usuario.\nSegunda línea de la descripción. '.repeat(5) : 'Conductor para instalación eléctrica y descripción extensa que debe ajustarse sin perder contenido',
   quantity: stress ? '1234.56' : '1.25', unit: 'UND', category: 'material' as const,
   baseUnitPrice: stress ? '987654321.50' : '1250.50',
+  vatPct: '19',
 }));
 const totals = calculateQuote(items, { materialIncreasePct: '10', administrationPct: '8', contingencyPct: '3', utilityPct: '10', vatUtilityPct: '19' });
 function Fixture() {

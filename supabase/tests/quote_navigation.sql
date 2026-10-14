@@ -17,6 +17,8 @@ select set_config('request.jwt.claim.sub',(select id::text from navigation_fixtu
 set local role authenticated;
 
 -- Fechas de emisión inversas, horas distintas y un empate de creación.
+-- Los ajustes directos de fixtures requieren el dueño SQL, no nuevos grants de producción.
+reset role;
 do $$
 declare q public.quotes%rowtype; i integer; today date := (now() at time zone 'America/Bogota')::date;
 begin
@@ -32,6 +34,7 @@ begin
       else '2026-01-01 14:00:00+00'::timestamptz+i*interval '1 hour' end where id=q.id;
   end loop;
 end $$;
+set local role authenticated;
 select pg_temp.assert_true(
   (select array_agg(id) from public.quotes_page(p_q=>current_setting('elecpro.test.tag')))=
   (select array_agg(id order by created_at desc,id desc) from public.quotes where title like current_setting('elecpro.test.tag')||'%'),
@@ -49,6 +52,7 @@ select pg_temp.assert_true((select count(distinct id)=4 from (
   union all select id from public.quotes_page(p_q=>current_setting('elecpro.test.tag'),p_limit=>2,p_offset=>2))x),'Sin duplicados entre páginas');
 
 -- Unidades: cobertura de inserción y actualización del catálogo y de ítems.
+reset role;
 do $$
 declare c public.catalog_items%rowtype;
 begin
@@ -60,6 +64,7 @@ begin
   update public.quote_items set unit=' m² ' where quote_id in (select id from public.quotes where title like current_setting('elecpro.test.tag')||'%');
   perform pg_temp.assert_true(not exists(select 1 from public.quote_items where quote_id in (select id from public.quotes where title like current_setting('elecpro.test.tag')||'%') and unit<>'M²'),'Ítems normalizados');
 end $$;
+set local role authenticated;
 
 -- Proyectos: activos, borradores con cartera, finalizados tarde y límites de 15 días.
 do $$
@@ -88,6 +93,8 @@ select pg_temp.assert_true((public.projects_list_page(p_q=>current_setting('elec
 select pg_temp.assert_true(jsonb_typeof(public.projects_list_page(p_q=>current_setting('elecpro.test.tag'))->'records'->0->'financialSummary'->'paid')='string','Importes financieros viajan como cadenas');
 
 -- Guardado financiero y conversión conservan los centavos y las instantáneas.
+-- Como dueño se comprueba el trigger de bloqueo incluso fuera de los RPC.
+reset role;
 do $$
 declare q public.quotes%rowtype; p public.projects%rowtype; p_again public.projects%rowtype; rejected boolean := false;
 begin

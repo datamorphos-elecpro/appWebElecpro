@@ -53,7 +53,7 @@ Una única fila con `id boolean primary key default true check (id)`, `legal_nam
 
 ### `catalog_items`
 
-`id`, `code text not null`, `description text not null`, `unit text not null`, `base_unit_price numeric(14,2) not null check (base_unit_price >= 0)`, `category catalog_category not null`, `is_active boolean not null default true`, auditoría. `catalog_category` contiene `material` y `labor`. Índice único para código normalizado e índice de texto normalizado sobre código y descripción para búsqueda.
+`id`, `code text not null`, `description text not null`, `unit text not null`, `base_unit_price numeric(14,2) not null check (base_unit_price >= 0)`, `category catalog_category not null`, `is_active boolean not null default true`, auditoría. `catalog_category` contiene `material`, `design`, `technical_visit`, `labor`, `all_inclusive` y `transport`, con prefijos MAT, DIS, VIS, MO, TODO y TRA. Índice único para código normalizado e índice de texto normalizado sobre código y descripción para búsqueda.
 
 ## Cotizaciones
 
@@ -70,6 +70,8 @@ También guarda los porcentajes: `material_increase_pct`, `administration_pct`, 
 `id`, `quote_id uuid not null references quotes(id) on delete cascade`, `position integer not null check (position > 0)`, `catalog_item_id uuid references catalog_items(id) on delete set null`, `code text not null default ''`, `description text not null`, `category catalog_category not null`, `quantity numeric(14,2) not null check (quantity >= 0)`, `unit text not null`, `base_unit_price numeric(14,2) not null check (base_unit_price >= 0)`, `final_unit_price numeric(14,2) not null check (final_unit_price >= 0)`, `base_total numeric(14,2) not null check (base_total >= 0)`, `final_total numeric(14,2) not null check (final_total >= 0)`, auditoría.
 
 Índice único `(quote_id, position)`. `final_unit_price` y totales son instantáneas calculadas en la función de guardado: el vínculo al catálogo es solo trazabilidad.
+
+Actualización 20261013: añade `vat_pct numeric(5,2) not null default 0 check (vat_pct between 0 and 100)` y `cost_total numeric(18,6) not null check (cost_total >= 0)`. El costo incluye IVA, el total base lo excluye y el final incluye además incremento solo para Material. La precisión vigente de precios finales y totales de cotización es `numeric(18,6)` desde la migración de fase 2; conservarla para evitar redondeos de cantidades fraccionarias.
 
 ## Proyectos y finanzas
 
@@ -91,7 +93,7 @@ Mismas columnas de movimiento: `id`, `project_id`, `expense_date`, `category tex
 
 `id`, `project_id uuid not null references projects(id) on delete restrict`, `source budget_source not null default 'manual'`, `position integer`, `category text not null`, `note text not null default ''`, `quantity numeric(14,2)`, `base_unit_price numeric(14,2)`, `final_unit_price numeric(14,2)`, `base_total numeric(14,2)`, `final_total numeric(14,2)`, `amount numeric(14,2) not null check (amount >= 0)`, auditoría.
 
-`budget_source` es `manual` o `quote_snapshot`. Para instantáneas de cotización, `amount` usa `base_total`, mientras los demás campos mantienen ambos importes. Para presupuesto manual basta `amount`; las columnas de instantánea quedan nulas. Índice `(project_id, position)`.
+`budget_source` es `manual` o `quote_snapshot`. Las nuevas instantáneas copian `vat_pct numeric(5,2)` y `cost_total numeric(18,6)`, y `amount` usa `cost_total` (con IVA y sin incremento comercial). Ambos campos pueden quedar nulos para presupuesto manual. La migración completa instantáneas anteriores con IVA 0 y costo igual a su total base, sin modificar `amount`. Índice `(project_id, position)`.
 
 ### `project_shares` y `portfolio_shares`
 

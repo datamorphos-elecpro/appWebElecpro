@@ -16,6 +16,7 @@ const expectedMessages = [
   'La cotización ya fue convertida y no se puede editar', 'La categoría es obligatoria',
   'Cantidad y precio deben ser positivos', 'Solo se pueden convertir cotizaciones aprobadas',
   'Cliente inactivo o no disponible', 'Configuración de empresa no disponible',
+  'Ingrese un IVA entre 0 y 100 %, con máximo dos decimales. Dejar vacío equivale a 0 %.',
 ];
 
 function actionFailure(error: unknown, fallback = 'No se pudo guardar la cotización.'): QuoteActionResult<never> {

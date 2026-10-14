@@ -1,6 +1,7 @@
 import { decimal } from './calculations';
 import { createClient } from './supabase/server';
 import { pageRange, paginated, pagination, type PageSize } from './pagination';
+import { catalogCategoryValues } from './validators/quote';
 
 export type ClientReference = { name: string; contact_name?: string | null; email?: string | null; address?: string | null };
 export type CompanySettings = { legal_name: string; manager_name: string; manager_role: string; professional_card: string | null; phone: string | null; email: string | null; address: string | null; timezone: 'America/Bogota'; currency_code: 'COP' };
@@ -33,11 +34,11 @@ const businessFields: Record<BusinessKind, string> = {
 const businessSearchColumns: Record<BusinessKind, string> = {
   clients: 'name,contact_name,email,phone', suppliers: 'name,contact_name,email,phone,description', catalog_items: 'code,description,unit',
 };
-export async function getBusinessPage(kind: BusinessKind, input: { q: string; status: string; sort: string; direction: 'asc' | 'desc'; page: number; pageSize: PageSize }) {
+export async function getBusinessPage(kind: BusinessKind, input: { q: string; status: string; category?: string; sort: string; direction: 'asc' | 'desc'; page: number; pageSize: PageSize }) {
   const supabase = await createClient();
   const allowedSorts: Record<BusinessKind, readonly string[]> = { clients: ['name', 'client_type', 'is_active'], suppliers: ['name', 'is_active'], catalog_items: ['code', 'description', 'category', 'is_active'] };
   const sort = allowedSorts[kind].includes(input.sort) ? input.sort : allowedSorts[kind][0];
-  const apply = (query: any) => { if (input.q) { const safe = input.q.replace(/[%,()]/g, ''); query = query.or(businessSearchColumns[kind].split(',').map((column) => `${column}.ilike.%${safe}%`).join(',')); } if (input.status === 'active') query = query.eq('is_active', true); if (input.status === 'inactive') query = query.eq('is_active', false); return query; };
+  const apply = (query: any) => { if (input.q) { const safe = input.q.replace(/[%,()]/g, ''); query = query.or(businessSearchColumns[kind].split(',').map((column) => `${column}.ilike.%${safe}%`).join(',')); } if (input.status === 'active') query = query.eq('is_active', true); if (input.status === 'inactive') query = query.eq('is_active', false); if (kind === 'catalog_items' && catalogCategoryValues.includes(input.category as typeof catalogCategoryValues[number])) query = query.eq('category', input.category); return query; };
   const counted = await apply(supabase.from(kind).select('id', { count: 'exact', head: true })); if (counted.error) throw new Error(counted.error.message);
   const info = pagination(counted.count ?? 0, input.page, input.pageSize); const range = pageRange(info.page, input.pageSize);
   const rows = await apply(supabase.from(kind).select(businessFields[kind]).order(sort, { ascending: input.direction === 'asc' }).order('id', { ascending: true }).range(range.from, range.to));

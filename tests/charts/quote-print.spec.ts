@@ -89,7 +89,17 @@ for (const format of ['Letter', 'A4'] as const) {
         expect(await table.evaluate((node) => getComputedStyle(node).tableLayout)).toBe('auto');
         expect(await table.locator('thead').evaluate((node) => getComputedStyle(node).display)).toBe('table-header-group');
         expect(await table.locator('tbody tr').first().evaluate((node) => getComputedStyle(node).breakInside)).toBe('avoid');
-        expect(await table.locator('tbody tr').first().locator('td').nth(3).evaluate((node) => [getComputedStyle(node).textAlign, getComputedStyle(node).whiteSpace])).toEqual(['right', 'nowrap']);
+        expect(await table.locator('tbody tr').first().locator('td').nth(3).evaluate((node) => [getComputedStyle(node).textAlign, getComputedStyle(node).whiteSpace])).toEqual(['center', 'nowrap']);
+        for (const index of [0, 1, 3, 4, 5, 6]) {
+          for (const cell of [table.locator('thead th').nth(index), table.locator('tbody tr').nth(15).locator('td').nth(index)]) {
+            expect(await cell.evaluate((node) => [getComputedStyle(node).textAlign, getComputedStyle(node).verticalAlign, getComputedStyle(node).whiteSpace])).toEqual(['center', 'middle', 'nowrap']);
+          }
+        }
+        const code = table.getByText('MO-001', { exact: true });
+        expect(await code.evaluate((node) => { const range = document.createRange(); range.selectNodeContents(node); return range.getClientRects().length; })).toBe(1);
+        await expect(table.locator('thead th')).toHaveText(['Ítem', 'Código', 'Descripción', 'Cant.', 'Unidad', 'Valor Unitario', 'Total']);
+        await expect(table).not.toContainText('IVA');
+        await expect(table.locator('tbody tr').nth(15).locator('td').nth(5)).toContainText('1.292.839.507');
         const layout = await printed.evaluate((node) => ({
           fits: node.scrollWidth <= node.clientWidth,
           cellsFit: Array.from(node.querySelectorAll('td')).every((cell) => cell.scrollWidth <= cell.clientWidth + 1),

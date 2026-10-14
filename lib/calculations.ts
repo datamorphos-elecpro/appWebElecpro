@@ -10,7 +10,7 @@ export function decimal(value: MoneyInput): InstanceType<typeof Decimal> {
   return new Decimal(value === null || value === undefined || value === '' ? 0 : value);
 }
 
-export type QuoteItem = { category: CatalogCategory; quantity: DecimalInput; baseUnitPrice: DecimalInput };
+export type QuoteItem = { category: CatalogCategory; quantity: DecimalInput; baseUnitPrice: DecimalInput; vatPct?: MoneyInput };
 export type QuoteRates = { materialIncreasePct: DecimalInput; administrationPct: DecimalInput; contingencyPct: DecimalInput; utilityPct: DecimalInput; vatUtilityPct: DecimalInput };
 
 export function calculateQuote(items: QuoteItem[], rates: QuoteRates) {
@@ -18,8 +18,9 @@ export function calculateQuote(items: QuoteItem[], rates: QuoteRates) {
   const lines = items.map((item) => {
     const quantity = decimal(item.quantity);
     const baseUnitPrice = decimal(item.baseUnitPrice);
-    const finalUnitPrice = item.category === 'material' ? baseUnitPrice.times(materialFactor) : baseUnitPrice;
-    return { ...item, finalUnitPrice, baseTotal: quantity.times(baseUnitPrice), finalTotal: quantity.times(finalUnitPrice) };
+    const costUnitPrice = baseUnitPrice.times(decimal(1).plus(decimal(item.vatPct).div(100)));
+    const finalUnitPrice = item.category === 'material' ? costUnitPrice.times(materialFactor) : costUnitPrice;
+    return { ...item, costUnitPrice, finalUnitPrice, baseTotal: quantity.times(baseUnitPrice), costTotal: quantity.times(costUnitPrice), finalTotal: quantity.times(finalUnitPrice) };
   });
   const directCost = lines.reduce((total, item) => total.plus(item.finalTotal), decimal(0));
   const administrationAmount = directCost.times(decimal(rates.administrationPct)).div(100);

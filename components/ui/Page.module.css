@@ -18,3 +18,5 @@
 .metricLink:hover { border-color: var(--green-700); }
 .metricLink:focus-visible { outline: 3px solid var(--green-700); outline-offset: 3px; }
 .metricButton { width: 100%; text-align: left; cursor: pointer; font: inherit; }
+
+.label i.neutral { background: var(--border); }

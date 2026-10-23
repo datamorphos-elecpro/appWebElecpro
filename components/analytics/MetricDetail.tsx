@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { financialAttributes } from '../../lib/financial-tone';
 import { useSearchParams } from 'next/navigation';
 import { type ComponentProps, type ReactNode, useEffect, useState } from 'react';
 import { analysisDetailResponseSchema, metricLabels, type AnalysisDetail, type AnalysisDetailRow, type AnalysisMetric } from '../../lib/analytics-detail';
@@ -53,7 +54,7 @@ function MetricDetail({ metric, query, onClose }: { metric: AnalysisMetric; quer
         {metric === 'commercial.approval' && <p>Aprobadas: {data.components.approved} / Decisiones (aprobadas + rechazadas): {data.components.decisions}. {data.total === 0 ? 'Sin decisiones para calcular aprobación.' : 'Aprobación = aprobadas ÷ decisiones × 100.'}</p>}
         {metric === 'distribution.available' && <p>Disponible = resultado {money(data.components.result)} − asignado {money(data.components.assigned)} (pagado {money(data.components.paid)} + pendiente {money(data.components.pending)}). Las asignaciones se muestran con signo negativo.</p>}
         <ResponsiveTable label={`Detalle de ${metricLabels[metric]}`}><thead><tr>{columns(metric).map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>
-          {data.records.length ? data.records.map((row) => <tr key={`${row.kind}:${row.id}`}>{cells(metric, row).map((cell, index) => <td key={index} data-financial={typeof cell === 'string' && cell.includes('$') ? true : undefined}>{cell}</td>)}</tr>) : <tr><td colSpan={columns(metric).length}>Sin registros para estos filtros.</td></tr>}
+          {data.records.length ? data.records.map((row) => <tr key={`${row.kind}:${row.id}`}>{cells(metric, row).map((cell, index) => <td key={index} {...cellAttributes(metric, row, index)} data-financial={typeof cell === 'string' && cell.includes('$') ? true : undefined}>{cell}</td>)}</tr>) : <tr><td colSpan={columns(metric).length}>Sin registros para estos filtros.</td></tr>}
         </tbody></ResponsiveTable>
         <nav className={pagerStyles.pager} aria-label="Paginación del detalle"><label>Registros por página<select value={size} onChange={(event) => { setSize(Number(event.target.value)); setPage(1); }}>{[20,50,100].map((value) => <option key={value}>{value}</option>)}</select></label>
           <div className={pagerStyles.navigation}><button type="button" disabled={data.page <= 1} onClick={() => setPage(data.page - 1)}>Anterior</button><span aria-live="polite">Página {data.page} de {totalPages}</span><button type="button" disabled={data.page >= totalPages} onClick={() => setPage(data.page + 1)}>Siguiente</button></div>
@@ -81,4 +82,14 @@ function cells(metric: AnalysisMetric, row: AnalysisDetailRow): ReactNode[] {
   if (metric === 'management.projectValue') return [project, row.client_name, projectStatusText(row.status), money(row.amount)];
   if (metric === 'management.balance') return [project, row.client_name, money(row.project_value), money(row.paid), money(row.withheld), money(projectCovered(row.paid, row.withheld)), money(row.balance)];
   return [project, row.client_name, profitModeText(row.profit_mode), money(row.base), money(metric === 'management.projectedProfit' ? row.budget : row.expenses), ...(metric === 'management.projectedProfit' ? [] : [money(row.paid_distributions)]), money(row.amount)];
+}
+
+function cellAttributes(metric: AnalysisMetric, row: AnalysisDetailRow, index: number) {
+  // Negative accounting deductions are descriptive, never losses by themselves.
+  if (row.kind !== 'project') return {};
+  const last = cells(metric, row).length - 1;
+  if (index === last && metric === 'management.balance') return financialAttributes(row.balance, 'balance');
+  if (index === last && ['management.profit', 'management.projectedProfit', 'distribution.result', 'distribution.available'].includes(metric)) return financialAttributes(row.amount, 'result');
+  if (index === 4 && ['management.profit', 'distribution.result'].includes(metric)) return financialAttributes(row.expenses, 'expense', row.budget);
+  return {};
 }

@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { barChartLayout, type BarRow } from '../../lib/bar-chart-layout';
 import styles from './SvgBarChart.module.css';
 
-export function HorizontalBarChart({ data, label, onSelect }: { data: BarRow[]; label: string; onSelect?: (key: string) => void }) {
+export function HorizontalBarChart({ data, label, onSelect, groupSize = 1 }: { data: BarRow[]; label: string; onSelect?: (key: string) => void; groupSize?: number }) {
   const viewport = useRef<HTMLDivElement>(null);
   const probe = useRef<SVGTextElement>(null);
   const hint = useId();
@@ -40,7 +40,7 @@ export function HorizontalBarChart({ data, label, onSelect }: { data: BarRow[]; 
     <p id={hint} className={styles.hint} hidden={!overflow}>Deslice horizontalmente o use las flechas para ver todos los valores.</p>
     <div ref={viewport} className={styles.viewport} role="region" aria-label={label} aria-describedby={overflow ? hint : undefined} tabIndex={overflow ? 0 : undefined}>
       <div className={styles.canvas} style={{ '--chart-width': `${layout.width}px` } as CSSProperties}>
-        {layout.rows.map((row) => <svg key={row.key} className={styles.row} viewBox={`0 0 ${layout.width} ${row.height}`} role={onSelect ? 'group' : 'img'} aria-label={onSelect ? undefined : `${row.label}: ${row.formattedValue}`}>
+        {Array.from({ length: Math.ceil(layout.rows.length / groupSize) }, (_, index) => <div className={styles.group} data-bar-group key={index}>{layout.rows.slice(index * groupSize, (index + 1) * groupSize).map((row) => <svg key={row.key} className={styles.row} viewBox={`0 0 ${layout.width} ${row.height}`} role={onSelect ? 'group' : 'img'} aria-label={onSelect ? undefined : `${row.label}: ${row.formattedValue}`}>
           <line className={styles.axis} x1={layout.zero} x2={layout.zero} y1="0" y2={row.height} />
           <g tabIndex={onSelect ? 0 : undefined} role={onSelect ? 'button' : undefined} aria-label={`${onSelect ? 'Filtrar por ' : ''}${row.label}: ${row.formattedValue}`} onClick={() => onSelect?.(row.key)} onKeyDown={(event) => { if (onSelect && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onSelect(row.key); } }}>
             <title>{`${row.label}: ${row.formattedValue}`}</title>
@@ -48,7 +48,7 @@ export function HorizontalBarChart({ data, label, onSelect }: { data: BarRow[]; 
             <rect x={row.x} y={row.height / 2 - 9} width={row.barWidth} height="18" rx="3" style={{ fill: row.color }} />
             <text data-chart-value x={row.labelX} y={row.height / 2 + 4} textAnchor={row.negative ? 'end' : 'start'}>{row.formattedValue}</text>
           </g>
-        </svg>)}
+        </svg>)}</div>)}
       </div>
     </div>
     <div className="srOnly"><table><caption>{label}</caption><tbody>{data.map((row) => <tr key={row.key}><th scope="row">{row.label}</th><td>{row.formattedValue}</td></tr>)}</tbody></table></div>

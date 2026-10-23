@@ -26,7 +26,7 @@ from generate_series(1,25) x;
 insert into public.project_budgets(project_id,category,amount) values ('a3000000-0000-4000-8000-000000000002','Mano de obra',300);
 insert into public.portfolio_shares(id,participant,mode,value,basis,is_active,is_paid,paid_amount,paid_on) values
  ('a4000000-0000-4000-8000-000000000001','Prueba pagada','fixed',10,'portfolio_profit',false,true,10,current_date),
- ('a4000000-0000-4000-8000-000000000002','Prueba pendiente','percent',10,'portfolio_profit',true,false,null,null);
+ ('a4000000-0000-4000-8000-000000000002','Prueba pendiente','fixed',10,'portfolio_profit',true,false,null,null);
 
 select set_config('request.jwt.claim.sub','a1000000-0000-4000-8000-000000000001',true);
 set local role authenticated;

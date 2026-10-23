@@ -111,3 +111,7 @@ El usuario inactivo queda bloqueado por RLS aunque conserve una cookie válida. 
 - Con perfil inactivo, confirmar que no puede consultar ni mutar datos.
 - Con dos sesiones, llamar a la conversión de la misma cotización simultáneamente y comprobar que se obtiene un solo proyecto.
 - Confirmar que un cambio de precio de catálogo no cambia ítems ni presupuestos creados desde una cotización anterior.
+
+## Migración de alertas vigentes
+
+Aplicar 20261023100000_current_alerts.sql después de 20261022130000 y antes de desplegar la aplicación. Conserva movimientos y migraciones históricas, usa security_invoker y permisos de miembros activos, y revoca acceso anónimo. Ver [pasos y diagnóstico de cartera](../docs/CURRENT-ALERTS.md).

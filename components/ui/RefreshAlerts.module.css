@@ -1,0 +1,4 @@
+.compact { display: contents; }
+.compact button { grid-row: 1; grid-column: 1; min-height: 38px; font-size: 13px; }
+.compact p { grid-row: 2; grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 680px) { .compact p { grid-row: 3; } }

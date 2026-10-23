@@ -1,3 +1,4 @@
+import { normalizeConsultedAt } from './consulted-at';
 import { decimal } from './calculations';
 import { createClient } from './supabase/server';
 import { pageRange, paginated, pagination, type PageSize } from './pagination';
@@ -78,14 +79,13 @@ export async function dashboardData() { const supabase = await createClient(); c
 export function sortProjectsByProfit<T extends { financialSummary: ProjectFinancialSummary }>(projects: T[]): T[] { return [...projects].sort((a, b) => decimal(a.financialSummary.real_profit).comparedTo(decimal(b.financialSummary.real_profit))); }
 export async function getFinanceData() { const supabase = await createClient(); const [summary, projects, shares, payments, expenses] = await Promise.all([typedSingle<any>('consolidado financiero', supabase.from('portfolio_financial_summary').select('contracted,paid,withheld,balance,expenses,budget,real_profit,projected_profit').single()), loadProjectsWithFinancialSummary<ProjectRecord>(supabase, supabase.from('projects').select(projectFields), 'proyectos financieros'), typedRows('distribuciones generales', supabase.from('portfolio_shares').select('*').order('created_at')), typedRows<{ project_id: string; payment_date: string; amount: string }>('cobros financieros', supabase.from('project_payments').select('project_id,payment_date,amount')), typedRows<{ project_id: string; expense_date: string; amount: string }>('gastos financieros', supabase.from('project_expenses').select('project_id,expense_date,amount'))]); return { summary, projects: sortProjectsByProfit(projects), shares, payments, expenses }; }
 export async function getAlertsData() { const supabase = await createClient(); return { projects: await loadProjectsWithFinancialSummary<ProjectRecord>(supabase, supabase.from('projects').select(projectFields), 'proyectos para alertas') }; }
-export type AlertRecord = { id: string; project_id: string; title: string; kind: string; expected_end_date: string; project_value: string; paid: string };
+export type AlertRecord = { quote_number: string; client_name: string; status: string; withheld: string; balance: string; budget: string; expenses: string; consulted_on: string; consulted_at: string | null; id: string; project_id: string; title: string; kind: 'cartera' | 'sobrecosto' | 'retraso' | 'finalizacion_proxima'; expected_end_date: string; project_value: string; paid: string };
 export async function getAlertsPage(input: { q: string; kind: string; page: number; pageSize: PageSize }) {
-  const supabase = await createClient(); const range = pageRange(input.page, input.pageSize);
-  const { data, error } = await supabase.rpc('alerts_page', { p_q: input.q || null, p_kind: input.kind || null, p_offset: range.from, p_limit: input.pageSize });
-  if (error) throw new Error(`No fue posible cargar alertas: ${error.message}`);
-  const rows = (data ?? []) as Array<AlertRecord & { total_count: number }>;
-  const info = pagination(rows[0]?.total_count ?? 0, input.page, input.pageSize);
-  return paginated(rows.map(({ total_count: _total, ...row }) => row), info.total, info.page, input.pageSize);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('alerts_page_v2', { p_q: input.q || null, p_kind: input.kind || null, p_page: input.page, p_limit: input.pageSize });
+  if (error || !data) throw new Error(`No fue posible cargar alertas: ${error?.message ?? 'sin datos'}`);
+  const result = data as { records: AlertRecord[]; total: number; page: number; consulted_at: string | null };
+  return { ...paginated(result.records, result.total, result.page, input.pageSize), consulted_at: normalizeConsultedAt(result.consulted_at) };
 }
 export type UserRecord = { id: string; full_name: string; role: 'administrator' | 'management'; is_active: boolean };
 export async function getUsersPage(input: { q: string; status: string; page: number; pageSize: PageSize }) {
@@ -99,6 +99,6 @@ export async function getUsersPage(input: { q: string; status: string; page: num
 export async function getDashboardSnapshot() {
   const supabase = await createClient(); const { data, error } = await supabase.rpc('dashboard_snapshot');
   if (error || !data) throw new Error(`No fue posible cargar el panel: ${error?.message ?? 'sin datos'}`);
-  return data as { financial: { contracted: string; paid: string; withheld?: string; paid_distributions?: string; balance: string; expenses: string; budget: string; real_profit: string }; project_total: number; active_total: number; delayed_total: number; soon_total: number; alert_total: number; recent_projects: Array<{ id: string; title: string; quote_number: string; status: string; responsible: string; project_value: string; paid: string; withheld: string; real_profit: string }>; priority_alerts: Array<{ id: string; project_id: string; title: string; kind: string; expected_end_date: string; project_value: string; paid: string; withheld: string; balance: string }> };
+  return { ...data, consulted_at: normalizeConsultedAt(data.consulted_at) } as { consulted_at: string | null; financial: { contracted: string; paid: string; withheld?: string; paid_distributions?: string; balance: string; expenses: string; budget: string; real_profit: string }; project_total: number; active_total: number; delayed_total: number; soon_total: number; alert_total: number; recent_projects: Array<{ id: string; title: string; quote_number: string; status: string; responsible: string; project_value: string; paid: string; withheld: string; real_profit: string }>; priority_alerts: Array<AlertRecord> };
 }
 export async function getActiveQuoteOptions() { const supabase = await createClient(); const [clients, catalog] = await Promise.all([typedRows('clientes activos', supabase.from('clients').select('id,name,contact_name,email,address').eq('is_active', true).order('name')), typedRows('catálogo activo', supabase.from('catalog_items').select('id,code,description,unit,base_unit_price,category').eq('is_active', true).order('code'))]); return { clients, catalog }; }

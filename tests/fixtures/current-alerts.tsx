@@ -1,0 +1,11 @@
+import { createRoot } from 'react-dom/client';
+import { AlertCard } from '../../components/ui/AlertCard';
+import { RefreshAlerts } from '../../components/ui/RefreshAlerts';
+import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
+import { ProjectPercentChart } from '../../components/analytics/ProjectPercentChart';
+import { financialAttributes } from '../../lib/financial-tone';
+import type { AlertRecord } from '../../lib/data';
+import '../../app/globals.css';
+
+const base: AlertRecord = { id: 'alert', project_id: 'project', quote_number: 'PRY-42', client_name: 'Cliente verificable', title: 'Instalación eléctrica', status: 'in_progress', project_value: '100000', paid: '60000', withheld: '10000', balance: '30000', expenses: '101', budget: '100', expected_end_date: '2026-10-22', consulted_on: '2026-10-23', consulted_at: '2026-10-23T16:00:00Z', kind: 'cartera' };
+createRoot(document.getElementById('root')!).render(<main style={{ padding: 20 }}><RefreshAlerts consultedAt={new URLSearchParams(location.search).has('date') ? new URLSearchParams(location.search).get('date') : base.consulted_at} /><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,300px),1fr))', gap: 16 }}>{(['cartera', 'sobrecosto', 'retraso', 'finalizacion_proxima'] as const).map((kind) => <AlertCard key={kind} alert={{ ...base, kind, expected_end_date: kind === 'finalizacion_proxima' ? '2026-11-07' : base.expected_end_date }} />)}</div><ResponsiveTable label="Semantica financiera"><caption>Semántica financiera</caption><tbody><tr><td {...financialAttributes('-0.000001', 'result')}>Pérdida</td><td {...financialAttributes('1', 'result')}>Ganancia</td><td {...financialAttributes('0', 'result')}>Cero</td><td {...financialAttributes('1', 'balance')}>Cartera</td><td {...financialAttributes('100', 'expense', '100')}>Igual</td><td {...financialAttributes('100.000001', 'expense', '100')}>Exceso</td><td>Deducción -100</td></tr></tbody></ResponsiveTable><ProjectPercentChart kind="execution" label="Ejecucion sin redondeo" data={[{ key: 'excess', label: 'Exceso diminuto', value: '100', expenses: '100.000001', budget: '100', overBudget: true, unit: 'percent' }, { key: 'normal', label: 'Sin aviso al 90', value: '90', expenses: '90', budget: '100', overBudget: false, unit: 'percent' }]} /></main>);

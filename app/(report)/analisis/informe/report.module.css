@@ -48,3 +48,28 @@
 
 .charts > .tableSection { grid-column: 1 / -1; }
 @media print { .tableSection th, .tableSection td { padding: 3px; } .tableSection table { font-size: 5.5pt; } .tableSection th { white-space: normal; } }
+
+.report { color-scheme: light; }
+
+/* Gerencia alone uses Letter landscape; other reports retain their composition. */
+@page management { size: letter landscape; margin: 10mm; }
+.management { page: management; max-width: 1056px; padding: 28px 32px; }
+.management .charts { display: block; }
+.management .chart { margin-bottom: 18px; break-inside: auto; }
+.management .chart h2 { break-after: avoid; }
+.management .metrics { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); }
+.management .tableSection table { font-size: 11px; }
+.management .tableSection th { white-space: normal; }
+@media (max-width: 700px) { .management { padding: 12px; } }
+@media print {
+  .management { padding: 0; max-width: none; }
+  .management .metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .management .chart { display: block; }
+  .management .tableSection table { table-layout: auto; font-size: 8pt; }
+  .management .tableSection th, .management .tableSection td { padding: 4px 3px; }
+  .management .tableSection .numeric { width: 1%; white-space: nowrap; overflow-wrap: normal; }
+  .management .tableSection th.numeric { white-space: normal; }
+  .management .tableSection th:nth-child(-n+2), .management .tableSection td:nth-child(-n+2) { min-width: 8ch; }
+}
+
+.management .tableSection p { font-size: 11px; }

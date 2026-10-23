@@ -14,3 +14,7 @@
 @media (max-width: 900px) { .dashboardGrid { grid-template-columns: 1fr; } }
 @media (max-width: 680px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 380px) { .metrics { grid-template-columns: 1fr; } }
+
+.actions { display: grid; grid-template-columns: repeat(3, max-content); align-items: start; gap: 8px; max-width: 100%; }
+.actions > a { grid-row: 1; }
+@media (max-width: 680px) { .actions { grid-template-columns: repeat(2, minmax(0, max-content)); } .actions > .button { grid-row: 2; grid-column: 1 / -1; justify-self: start; } }

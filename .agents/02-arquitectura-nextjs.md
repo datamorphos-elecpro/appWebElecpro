@@ -85,3 +85,7 @@ Extraer los tokens de color, espaciado, tipografía, estados y estilos de impres
 | Invitar, desactivar usuarios y cambiar roles | No | Sí |
 
 RLS aplica el mismo modelo. El servidor repite estas comprobaciones para las acciones privilegiadas; las restricciones de interfaz son solo una ayuda de experiencia.
+
+## Alertas vigentes
+
+La vista compartida project_active_alerts alimenta dashboard_snapshot, alerts_page_v2 y el contrato anterior alerts_page. V2 devuelve registros, total, página efectiva y momento de consulta. Las tarjetas comparten identificación/desglose; foco y visibilidad se deduplican, y los errores se propagan. Ver [contrato y despliegue](../docs/CURRENT-ALERTS.md).

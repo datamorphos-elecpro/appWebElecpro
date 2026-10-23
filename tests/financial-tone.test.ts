@@ -1,0 +1,3 @@
+import { describe,it,expect } from 'vitest';
+import { financialTone } from '../lib/financial-tone';
+describe('colores financieros',()=>{it('evalúa resultados y cartera sin redondear',()=>{expect(financialTone('-0.01','result')).toBe('danger');expect(financialTone('1','result')).toBe('success');expect(financialTone('0','result')).toBeUndefined();expect(financialTone('1','balance')).toBe('warning');});it('solo señala sobrecostos con presupuesto válido',()=>{expect(financialTone('101','expense','100')).toBe('danger');expect(financialTone('100','expense','100')).toBeUndefined();expect(financialTone('100','expense','0')).toBeUndefined();});});

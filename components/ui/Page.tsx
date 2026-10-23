@@ -4,7 +4,7 @@ import styles from './Page.module.css';
 export function Page({ title, description, actions, children }: { title: string; description?: string; actions?: React.ReactNode; children: React.ReactNode }) {
   return <><header className={styles.header}><div><h1>{title}</h1>{description && <p className={styles.description}>{description}</p>}</div>{actions && <div className={styles.actions}>{actions}</div>}</header>{children}</>;
 }
-export function Metric({ label, value, detail, note, href, onClick, tone = 'success' }: { label: string; value: string; detail?: string; note?: string; href?: string; onClick?: () => void; tone?: 'success' | 'warning' | 'danger' }) {
+export function Metric({ label, value, detail, note, href, onClick, tone = 'success' }: { label: string; value: string; detail?: string; note?: string; href?: string; onClick?: () => void; tone?: 'success' | 'warning' | 'danger' | 'neutral' }) {
   const content = <><div className={styles.label}><span>{label}</span><i className={styles[tone]} aria-hidden="true" /></div><strong>{value}</strong>{(note ?? detail) && <span className={styles.note}>{note ?? detail}</span>}</>;
   return href ? <Link className={`${styles.metric} ${styles.metricLink}`} href={href}>{content}</Link> : onClick ? <button type="button" className={`${styles.metric} ${styles.metricLink} ${styles.metricButton}`} onClick={onClick} aria-haspopup="dialog">{content}</button> : <section className={styles.metric}>{content}</section>;
 }

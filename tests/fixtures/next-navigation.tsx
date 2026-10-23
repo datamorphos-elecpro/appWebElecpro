@@ -1,4 +1,4 @@
-const router = { replace: () => {}, push: () => {}, refresh: () => {} };
+const router = { replace: (url: string) => { window.history.replaceState(null, '', url); }, push: () => {}, refresh: () => { window.dispatchEvent(new Event('fixture:refresh')); } };
 export function useRouter() { return router; }
 export function useSearchParams() { return new URLSearchParams(window.location.search); }
 export function usePathname() { return window.location.pathname; }

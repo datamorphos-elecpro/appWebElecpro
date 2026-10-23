@@ -37,8 +37,8 @@ describe('cálculos Elecpro', () => {
   it('calcula alertas sin persistirlas', () => {
     expect(alertKinds({ status: 'in_progress', expectedEnd: '2026-09-01', expenses: '120', budget: '100', value: '500', paid: '0' }, '2026-09-09')).toEqual(expect.arrayContaining(['retraso', 'sobrecosto', 'cartera']));
   });
-  it('solo marca retraso finalizado cuando la fecha real excede la prevista y reconoce finalización próxima', () => {
-    expect(alertKinds({ status: 'finished', expectedEnd: '2026-09-01', actualEnd: '2026-09-03', expenses: '0', budget: '0', value: '0', paid: '0' }, '2026-09-09')).toContain('retraso');
+  it('elimina retrasos al finalizar y reconoce finalización próxima', () => {
+    expect(alertKinds({ status: 'finished', expectedEnd: '2026-09-01', actualEnd: '2026-09-03', expenses: '0', budget: '0', value: '0', paid: '0' }, '2026-09-09')).not.toContain('retraso');
     expect(alertKinds({ status: 'in_progress', expectedEnd: '2026-09-20', expenses: '0', budget: '0', value: '0', paid: '0' }, '2026-09-09')).toContain('finalizacion_proxima');
   });
 });

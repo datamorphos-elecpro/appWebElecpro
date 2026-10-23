@@ -114,12 +114,14 @@ La operación debe ejecutarse en una única transacción en base de datos.
 
 ## Alertas internas
 
-- Retraso: proyecto no cancelado, borrador ni cotizado cuya fecha prevista ya pasó; para finalizados se compara con su fecha real.
-- Sobrecosto: gastos reales mayores que presupuesto y presupuesto mayor que cero.
-- Cartera: saldo mayor que cero en proyectos distintos de borrador o cancelado.
-- Finalización próxima: proyecto activo con fecha prevista entre hoy y los próximos 15 días.
+- Cartera: saldo mayor que cero, excepto borradores y cancelados; descuenta anticipos y retenciones vigentes.
+- Sobrecosto: gastos superiores a un presupuesto positivo; desaparece al finalizar o cancelar.
+- Retraso: solo aprobados, en proceso o pausados con fecha prevista anterior a hoy.
+- Finalización próxima: esos mismos estados, entre hoy y los próximos 15 días, inclusive.
 
-Las alertas se calculan con la fecha actual de Bogotá. No implican correos ni tareas programadas. Una fase futura podrá añadir el resumen semanal y recordatorios externos sin modificar las reglas anteriores.
+Finalizados conservan solo cartera y cancelados no generan alertas. Las reglas se centralizan en una vista SQL con security_invoker y usan la fecha de Bogotá. Panel y listado comparten tarjeta con código, cliente, título, estado y desglose verificable. Se consulta al entrar, guardar cambios relevantes, volver a la pestaña o pulsar Actualizar; sin temporizadores, Realtime, correos ni tareas programadas. Ver [reglas, diagnóstico y despliegue](../docs/CURRENT-ALERTS.md).
+
+Los fondos financieros comparan decimales originales: resultados/márgenes negativos rojos, positivos verdes, cero neutro; cartera positiva ámbar; gastos rojos solo sobre presupuesto positivo; ejecución roja solo por encima de 100 %. Importes descriptivos, movimientos y deducciones contables permanecen neutros. Compartir reglas y etiquetas accesibles, incluido el informe impreso, sin leyenda visible; conservar cotizaciones sin estos colores.
 
 ## Desglose de métricas de Análisis
 

@@ -14,3 +14,8 @@
   --focus: light-dark(#7dbbaa, #80d9c1);
   --green: var(--green-800); --green-dark: var(--green-900); --mint: var(--green-100);
 }
+
+[data-tone="danger"] { background: var(--danger-soft); color: var(--danger) !important; }
+[data-tone="warning"] { background: var(--warning-soft); color: var(--warning) !important; }
+[data-tone="success"] { background: var(--green-50); color: var(--green-800) !important; }
+[data-tone] { print-color-adjust: exact; -webkit-print-color-adjust: exact; }

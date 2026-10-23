@@ -50,13 +50,12 @@ export const visualPercent = (numerator: DecimalInput, denominator: DecimalInput
 
 export function alertKinds(project: { status: string; expectedEnd: string; actualEnd?: string | null; expenses: DecimalInput; budget: DecimalInput; value: DecimalInput; paid: DecimalInput; withheld?: MoneyInput }, today: string) {
   const alerts: string[] = [];
-  const inactive = ['draft', 'quoted', 'cancelled'];
-  if (!inactive.includes(project.status) && (project.status === 'finished' ? (project.actualEnd && project.actualEnd > project.expectedEnd) : project.expectedEnd < today)) alerts.push('retraso');
-  if (decimal(project.budget).greaterThan(0) && decimal(project.expenses).greaterThan(decimal(project.budget))) alerts.push('sobrecosto');
+  if (['approved', 'in_progress', 'paused'].includes(project.status) && project.expectedEnd < today) alerts.push('retraso');
+  if (!['finished', 'cancelled'].includes(project.status) && decimal(project.budget).greaterThan(0) && decimal(project.expenses).greaterThan(decimal(project.budget))) alerts.push('sobrecosto');
   if (!['draft', 'cancelled'].includes(project.status) && projectBalance(project.value, project.paid, project.withheld).greaterThan(0)) alerts.push('cartera');
-  const end = new Date(`${project.expectedEnd}T00:00:00`);
-  const start = new Date(`${today}T00:00:00`);
+  const end = new Date(`${project.expectedEnd}T00:00:00Z`);
+  const start = new Date(`${today}T00:00:00Z`);
   const days = (end.getTime() - start.getTime()) / 86400000;
-  if (!inactive.includes(project.status) && project.status !== 'finished' && days >= 0 && days <= 15) alerts.push('finalizacion_proxima');
+  if (['approved', 'in_progress', 'paused'].includes(project.status) && days >= 0 && days <= 15) alerts.push('finalizacion_proxima');
   return alerts;
 }

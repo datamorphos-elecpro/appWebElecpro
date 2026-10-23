@@ -56,7 +56,7 @@ for (const view of ['dashboard', 'projects', 'analytics', 'report']) {
       await expect(cells.nth(3)).toContainText('90.000');
       await expect(cells.nth(4)).toContainText('10.000');
       await expect(cells.nth(5)).toContainText('100.000');
-      await expect(cells.nth(6)).toHaveText(/\$\s*0/);
+      await expect(cells.nth(6)).toHaveText(view === 'report' ? '0' : /\$\s*0/);
       await expect(cells.nth(9)).toContainText('89.000');
     }
     if (view !== 'report') expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

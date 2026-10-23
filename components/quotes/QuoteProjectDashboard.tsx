@@ -9,7 +9,7 @@ import type { QuoteProjectDashboard, StatusSummary } from '../../lib/data';
 import styles from './QuoteProjectDashboard.module.css';
 
 function StatusTable({ rows, project = false }: { rows: StatusSummary[]; project?: boolean }) {
-  return <div className={styles.tableWrap}><table><thead><tr><th>Estado</th><th>Cantidad</th><th>Valor</th><th>Promedio</th><th>Participación</th></tr></thead><tbody>{rows.map((row) => <tr key={row.status}><th>{project ? projectStatusText(row.status) : quoteStatusText(row.status)}</th><td>{row.count}</td><td>{money(row.total)}</td><td>{money(row.average)}</td><td>{row.share}%</td></tr>)}</tbody></table></div>;
+  return <div className={styles.tableWrap}><table><thead><tr><th>Estado</th><th>Cantidad</th><th>Valor</th><th>Promedio</th><th>Participación</th></tr></thead><tbody>{rows.map((row) => <tr key={row.status}><th>{project ? projectStatusText(row.status) : quoteStatusText(row.status)}</th><td>{row.count}</td><td data-financial="true">{money(row.total)}</td><td data-financial="true">{money(row.average)}</td><td>{row.share}%</td></tr>)}</tbody></table></div>;
 }
 
 export function QuoteProjectDashboard({ data }: { data: QuoteProjectDashboard }) {

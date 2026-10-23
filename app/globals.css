@@ -32,3 +32,8 @@ a { color: inherit; text-decoration: none; }
 :where(h1, h2, h3, p, dd, output, label, button, a) { overflow-wrap: anywhere; }
 :where(input, select, textarea) { min-width: 0; max-width: 100%; }
 .multiFilter { min-width: min(155px, 100%); }
+
+/* Monetary values retain their full width inside scrollable tables. */
+td[data-financial], th[data-financial] { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; width: 1%; min-width: 9ch; }
+
+td:has(input[type="number"]) { min-width: 10ch; }

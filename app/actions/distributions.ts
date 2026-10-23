@@ -3,10 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireProfile } from '../../lib/auth';
-import { decimal } from '../../lib/calculations';
 
 const amount = z.string().trim().regex(/^\d{1,12}(?:\.\d{1,2})?$/, 'Use un importe válido.');
-const share = z.object({ id: z.string().uuid().optional(), request_id: z.string().uuid().optional(), participant: z.string().trim().min(1), mode: z.enum(['percent', 'fixed']), value: amount }).refine((item) => item.mode !== 'percent' || decimal(item.value).lte(100), 'El porcentaje debe estar entre 0 y 100.');
+const share = z.object({ id: z.string().uuid().optional(), request_id: z.string().uuid().optional(), participant: z.string().trim().min(1), mode: z.literal('fixed'), value: amount });
 const id = z.string().uuid();
 const refresh = () => revalidatePath('/analisis');
 export type DistributionActionResult<T = Record<string, unknown>> = { ok: true; data: T } | { ok: false; message: string };

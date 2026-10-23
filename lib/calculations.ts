@@ -39,7 +39,7 @@ export function calculateQuote(items: QuoteItem[], rates: QuoteRates) {
 export const projectCovered = (paid: MoneyInput, withheld: MoneyInput = 0) => decimal(paid).plus(decimal(withheld));
 
 export const projectBalance = (value: DecimalInput, paid: DecimalInput, withheld: MoneyInput = 0) => Decimal.max(0, decimal(value).minus(projectCovered(paid, withheld)));
-export const projectProfit = (mode: 'value' | 'manual', value: DecimalInput, initial: DecimalInput, expenses: DecimalInput) => decimal(mode === 'value' ? value : initial).minus(decimal(expenses));
+export const projectProfit = (mode: 'value' | 'manual', value: DecimalInput, initial: DecimalInput, expenses: DecimalInput, paidDistributions: DecimalInput = 0) => decimal(mode === 'value' ? value : initial).minus(decimal(expenses)).minus(decimal(paidDistributions));
 export const shareAmount = (mode: 'percent' | 'fixed', value: DecimalInput, base: DecimalInput) => mode === 'percent' ? decimal(base).times(decimal(value)).div(100) : decimal(value);
 export const realPercent = (numerator: DecimalInput, denominator: DecimalInput, decimals = 1) => {
   const total = decimal(denominator);

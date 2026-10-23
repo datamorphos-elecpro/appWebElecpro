@@ -42,3 +42,9 @@
 .metric { min-width: 0; overflow-wrap: anywhere; }
 .tableSection { min-width: 0; overflow-x: auto; }
 @media print { .tableSection { overflow: visible; } .tableSection table { table-layout: fixed; } .tableSection td, .tableSection th { overflow-wrap: anywhere; white-space: normal; } }
+
+.tableSection .numeric { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; width: 1%; }
+@media print { .tableSection table { table-layout: auto; font-size: 6pt; } .tableSection .numeric { white-space: nowrap; overflow-wrap: normal; } }
+
+.charts > .tableSection { grid-column: 1 / -1; }
+@media print { .tableSection th, .tableSection td { padding: 3px; } .tableSection table { font-size: 5.5pt; } .tableSection th { white-space: normal; } }

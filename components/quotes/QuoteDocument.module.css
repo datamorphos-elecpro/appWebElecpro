@@ -53,3 +53,5 @@
 .document, .tableWrap { min-width: 0; }
 .managerCard { overflow-wrap: anywhere; }
 @media screen and (max-width: 480px) { .managerCard { grid-template-columns: minmax(0, 1fr); } .managerCard img { max-width: 110px; } }
+
+.itemsTable th:nth-child(n + 6), .itemsTable td:nth-child(n + 6) { text-align: right !important; width: 1%; min-width: 8ch; }

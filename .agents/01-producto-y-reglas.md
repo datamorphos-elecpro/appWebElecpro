@@ -128,3 +128,7 @@ Las 14 tarjetas de Gerencia, Comercial y Distribuciones abren tablas en modal. G
 ## Diseño y accesibilidad
 
 Conservar de `index.html` la paleta verde, superficies claras, logo, barra lateral colapsable y diálogo de vista previa. En móvil la navegación se abre como panel superpuesto. Los controles deben tener etiquetas, foco visible y activación por teclado; los gráficos se implementarán con etiquetas equivalentes y datos tabulares accesibles. La impresión debe ocultar la aplicación y emitir solo el documento de cotización.
+
+## Distribuciones pagadas por proyecto
+
+Las nuevas distribuciones, incluidas las generales, son valores fijos manuales. Ganancia actual = base del modelo menos gastos reales menos importes congelados de distribuciones pagadas por proyecto. Pendientes y distribuciones generales no descuentan. El pago no puede superar la ganancia disponible; reabrir restaura el importe. Se conservan caja, presupuesto y resultado proyectado. Ver [contrato y despliegue](../docs/PAID-PROJECT-DISTRIBUTIONS.md).

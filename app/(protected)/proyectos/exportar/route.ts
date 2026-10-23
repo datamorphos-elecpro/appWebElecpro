@@ -7,7 +7,7 @@ export async function GET() {
   const { supabase } = await requireProfile();
   const [projectsResult, summariesResult] = await Promise.all([
     supabase.from('projects').select('id,quote_number,title,status,project_value,clients(name)').order('created_at', { ascending: false }),
-    supabase.from('project_financial_summary').select('id,paid,withheld,balance,expenses,real_profit'),
+    supabase.from('project_financial_summary').select('id,paid,withheld,balance,expenses,paid_distributions,real_profit'),
   ]);
   if (projectsResult.error) throw new Error(`No fue posible exportar los proyectos: ${projectsResult.error.message}`);
   if (summariesResult.error) throw new Error(`No fue posible exportar los resúmenes financieros: ${summariesResult.error.message}`);
@@ -17,7 +17,7 @@ export async function GET() {
     if (!summary) throw new Error(`El proyecto ${project.id} no tiene resumen financiero.`);
     const client = project.clients as { name?: string } | null;
     const amount = (value: string) => decimal(value).toDecimalPlaces(0).toFixed(0);
-    return [project.quote_number, project.title, client?.name ?? 'Sin cliente', projectStatusText(project.status), amount(project.project_value), amount(summary.paid), amount(summary.withheld), projectCovered(summary.paid, summary.withheld).toDecimalPlaces(0).toFixed(0), amount(summary.balance), amount(summary.expenses), amount(summary.real_profit)];
+    return [project.quote_number, project.title, client?.name ?? 'Sin cliente', projectStatusText(project.status), amount(project.project_value), amount(summary.paid), amount(summary.withheld), projectCovered(summary.paid, summary.withheld).toDecimalPlaces(0).toFixed(0), amount(summary.balance), amount(summary.expenses), amount(summary.paid_distributions ?? '0'), amount(summary.real_profit)];
   });
   return new Response(excelCsv([projectCsvColumns, ...rows]), {
     headers: {

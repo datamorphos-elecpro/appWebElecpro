@@ -46,7 +46,7 @@ export const analysisDetailResponseSchema = z.object({
   value: z.string().nullable(), unit: z.enum(['money', 'count', 'percent']), components: z.record(z.string()),
   records: z.array(z.discriminatedUnion('kind', [
     rowBase.extend({ kind: z.literal('project'), project_id: z.string().uuid(), title: z.string(), client_name: z.string(), status: z.string(),
-      project_value: z.string(), paid: z.string(), withheld: z.string(), balance: z.string(), profit_mode: z.enum(['value', 'manual']), base: z.string(), expenses: z.string(), budget: z.string() }),
+      project_value: z.string(), paid: z.string(), withheld: z.string(), balance: z.string(), profit_mode: z.enum(['value', 'manual']), base: z.string(), paid_distributions: z.string().default('0'), expenses: z.string(), budget: z.string() }),
     rowBase.extend({ kind: z.literal('expense'), project_id: z.string().uuid(), title: z.string(), client_name: z.string(), date: z.string(), category: z.string(), note: z.string() }),
     rowBase.extend({ kind: z.literal('quote'), quote_id: z.string().uuid(), title: z.string(), client_name: z.string(), status: z.string(), date: z.string(), valid_until: z.string(), quote_value: z.string() }),
     rowBase.extend({ kind: z.literal('distribution'), mode: z.enum(['percent', 'fixed']), rule_value: z.string(), is_paid: z.boolean(), is_active: z.boolean(), date: z.string().nullable(), paid_amount: z.string() }),

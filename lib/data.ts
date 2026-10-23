@@ -5,7 +5,7 @@ import { catalogCategoryValues } from './validators/quote';
 
 export type ClientReference = { name: string; contact_name?: string | null; email?: string | null; address?: string | null };
 export type CompanySettings = { legal_name: string; manager_name: string; manager_role: string; professional_card: string | null; phone: string | null; email: string | null; address: string | null; timezone: 'America/Bogota'; currency_code: 'COP' };
-export type ProjectFinancialSummary = { id: string; project_value: string; paid: string; withheld?: string; balance: string; expenses: string; budget: string; real_profit: string; projected_profit: string };
+export type ProjectFinancialSummary = { id: string; project_value: string; paid: string; withheld?: string; paid_distributions?: string; balance: string; expenses: string; budget: string; real_profit: string; projected_profit: string };
 export type ProjectRecord = { id: string; client_id: string; title: string; quote_number: string; status: string; priority: string; responsible: string; location: string; address?: string; city?: string; start_date: string; expected_end_date: string; actual_end_date: string | null; project_value: string; observations: string; profit_mode: 'value' | 'manual'; initial_profit: string; created_at: string; clients: ClientReference | null };
 export type QuoteRecord = { id: string; number: string; title: string; status: string; client_id: string; issued_on: string; valid_until: string; total_amount: string; project_id?: string | null; clients: ClientReference | null; quote_items: { quantity: string }[] };
 export type QuoteListRecord = { id: string; number: string; title: string; client_name: string; client_contact: string | null; issued_on: string; valid_until: string; status: string; visible_status: string; total_amount: string; project_id: string | null; item_count: number };
@@ -17,7 +17,7 @@ export type QuoteProjectDashboard = {
 export type ProjectWithFinancialSummary<T extends { id: string } = { id: string }> = T & { financialSummary: ProjectFinancialSummary };
 type QueryResult<T> = { data: T | null; error: { message: string } | null };
 type SupabaseLike = { from: (table: string) => any };
-const summaryFields = 'id,project_value,paid,withheld,balance,expenses,budget,real_profit,projected_profit';
+const summaryFields = 'paid_distributions,id,project_value,paid,withheld,balance,expenses,budget,real_profit,projected_profit';
 const projectFields = 'id,client_id,title,quote_number,status,priority,responsible,location,address,city,start_date,expected_end_date,actual_end_date,project_value,observations,profit_mode,initial_profit,created_at,clients(name,contact_name,address)';
 const quoteFields = 'id,number,title,status,client_id,issued_on,valid_until,total_amount,project_id,clients(name,contact_name,address),quote_items(quantity)';
 const summaryBatchSize = 500;
@@ -99,6 +99,6 @@ export async function getUsersPage(input: { q: string; status: string; page: num
 export async function getDashboardSnapshot() {
   const supabase = await createClient(); const { data, error } = await supabase.rpc('dashboard_snapshot');
   if (error || !data) throw new Error(`No fue posible cargar el panel: ${error?.message ?? 'sin datos'}`);
-  return data as { financial: { contracted: string; paid: string; withheld?: string; balance: string; expenses: string; budget: string; real_profit: string }; project_total: number; active_total: number; delayed_total: number; soon_total: number; alert_total: number; recent_projects: Array<{ id: string; title: string; quote_number: string; status: string; responsible: string; project_value: string; paid: string; withheld: string; real_profit: string }>; priority_alerts: Array<{ id: string; project_id: string; title: string; kind: string; expected_end_date: string; project_value: string; paid: string; withheld: string; balance: string }> };
+  return data as { financial: { contracted: string; paid: string; withheld?: string; paid_distributions?: string; balance: string; expenses: string; budget: string; real_profit: string }; project_total: number; active_total: number; delayed_total: number; soon_total: number; alert_total: number; recent_projects: Array<{ id: string; title: string; quote_number: string; status: string; responsible: string; project_value: string; paid: string; withheld: string; real_profit: string }>; priority_alerts: Array<{ id: string; project_id: string; title: string; kind: string; expected_end_date: string; project_value: string; paid: string; withheld: string; balance: string }> };
 }
 export async function getActiveQuoteOptions() { const supabase = await createClient(); const [clients, catalog] = await Promise.all([typedRows('clientes activos', supabase.from('clients').select('id,name,contact_name,email,address').eq('is_active', true).order('name')), typedRows('catálogo activo', supabase.from('catalog_items').select('id,code,description,unit,base_unit_price,category').eq('is_active', true).order('code'))]); return { clients, catalog }; }

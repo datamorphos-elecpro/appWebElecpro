@@ -92,7 +92,7 @@ for (const format of ['Letter', 'A4'] as const) {
         expect(await table.locator('tbody tr').first().locator('td').nth(3).evaluate((node) => [getComputedStyle(node).textAlign, getComputedStyle(node).whiteSpace])).toEqual(['center', 'nowrap']);
         for (const index of [0, 1, 3, 4, 5, 6]) {
           for (const cell of [table.locator('thead th').nth(index), table.locator('tbody tr').nth(15).locator('td').nth(index)]) {
-            expect(await cell.evaluate((node) => [getComputedStyle(node).textAlign, getComputedStyle(node).verticalAlign, getComputedStyle(node).whiteSpace])).toEqual(['center', 'middle', 'nowrap']);
+            expect(await cell.evaluate((node) => [getComputedStyle(node).textAlign, getComputedStyle(node).verticalAlign, getComputedStyle(node).whiteSpace])).toEqual([index >= 5 ? 'right' : 'center', 'middle', 'nowrap']);
           }
         }
         const code = table.getByText('MO-001', { exact: true });

@@ -19,7 +19,7 @@ const projectSchema = z.object({
   .refine((value) => value.expected_end_date >= value.start_date, 'La fecha final prevista no puede ser anterior al inicio.');
 
 const paymentSchema = z.object({ project_id: z.string().uuid(), payment_date: date, amount: positiveDecimal, payment_method: z.string().min(1), note: z.string().optional() });
-const expenseSchema = z.object({ project_id: z.string().uuid(), expense_date: date, category: z.string().min(1), amount: positiveDecimal, payment_method: z.string().min(1), note: z.string().optional() });
+const expenseSchema = z.object({ project_id: z.string().uuid(), expense_date: date, category: z.string().trim().min(1).transform((value) => value.replace(/\s+/g, ' ')), amount: positiveDecimal, payment_method: z.string().min(1), note: z.string().optional() });
 const budgetSchema = z.object({ project_id: z.string().uuid(), category: z.string().min(1), amount: decimal, note: z.string().optional() });
 const shareSchema = z.object({ project_id: z.string().uuid(), participant: z.string().min(1), execution_date: date, mode: z.enum(['percent', 'fixed']), value: decimal, basis: z.enum(['project_value', 'real_profit']) });
 

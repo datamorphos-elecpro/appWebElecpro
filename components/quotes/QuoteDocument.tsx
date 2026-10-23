@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { money } from '../../lib/money';
+import { decimal, type MoneyInput } from '../../lib/calculations';
 import { bogotaDateText } from '../../lib/presentation';
 import type { QuotePrintSize } from '../../lib/quote-print';
 import styles from './QuoteDocument.module.css';
@@ -8,10 +9,13 @@ type DocumentItem = { code: string; description: string; quantity: string; unit:
 type DocumentTotals = {
   lines: Array<{ finalUnitPrice: unknown; finalTotal: unknown }>;
   directCost: unknown;
+  directDiscountAmount?: unknown;
+  netDirectCost?: unknown;
   administrationAmount: unknown;
   contingencyAmount: unknown;
   utilityAmount: unknown;
   vatUtilityAmount: unknown;
+  vatDirectAmount?: unknown;
   totalAmount: unknown;
 };
 type DocumentClient = { name?: string; contact_name?: string | null; email?: string | null };
@@ -33,13 +37,23 @@ export function QuoteDocument({ form, items, totals, number, client, company, pr
   client?: DocumentClient | null;
   company?: DocumentCompany | null;
 }) {
-  const economicRows = [
-    ['Costo directo', '—', totals.directCost],
+  const discountActive = form.apply_direct_discount === 'true';
+  const discount = decimal(totals.directDiscountAmount as MoneyInput);
+  const netDirectCost = totals.netDirectCost ?? decimal(totals.directCost as MoneyInput).minus(discount);
+  const serviceSubtotal = decimal(netDirectCost as MoneyInput).plus(decimal(totals.administrationAmount as MoneyInput)).plus(decimal(totals.contingencyAmount as MoneyInput)).plus(decimal(totals.utilityAmount as MoneyInput));
+  const discountRow: [string, string, unknown] = [form.direct_discount_type === 'fixed' ? 'Descuento (valor fijo)' : 'Descuento porcentual', form.direct_discount_type === 'fixed' ? '—' : `${form.direct_discount_pct || '0'}%`, discount.negated()];
+  const economicRows: Array<[string, string, unknown]> = form.show_aiu === 'false' ? [
+    ...(discountActive ? [['Subtotal del servicio antes del descuento', '—', serviceSubtotal.plus(discount)] as [string, string, unknown], discountRow] : []),
+    ['Subtotal del servicio', '—', serviceSubtotal],
+  ] : [
+    [discountActive ? 'Costo directo antes del descuento' : 'Costo directo', '—', totals.directCost],
+    ...(discountActive ? [discountRow, ['Costo directo neto', '—', netDirectCost] as [string, string, unknown]] : []),
     ['Administración', `${form.administration_pct || '0'}%`, totals.administrationAmount],
     ['Imprevistos', `${form.contingency_pct || '0'}%`, totals.contingencyAmount],
     ['Utilidad', `${form.utility_pct || '0'}%`, totals.utilityAmount],
-    ['IVA sobre utilidad', `${form.vat_utility_pct || '0'}%`, totals.vatUtilityAmount],
-  ] as const;
+  ];
+  economicRows.push(['IVA sobre utilidad', `${form.vat_utility_pct || '0'}%`, totals.vatUtilityAmount]);
+  if (form.apply_direct_vat === 'true') economicRows.push(['IVA sobre costo directo', `${form.vat_direct_pct || '0'}%`, totals.vatDirectAmount ?? 0]);
   const contact = [client?.contact_name, client?.email].filter(Boolean).join(' · ');
 
   return <article className={`${styles.document} quote-print-root`} data-print-size={printSize} aria-label="Documento de cotización">

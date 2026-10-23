@@ -24,6 +24,10 @@
 | Conversión | Dos solicitudes simultáneas para una cotización aprobada producen el mismo proyecto, nunca dos. |
 | Historial | Cambiar o desactivar un ítem de catálogo no modifica cotizaciones ni presupuestos ya guardados. |
 | Proyecto | Anticipos actualizan pagado y saldo; gastos actualizan ganancia y alertan al exceder presupuesto. |
+| Cotización | Ocultar AIU mantiene el mismo total; IVA adicional opcional se suma al IVA sobre utilidad y conserva la tasa al desactivar. |
+| Cotización | Descuento porcentual/fijo conserva ambos valores y recalcula AIU e IVA sobre neto; un exceso fijo bloquea operaciones. Costo $1.000.000, descuento 10 %, A/I/U 8/3/10 %, ambos IVA 19 % da $1.277.100. La conversión conserva costos y usa ingreso descontado. Pruebas e historial en [QUOTE-DIRECT-DISCOUNT](../docs/QUOTE-DIRECT-DISCOUNT.md). |
+| Retenciones | Reducen cartera sin alterar caja/ganancia; anulación restaura saldo; exceso rechazado y reintentos idempotentes. Cubierto suma anticipos y retenciones vigentes en barras, tablas, informe y CSV: $90.000 + $10.000 sobre $100.000 da 100 % y saldo $0. |
+| Análisis | Las 14 tarjetas abren su detalle, con total completo independiente de la página y filtros iguales a la métrica. |
 | Proyecto | Ganancia en modo manual usa ganancia inicial, no valor contratado. |
 | Alertas | Solo aparecen retraso, sobrecosto, cartera y finalización próxima bajo las condiciones de producto. |
 | Análisis | Filtros de Gerencia, Operación y Comercial no se afectan entre sí. |
@@ -36,6 +40,7 @@
 - Pruebas de base de datos que cubran `select`, `insert`, `update` y `delete` con `anon`, `authenticated` activo, administrador y usuario inactivo.
 - Pruebas de interfaz con navegación por teclado, cierre de diálogo, búsqueda, filtros por URL, estados vacíos y mensajes de error.
 - Construcción de producción con `npm run build`, verificación de tipos y linter configurado.
+- Nuevos casos reproducibles de historial, SQL/RLS, concurrencia, endpoint y UI documentados en [FINANCE-IMPROVEMENTS](../docs/FINANCE-IMPROVEMENTS.md).
 
 ## Revisión visual y accesible
 

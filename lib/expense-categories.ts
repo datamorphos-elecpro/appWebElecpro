@@ -1,0 +1,1 @@
+export const suggestedExpenseCategories = ['Materiales', 'Mano de obra', 'Transporte', 'Terceros', 'Equipos', 'Alquiler de equipos', 'Herramientas', 'Viáticos y alimentación', 'Ingeniería y diseño', 'Permisos y certificaciones', 'Varios'] as const;

@@ -7,6 +7,9 @@ export async function saveQuote(input: unknown) {
   const totals = calculateQuote(payload.items.map((item) => ({ category: item.category, quantity: item.quantity, baseUnitPrice: item.base_unit_price, vatPct: item.vat_pct })), {
     materialIncreasePct: payload.material_increase_pct, administrationPct: payload.administration_pct, contingencyPct: payload.contingency_pct,
     utilityPct: payload.utility_pct, vatUtilityPct: payload.vat_utility_pct,
+    applyDirectVat: payload.apply_direct_vat, vatDirectPct: payload.vat_direct_pct,
+    applyDirectDiscount: payload.apply_direct_discount, directDiscountType: payload.direct_discount_type,
+    directDiscountPct: payload.direct_discount_pct, directDiscountFixedAmount: payload.direct_discount_fixed_amount,
   });
   const data = { ...payload, id: '33333333-3333-4333-8333-333333333333', number: 'COT-20261013000099', updated_at: '2026-10-13T12:00:00Z', total_amount: totals.totalAmount.toString(), quote_items: payload.items.map((item, index) => ({ ...item, position: index + 1 })) };
   localStorage.setItem(fixtureQuoteKey, JSON.stringify(data));

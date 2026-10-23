@@ -11,7 +11,7 @@ export function decimal(value: MoneyInput): InstanceType<typeof Decimal> {
 }
 
 export type QuoteItem = { category: CatalogCategory; quantity: DecimalInput; baseUnitPrice: DecimalInput; vatPct?: MoneyInput };
-export type QuoteRates = { materialIncreasePct: DecimalInput; administrationPct: DecimalInput; contingencyPct: DecimalInput; utilityPct: DecimalInput; vatUtilityPct: DecimalInput };
+export type QuoteRates = { materialIncreasePct: DecimalInput; administrationPct: DecimalInput; contingencyPct: DecimalInput; utilityPct: DecimalInput; vatUtilityPct: DecimalInput; applyDirectVat?: boolean; vatDirectPct?: MoneyInput; applyDirectDiscount?: boolean; directDiscountType?: 'percent' | 'fixed'; directDiscountPct?: MoneyInput; directDiscountFixedAmount?: MoneyInput };
 
 export function calculateQuote(items: QuoteItem[], rates: QuoteRates) {
   const materialFactor = decimal(1).plus(decimal(rates.materialIncreasePct).div(100));
@@ -23,14 +23,22 @@ export function calculateQuote(items: QuoteItem[], rates: QuoteRates) {
     return { ...item, costUnitPrice, finalUnitPrice, baseTotal: quantity.times(baseUnitPrice), costTotal: quantity.times(costUnitPrice), finalTotal: quantity.times(finalUnitPrice) };
   });
   const directCost = lines.reduce((total, item) => total.plus(item.finalTotal), decimal(0));
-  const administrationAmount = directCost.times(decimal(rates.administrationPct)).div(100);
-  const contingencyAmount = directCost.times(decimal(rates.contingencyPct)).div(100);
-  const utilityAmount = directCost.times(decimal(rates.utilityPct)).div(100);
+  const directDiscountAmount = rates.applyDirectDiscount
+    ? rates.directDiscountType === 'fixed' ? decimal(rates.directDiscountFixedAmount) : directCost.times(decimal(rates.directDiscountPct)).div(100)
+    : decimal(0);
+  const netDirectCost = directCost.minus(directDiscountAmount);
+  const administrationAmount = netDirectCost.times(decimal(rates.administrationPct)).div(100);
+  const contingencyAmount = netDirectCost.times(decimal(rates.contingencyPct)).div(100);
+  const utilityAmount = netDirectCost.times(decimal(rates.utilityPct)).div(100);
   const vatUtilityAmount = utilityAmount.times(decimal(rates.vatUtilityPct)).div(100);
-  return { lines, directCost, administrationAmount, contingencyAmount, utilityAmount, vatUtilityAmount, totalAmount: directCost.plus(administrationAmount).plus(contingencyAmount).plus(utilityAmount).plus(vatUtilityAmount) };
+  const vatDirectAmount = rates.applyDirectVat ? netDirectCost.times(decimal(rates.vatDirectPct)).div(100) : decimal(0);
+  const serviceSubtotal = netDirectCost.plus(administrationAmount).plus(contingencyAmount).plus(utilityAmount);
+  return { lines, directCost, directDiscountAmount, netDirectCost, administrationAmount, contingencyAmount, utilityAmount, vatUtilityAmount, vatDirectAmount, serviceSubtotal, totalAmount: serviceSubtotal.plus(vatUtilityAmount).plus(vatDirectAmount) };
 }
 
-export const projectBalance = (value: DecimalInput, paid: DecimalInput) => Decimal.max(0, decimal(value).minus(decimal(paid)));
+export const projectCovered = (paid: MoneyInput, withheld: MoneyInput = 0) => decimal(paid).plus(decimal(withheld));
+
+export const projectBalance = (value: DecimalInput, paid: DecimalInput, withheld: MoneyInput = 0) => Decimal.max(0, decimal(value).minus(projectCovered(paid, withheld)));
 export const projectProfit = (mode: 'value' | 'manual', value: DecimalInput, initial: DecimalInput, expenses: DecimalInput) => decimal(mode === 'value' ? value : initial).minus(decimal(expenses));
 export const shareAmount = (mode: 'percent' | 'fixed', value: DecimalInput, base: DecimalInput) => mode === 'percent' ? decimal(base).times(decimal(value)).div(100) : decimal(value);
 export const realPercent = (numerator: DecimalInput, denominator: DecimalInput, decimals = 1) => {
@@ -40,12 +48,12 @@ export const realPercent = (numerator: DecimalInput, denominator: DecimalInput, 
 };
 export const visualPercent = (numerator: DecimalInput, denominator: DecimalInput) => realPercent(numerator, denominator, 0)?.clampedTo(0, 100).toNumber() ?? null;
 
-export function alertKinds(project: { status: string; expectedEnd: string; actualEnd?: string | null; expenses: DecimalInput; budget: DecimalInput; value: DecimalInput; paid: DecimalInput }, today: string) {
+export function alertKinds(project: { status: string; expectedEnd: string; actualEnd?: string | null; expenses: DecimalInput; budget: DecimalInput; value: DecimalInput; paid: DecimalInput; withheld?: MoneyInput }, today: string) {
   const alerts: string[] = [];
   const inactive = ['draft', 'quoted', 'cancelled'];
   if (!inactive.includes(project.status) && (project.status === 'finished' ? (project.actualEnd && project.actualEnd > project.expectedEnd) : project.expectedEnd < today)) alerts.push('retraso');
   if (decimal(project.budget).greaterThan(0) && decimal(project.expenses).greaterThan(decimal(project.budget))) alerts.push('sobrecosto');
-  if (!['draft', 'cancelled'].includes(project.status) && projectBalance(project.value, project.paid).greaterThan(0)) alerts.push('cartera');
+  if (!['draft', 'cancelled'].includes(project.status) && projectBalance(project.value, project.paid, project.withheld).greaterThan(0)) alerts.push('cartera');
   const end = new Date(`${project.expectedEnd}T00:00:00`);
   const start = new Date(`${today}T00:00:00`);
   const days = (end.getTime() - start.getTime()) / 86400000;

@@ -7,7 +7,7 @@ export type { ChartDatum } from './chart-data';
 export type FilterOptions = { clients: Option[]; projects: ProjectOption[]; responsible: Option[] };
 export type Option = { value: string; label: string };
 export type ProjectOption = Option & { parentId: string };
-export type ManagementRow = { id: string; title: string; quote_number: string; status: string; project_value: string; paid: string; balance: string; budget: string; expenses: string; real_profit: string; projected_profit: string };
+export type ManagementRow = { id: string; title: string; quote_number: string; status: string; project_value: string; paid: string; withheld: string; balance: string; budget: string; expenses: string; real_profit: string; projected_profit: string };
 export type OperationRow = { id: string; title: string; quote_number: string; responsible: string; start_date: string; expected_end_date: string; actual_end_date: string | null; status: string };
 export type CommercialRow = { id: string; number: string; client_name: string; issued_on: string; visible_status: string; total_amount: string };
 export type BudgetExecutionDatum = { key: string; label: string; value: string; expenses: string; budget: string; overBudget: boolean; unit: 'percent' };
@@ -40,7 +40,7 @@ export async function getFilterOptions(view: Exclude<AnalyticsTab, 'distribution
 export async function getManagement(input: { client: string[]; project: string[]; status: string[]; month: string; page: number; pageSize: PageSize }) {
   const supabase = await createClient(); const range = pageRange(input.page, input.pageSize);
   const args = { p_clients: input.client, p_projects: input.project, p_statuses: input.status };
-  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_management_snapshot_multi', { ...args, p_month: nullable(input.month) }), supabase.rpc('analytics_management_page_multi', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
+  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_management_snapshot_multi', { ...args, p_month: nullable(input.month) }), supabase.rpc('analytics_management_detail_page', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
   if (snapshot.error || table.error) error(snapshot.error?.message ?? table.error?.message ?? 'respuesta inválida');
   return { snapshot: snapshot.data as ManagementSnapshot, table: rows<ManagementRow>(table.data, input.page, input.pageSize) };
 }

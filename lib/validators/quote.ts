@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { calculateQuote, decimal } from '../calculations';
 import { basePriceMessage, itemVatMessage, normalizeBasePrice, normalizeItemVat, normalizeUnit } from '../item-input';
 export const basePriceSchema = z.string().transform((value, context) => {
   const normalized = normalizeBasePrice(value);
@@ -17,6 +18,20 @@ export const quoteDecimalString = (integerDigits: number) => z.string().trim().r
   new RegExp(`^\\d{1,${integerDigits}}(?:\\.\\d{1,2})?$`),
   'Debe ser un decimal no negativo con máximo dos decimales.',
 );
+
+export const directDiscountPctMessage = 'Ingrese un descuento entre 0 y 100 %, con máximo dos decimales.';
+export const directDiscountFixedMessage = 'Ingrese un descuento fijo no negativo, sin separadores de miles y con máximo dos decimales.';
+export const directDiscountExcessMessage = 'El descuento fijo no puede superar el costo directo. Corríjalo o desactive el descuento.';
+export const directDiscountPctSchema = z.string().default('0').transform((value, context) => {
+  const normalized = value.trim() === '' ? null : normalizeItemVat(value);
+  if (normalized === null) { context.addIssue({ code: z.ZodIssueCode.custom, message: directDiscountPctMessage }); return z.NEVER; }
+  return normalized;
+});
+export const directDiscountFixedSchema = z.string().default('0').transform((value, context) => {
+  const normalized = normalizeBasePrice(value);
+  if (normalized === null) { context.addIssue({ code: z.ZodIssueCode.custom, message: directDiscountFixedMessage }); return z.NEVER; }
+  return normalized;
+});
 
 export const quoteItemSchema = z.object({
   catalog_item_id: z.string().uuid().nullable().optional().or(z.literal('')),
@@ -44,6 +59,13 @@ export const quotePayloadSchema = z.object({
   contingency_pct: quoteDecimalString(5),
   utility_pct: quoteDecimalString(5),
   vat_utility_pct: quoteDecimalString(5),
+  show_aiu: z.boolean().default(true),
+  apply_direct_vat: z.boolean().default(false),
+  vat_direct_pct: itemVatSchema.default('19'),
+  apply_direct_discount: z.boolean().default(false),
+  direct_discount_type: z.enum(['percent', 'fixed']).default('percent'),
+  direct_discount_pct: directDiscountPctSchema,
+  direct_discount_fixed_amount: directDiscountFixedSchema,
   items: z.array(quoteItemSchema).min(1, 'Agregue al menos un ítem.'),
   greeting: z.string().default(''),
   project_description: z.string().default(''),
@@ -56,6 +78,16 @@ export const quotePayloadSchema = z.object({
   execution_time: z.string().default(''),
   deliverable: z.string().default(''),
 }).superRefine((value, context) => {
+  // Refinements can run with dirty fields; only calculate once dependencies are valid.
+  if (value.apply_direct_discount && value.direct_discount_type === 'fixed'
+    && directDiscountFixedSchema.safeParse(value.direct_discount_fixed_amount).success
+    && quoteDecimalString(5).safeParse(value.material_increase_pct).success
+    && z.array(quoteItemSchema).safeParse(value.items).success) {
+    const { directCost } = calculateQuote(value.items.map((item) => ({ category: item.category, quantity: item.quantity, baseUnitPrice: item.base_unit_price, vatPct: item.vat_pct })), {
+      materialIncreasePct: value.material_increase_pct, administrationPct: '0', contingencyPct: '0', utilityPct: '0', vatUtilityPct: '0',
+    });
+    if (decimal(value.direct_discount_fixed_amount).greaterThan(directCost)) context.addIssue({ code: z.ZodIssueCode.custom, path: ['direct_discount_fixed_amount'], message: directDiscountExcessMessage });
+  }
   if (value.valid_until < value.issued_on) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['valid_until'], message: 'La vigencia debe ser posterior o igual a la emisión.' });
   }

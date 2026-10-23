@@ -2,6 +2,8 @@
 
 ## Resultado requerido
 
+Para la aplicación ya existente, las mejoras de octubre de 2026 usan una migración incremental: `20261022100000_quote_options_withholdings_analytics.sql`. Aplicar después de `20261013101000` y antes del despliegue, sin editar migraciones anteriores ni transformar importes históricos. Procedimiento y verificación en [FINANCE-IMPROVEMENTS](../docs/FINANCE-IMPROVEMENTS.md). Después de la migración de descuentos `20261022110000`, aplicar `20261022120000_project_coverage.sql` antes de desplegar la cobertura: extiende `dashboard_snapshot` sin actualizar registros históricos. El requisito siguiente de una migración inicial aplica a la reconstrucción original.
+
 Durante la implementación se debe crear exactamente una migración inicial estructural:
 
 ```text
@@ -50,6 +52,7 @@ Las políticas deben llamar estas funciones con `(select private.is_active_membe
 - Rechazar editar una cotización ya vinculada a un proyecto.
 - Para cada ítem, validar IVA opcional de 0 a 100 con dos decimales; calcular costo con IVA, total base sin IVA y precios comerciales con incremento solo a `material`. Guardar `vat_pct` y `cost_total` sin confiar en los importes enviados por el navegador.
 - Recalcular todos los importes AIU, IVA y total desde los ítems calculados.
+- Validar y conservar ambos valores de descuento; cuando esté activado aplicar solo el tipo seleccionado sobre costo directo y rechazar el fijo superior a esa base. Calcular AIU e impuestos sobre el costo directo neto. La migración incremental `20261022110000_quote_direct_discount.sql` añade defaults compatibles sin UPDATE histórico; conservar los permisos internos del cálculo y los wrappers transaccionales existentes.
 - Reemplazar los ítems en una transacción conservando su orden y devolver la cotización persistida.
 
 No aceptar totales enviados por cliente como fuente de verdad. Devolver errores de validación útiles a la Server Action.

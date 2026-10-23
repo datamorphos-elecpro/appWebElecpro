@@ -46,6 +46,44 @@ test('IVA inicial, vista previa inmediata, guardado y reapertura', async ({ page
   await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}').items?.[0]?.vat_pct, savedKey)).toBe('0');
 });
 
+test('AIU consolidado e IVA adicional persisten, se imprimen y se bloquean al convertir', async ({ page }) => {
+  await page.goto(fixture);
+  await page.getByLabel('Precio base', { exact: true }).fill('500000');
+  for (const [label, value] of [['Incremento sobre materiales', '0'], ['Administración', '8'], ['Imprevistos', '3'], ['Utilidad', '10']] as const) await page.getByLabel(`${label} porcentaje`, { exact: true }).fill(value);
+  const aiu = page.getByRole('switch', { name: 'Mostrar AIU en la cotización' });
+  const directVat = page.getByRole('switch', { name: 'Aplicar IVA al costo directo' });
+  await expect(aiu).toBeChecked(); await expect(directVat).not.toBeChecked();
+  await aiu.uncheck(); await directVat.check();
+  await expect(page.getByLabel('IVA sobre costo directo porcentaje')).toHaveValue('19');
+  await expect(page.getByLabel('Administración porcentaje')).toBeEnabled();
+  await page.getByRole('button', { name: 'Vista previa', exact: true }).click();
+  const preview = page.getByRole('dialog');
+  await expect(preview.getByRole('row', { name: /Subtotal del servicio/ })).toContainText('1.210.000');
+  await expect(preview.getByRole('row', { name: /IVA sobre costo directo/ })).toContainText('190.000');
+  await expect(preview.getByRole('row', { name: /TOTAL PROPUESTA/ })).toContainText('1.419.000');
+  await expect(preview.getByRole('row', { name: /^Administración/ })).toHaveCount(0);
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.quote-print-portal')).toContainText('Subtotal del servicio');
+  await expect(page.locator('.quote-print-portal')).toContainText('1.419.000');
+  await page.emulateMedia({ media: 'screen' }); await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await page.getByRole('button', { name: 'Guardar cotización', exact: true }).click();
+  await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}').total_amount, savedKey)).toBe('1419000');
+  await page.reload(); await expect(aiu).not.toBeChecked(); await expect(directVat).toBeChecked();
+  await directVat.uncheck(); await directVat.check(); await expect(page.getByLabel('IVA sobre costo directo porcentaje')).toHaveValue('19');
+  await page.getByRole('button', { name: 'Convertir en proyecto', exact: true }).click(); await page.getByRole('button', { name: 'Aprobar y convertir', exact: true }).click();
+  await expect(aiu).toBeDisabled(); await expect(directVat).toBeDisabled();
+});
+
+test('recupera opciones del borrador y rechaza IVA adicional fuera de rango', async ({ page }) => {
+  await page.goto(fixture); await page.getByRole('switch', { name: 'Mostrar AIU en la cotización' }).uncheck();
+  await page.getByRole('switch', { name: 'Aplicar IVA al costo directo' }).check(); await page.getByLabel('IVA sobre costo directo porcentaje').fill('19.25');
+  await page.reload(); await page.getByRole('button', { name: 'Recuperar borrador', exact: true }).click();
+  await expect(page.getByRole('switch', { name: 'Mostrar AIU en la cotización' })).not.toBeChecked();
+  await expect(page.getByLabel('IVA sobre costo directo porcentaje')).toHaveValue('19.25');
+  await page.getByLabel('IVA sobre costo directo porcentaje').fill('100.01'); await page.getByRole('button', { name: 'Vista previa', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0); await expect(page.getByRole('alert')).toContainText('IVA entre 0 y 100');
+});
+
 test('borrador conserva IVA decimal y recupera borradores anteriores sin IVA', async ({ page }) => {
   await page.goto(fixture);
   await page.getByLabel('IVA (%)', { exact: true }).fill('19,25');

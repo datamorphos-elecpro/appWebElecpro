@@ -1,4 +1,4 @@
-export const projectCsvColumns = ['Cotización', 'Proyecto', 'Cliente', 'Estado', 'Valor', 'Pagado', 'Saldo', 'Gastos', 'Ganancia'] as const;
+export const projectCsvColumns = ['Cotización', 'Proyecto', 'Cliente', 'Estado', 'Valor', 'Anticipos', 'Retenciones', 'Cubierto', 'Saldo', 'Gastos', 'Ganancia'] as const;
 
 const csvCell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 

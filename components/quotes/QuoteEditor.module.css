@@ -68,6 +68,9 @@
 .field output, .economicsGrid strong, .economicsTotal strong { overflow-wrap: anywhere; min-width: 0; }
 .economicsGrid { grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr); }
 .economicsTotal { flex-wrap: wrap; gap: 8px; }
+.economicOptions { display: grid; gap: 12px; margin-bottom: 20px; }
+.economicOptions label { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.economicOptions input { width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--green); }
 .catalogResult { max-width: 100%; min-width: 0; }
 .catalogResult span { white-space: normal; overflow-wrap: anywhere; }
 @media (max-width: 1180px) and (min-width: 681px) { .materialRow { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

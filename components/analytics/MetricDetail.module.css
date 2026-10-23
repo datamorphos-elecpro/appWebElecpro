@@ -1,0 +1,5 @@
+.detail { display: grid; gap: 14px; min-width: 0; }
+.detail p { margin: 0; line-height: 1.6; }
+.scope { color: var(--muted); font-size: 12px; }
+.total { padding: 12px; border-radius: 8px; background: var(--surface-alt, #f2f6f3); }
+.detail td { overflow-wrap: anywhere; }

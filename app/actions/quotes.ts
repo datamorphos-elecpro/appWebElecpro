@@ -4,19 +4,21 @@ import { randomUUID } from 'node:crypto';
 import { ZodError } from 'zod';
 import { revalidateQuoteViews } from './revalidation';
 import { requireProfile } from '../../lib/auth';
-import { quotePayloadSchema, type QuotePayload } from '../../lib/validators/quote';
+import { directDiscountExcessMessage, directDiscountFixedMessage, directDiscountPctMessage, quotePayloadSchema, type QuotePayload } from '../../lib/validators/quote';
 
 export type QuoteActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; message: string; reference?: string };
 
 const expectedMessages = [
+  directDiscountExcessMessage, directDiscountFixedMessage, directDiscountPctMessage, 'Tipo de descuento inválido',
   'No autorizado', 'Cliente activo requerido', 'La vigencia debe ser posterior a la emisión',
   'Los porcentajes no pueden ser negativos', 'Agregue al menos un ítem', 'Cotización no encontrada',
   'La cotización ya fue convertida y no se puede editar', 'La categoría es obligatoria',
   'Cantidad y precio deben ser positivos', 'Solo se pueden convertir cotizaciones aprobadas',
   'Cliente inactivo o no disponible', 'Configuración de empresa no disponible',
   'Ingrese un IVA entre 0 y 100 %, con máximo dos decimales. Dejar vacío equivale a 0 %.',
+  'Ingrese un IVA sobre costo directo entre 0 y 100 %, con máximo dos decimales',
 ];
 
 function actionFailure(error: unknown, fallback = 'No se pudo guardar la cotización.'): QuoteActionResult<never> {

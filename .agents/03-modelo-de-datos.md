@@ -18,6 +18,7 @@ erDiagram
   QUOTES ||--o| PROJECTS : convierte
   CLIENTS ||--o{ PROJECTS : contrata
   PROJECTS ||--o{ PROJECT_PAYMENTS : recibe
+  PROJECTS ||--o{ PROJECT_WITHHOLDINGS : registra
   PROJECTS ||--o{ PROJECT_EXPENSES : registra
   PROJECTS ||--o{ PROJECT_BUDGETS : estima
   PROJECTS ||--o{ PROJECT_SHARES : distribuye
@@ -65,6 +66,10 @@ También guarda los porcentajes: `material_increase_pct`, `administration_pct`, 
 
 `quote_status` tiene `draft`, `sent`, `approved`, `rejected`. El número es único. La función de guardado recalcula los totales a partir de los ítems y porcentajes recibidos; el cliente no determina importes definitivos.
 
+Actualización 20261022: `show_aiu boolean default true`, `apply_direct_vat boolean default false`, `vat_direct_pct numeric(5,2) default 19` (0–100) y `vat_direct_amount numeric(18,6) default 0`, todos no nulos. El nuevo impuesto se suma al total. Los defaults conservan el historial, sin recalcular filas existentes.
+
+Descuento 20261022110000: `apply_direct_discount boolean default false`, `direct_discount_type text default 'percent'` (`percent`/`fixed`), `direct_discount_pct numeric(5,2) default 0` (0–100), `direct_discount_fixed_amount numeric(18,6) default 0` y `direct_discount_amount numeric(18,6) default 0`, todos no nulos y no negativos. Los dos valores de entrada admiten hasta dos decimales; el importe aplicado se recalcula en PostgreSQL. `direct_cost` conserva la suma original de ítems y la base neta es `direct_cost − direct_discount_amount`; AIU e impuestos usan el neto. La migración no recalcula importes históricos ni presupuestos.
+
 ### `quote_items`
 
 `id`, `quote_id uuid not null references quotes(id) on delete cascade`, `position integer not null check (position > 0)`, `catalog_item_id uuid references catalog_items(id) on delete set null`, `code text not null default ''`, `description text not null`, `category catalog_category not null`, `quantity numeric(14,2) not null check (quantity >= 0)`, `unit text not null`, `base_unit_price numeric(14,2) not null check (base_unit_price >= 0)`, `final_unit_price numeric(14,2) not null check (final_unit_price >= 0)`, `base_total numeric(14,2) not null check (base_total >= 0)`, `final_total numeric(14,2) not null check (final_total >= 0)`, auditoría.
@@ -88,6 +93,12 @@ Enums: `project_status` = `draft`, `quoted`, `approved`, `in_progress`, `paused`
 ### `project_expenses`
 
 Mismas columnas de movimiento: `id`, `project_id`, `expense_date`, `category text not null`, `amount numeric(14,2) check (amount > 0)`, `payment_method text not null`, `note text not null default ''`, auditoría. Índice `(project_id, expense_date desc)`.
+
+### `project_withholdings`
+
+`id uuid`, `project_id uuid` con FK restrictiva, `withholding_date date`, `kind text` (`income`, `vat`, `ica`, `other`), `amount numeric(18,6) > 0`, `note text`, `request_id uuid` obligatorio y único, auditoría de creación/actualización y `voided_at`, `voided_by`, `void_reason`. Otra retención exige observación; la anulación exige autor, fecha y motivo. Índice `(project_id, withholding_date desc, id)`. RLS permite lectura a miembros activos; solo los RPC autorizados registran o anulan, sin edición ni eliminación desde la API. La tabla comienza vacía.
+
+`project_financial_summary` y `portfolio_financial_summary` incorporan `withheld`, sumando únicamente retenciones vigentes, y lo descuentan de `balance`. Pagos, gastos y resultados conservan sus fórmulas. La interfaz deriva `cubierto = paid + withheld`, sin persistir otro importe. La migración `20261022120000_project_coverage.sql` añade `withheld` a los proyectos recientes de `dashboard_snapshot`. La validación de una retención y los pagos comparten el bloqueo de la fila del proyecto.
 
 ### `project_budgets`
 

@@ -3,10 +3,10 @@
 import { type ReactNode, useEffect, useId, useRef } from 'react';
 import styles from './Dialog.module.css';
 
-type DialogProps = { open: boolean; title: string; children: ReactNode; onClose: () => void; initialFocusRef?: React.RefObject<HTMLElement | null>; locked?: boolean };
+type DialogProps = { open: boolean; title: string; children: ReactNode; onClose: () => void; initialFocusRef?: React.RefObject<HTMLElement | null>; locked?: boolean; wide?: boolean };
 
 /** Native modal dialog with focus restoration and a lock for in-flight mutations. */
-export function Dialog({ open, title, children, onClose, initialFocusRef, locked = false }: DialogProps) {
+export function Dialog({ open, title, children, onClose, initialFocusRef, locked = false, wide = false }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const closingProgrammatically = useRef(false);
@@ -30,7 +30,7 @@ export function Dialog({ open, title, children, onClose, initialFocusRef, locked
   useEffect(() => () => { if (dialogRef.current?.open) dialogRef.current.close(); restoreFocus(); }, []);
   function requestClose() { if (!locked) onClose(); }
 
-  return <dialog ref={dialogRef} className={styles.dialog} aria-labelledby={titleId}
+  return <dialog ref={dialogRef} className={`${styles.dialog}${wide ? ` ${styles.wide}` : ''}`} aria-labelledby={titleId}
     onCancel={(event) => { event.preventDefault(); requestClose(); }}
     onMouseDown={(event) => { if (event.target === event.currentTarget) requestClose(); }}
     onClose={() => { if (closingProgrammatically.current) { closingProgrammatically.current = false; return; } if (open && !locked) onClose(); }}>

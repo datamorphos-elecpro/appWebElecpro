@@ -12,7 +12,7 @@ import { useQuotePrintSize } from './useQuotePrintSize';
 import { bogotaDate, money } from '../../lib/money';
 import { useLocalDraft } from '../../lib/local-draft';
 import { categoryOptions, type CatalogCategory } from '../../lib/presentation';
-import { quotePayloadSchema, quoteValidationMessages } from '../../lib/validators/quote';
+import { directDiscountFixedSchema, directDiscountPctSchema, quotePayloadSchema, quoteValidationMessages } from '../../lib/validators/quote';
 import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 import { Dialog } from '../ui/Dialog';
 import { RemoteSearchSelect } from '../ui/RemoteSearchSelect';
@@ -46,6 +46,9 @@ function initialForm(quote?: InitialQuote) {
     issued_on: String(quote?.issued_on ?? today), valid_until: String(quote?.valid_until ?? datePlusDays(today, 15)),
     material_increase_pct: decimalInput(quote?.material_increase_pct, '0'), administration_pct: decimalInput(quote?.administration_pct, '8'),
     contingency_pct: decimalInput(quote?.contingency_pct, '3'), utility_pct: decimalInput(quote?.utility_pct, '10'), vat_utility_pct: decimalInput(quote?.vat_utility_pct, '19'),
+    show_aiu: String(quote?.show_aiu ?? true), apply_direct_vat: String(quote?.apply_direct_vat ?? false), vat_direct_pct: decimalInput(quote?.vat_direct_pct, '19'),
+    apply_direct_discount: String(quote?.apply_direct_discount ?? false), direct_discount_type: String(quote?.direct_discount_type ?? 'percent'),
+    direct_discount_pct: decimalInput(quote?.direct_discount_pct), direct_discount_fixed_amount: decimalInput(quote?.direct_discount_fixed_amount),
     greeting: String(quote?.greeting ?? 'Cordial saludo. Presentamos para su consideración la siguiente propuesta técnica y económica.'),
     project_description: String(quote?.project_description ?? ''), objective: String(quote?.objective ?? ''),
     notes: String(quote?.notes ?? 'La oferta tiene una vigencia de 15 días calendario.'), scope: String(quote?.scope ?? ''), benefits: String(quote?.benefits ?? ''),
@@ -115,7 +118,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   useEffect(() => { window.addEventListener('pagehide', persistDraft); return () => window.removeEventListener('pagehide', persistDraft); }, [persistDraft]);
   function restoreDraft() {
     const stored = draft.read(); if (!stored) return;
-    setForm(stored.value.form); setItems(stored.value.items.map((item) => ({ ...item, unit: normalizeUnit(item.unit), vat_pct: decimalInput(item.vat_pct) }))); setSelectedClient(stored.value.client?.id === stored.value.form.client_id ? stored.value.client : null);
+    setForm({ ...initialForm(quote), ...stored.value.form }); setItems(stored.value.items.map((item) => ({ ...item, unit: normalizeUnit(item.unit), vat_pct: decimalInput(item.vat_pct) }))); setSelectedClient(stored.value.client?.id === stored.value.form.client_id ? stored.value.client : null);
     setSections(stored.value.sections ?? [true, true, true, false, false]);
     createRequestIdRef.current = stored.value.requestId;
     setDraftStarted(stored.value.started ?? true); markDirty(); setDraftAvailable(false); setDraftConflict(false);
@@ -133,11 +136,21 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   })), {
     materialIncreasePct: form.material_increase_pct, administrationPct: form.administration_pct, contingencyPct: form.contingency_pct,
     utilityPct: form.utility_pct, vatUtilityPct: form.vat_utility_pct,
-  }), [items, form.material_increase_pct, form.administration_pct, form.contingency_pct, form.utility_pct, form.vat_utility_pct]);
+    applyDirectVat: form.apply_direct_vat === 'true', vatDirectPct: normalizeItemVat(form.vat_direct_pct) ?? '0',
+    applyDirectDiscount: form.apply_direct_discount === 'true', directDiscountType: form.direct_discount_type === 'fixed' ? 'fixed' : 'percent',
+    directDiscountPct: directDiscountPctSchema.safeParse(form.direct_discount_pct).data ?? '0',
+    directDiscountFixedAmount: directDiscountFixedSchema.safeParse(form.direct_discount_fixed_amount).data ?? '0',
+  }), [items, form.material_increase_pct, form.administration_pct, form.contingency_pct, form.utility_pct, form.vat_utility_pct, form.apply_direct_vat, form.vat_direct_pct, form.apply_direct_discount, form.direct_discount_type, form.direct_discount_pct, form.direct_discount_fixed_amount]);
+
+  const discountCheck = quotePayloadSchema.safeParse({ ...form, show_aiu: form.show_aiu === 'true', apply_direct_vat: form.apply_direct_vat === 'true', apply_direct_discount: form.apply_direct_discount === 'true', items });
+  const discountErrors = discountCheck.success ? [] : [...new Set(discountCheck.error.issues.filter((issue) => String(issue.path[0]).startsWith('direct_discount')).map((issue) => issue.message))];
 
   const payload = useCallback(() => {
     return {
       ...currentRef.current.form,
+      show_aiu: currentRef.current.form.show_aiu === 'true',
+      apply_direct_vat: currentRef.current.form.apply_direct_vat === 'true',
+      apply_direct_discount: currentRef.current.form.apply_direct_discount === 'true',
       id: savedRef.current?.id,
       request_id: savedRef.current?.id ? undefined : createRequestIdRef.current,
       items: currentRef.current.items.map(({ localKey: _localKey, ...item }) => item),
@@ -345,15 +358,30 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
       </EditorSection>
 
       <EditorSection number="3" title="Resumen económico" open={sections[2]} onOpenChange={(value) => setSections((current) => current.map((v, i) => i === 2 ? value : v))}>
+        <div className={styles.economicOptions}>
+          <label><input type="checkbox" role="switch" checked={form.show_aiu === 'true'} onChange={(event) => patchForm('show_aiu', String(event.target.checked))} disabled={locked} />Mostrar AIU en la cotización</label>
+          <label><input type="checkbox" role="switch" checked={form.apply_direct_vat === 'true'} onChange={(event) => patchForm('apply_direct_vat', String(event.target.checked))} disabled={locked} />Aplicar IVA al costo directo</label>
+          <label><input type="checkbox" role="switch" checked={form.apply_direct_discount === 'true'} onChange={(event) => patchForm('apply_direct_discount', String(event.target.checked))} disabled={locked} />Aplicar descuento al costo directo</label>
+        </div>
+        {form.apply_direct_discount === 'true' && <div className={styles.formGrid}>
+          <Field label="Tipo de descuento"><select aria-label="Tipo de descuento" value={form.direct_discount_type} onChange={(event) => patchForm('direct_discount_type', event.target.value)} disabled={locked}><option value="percent">Porcentaje</option><option value="fixed">Valor fijo</option></select></Field>
+          <Field label={form.direct_discount_type === 'fixed' ? 'Descuento fijo (COP)' : 'Descuento porcentaje'}><input type="text" inputMode="decimal" value={form.direct_discount_type === 'fixed' ? form.direct_discount_fixed_amount : form.direct_discount_pct} aria-invalid={discountErrors.length > 0} aria-describedby={discountErrors.length ? 'direct-discount-errors' : undefined} onChange={(event) => patchForm(form.direct_discount_type === 'fixed' ? 'direct_discount_fixed_amount' : 'direct_discount_pct', event.target.value)} disabled={locked} /></Field>
+        </div>}
+        {discountErrors.length > 0 && <div id="direct-discount-errors" className={styles.validation} role="alert">{discountErrors.map((message) => <p key={message}>{message}</p>)}</div>}
         <div className={styles.economicsGrid}>
-          <span>Costo directo ajustado</span><span>-</span><strong>{money(totals.directCost)}</strong>
+          <span>{form.apply_direct_discount === 'true' ? 'Costo directo antes del descuento' : 'Costo directo ajustado'}</span><span>-</span><strong>{money(totals.directCost)}</strong>
+          {form.apply_direct_discount === 'true' && <>
+            <span>{form.direct_discount_type === 'fixed' ? 'Descuento (valor fijo)' : 'Descuento porcentual'}</span><span>{form.direct_discount_type === 'fixed' ? '—' : `${form.direct_discount_pct || '0'}%`}</span><strong>{discountErrors.length ? '—' : money(totals.directDiscountAmount.negated())}</strong>
+            <span>Costo directo neto</span><span>—</span><strong>{discountErrors.length ? '—' : money(totals.netDirectCost)}</strong>
+          </>}
           <EconomicRow label="Incremento sobre materiales" field="material_increase_pct" value={form.material_increase_pct} amount="-" patch={patchForm} disabled={locked} />
           <EconomicRow label="Administración" field="administration_pct" value={form.administration_pct} amount={money(totals.administrationAmount)} patch={patchForm} disabled={locked} />
           <EconomicRow label="Imprevistos" field="contingency_pct" value={form.contingency_pct} amount={money(totals.contingencyAmount)} patch={patchForm} disabled={locked} />
           <EconomicRow label="Utilidad" field="utility_pct" value={form.utility_pct} amount={money(totals.utilityAmount)} patch={patchForm} disabled={locked} />
           <EconomicRow label="IVA sobre utilidad" field="vat_utility_pct" value={form.vat_utility_pct} amount={money(totals.vatUtilityAmount)} patch={patchForm} disabled={locked} />
+          {form.apply_direct_vat === 'true' && <EconomicRow label="IVA sobre costo directo" field="vat_direct_pct" value={form.vat_direct_pct} amount={money(totals.vatDirectAmount)} patch={patchForm} disabled={locked} />}
         </div>
-        <div className={styles.economicsTotal}><span>Total de la propuesta</span><strong>{money(totals.totalAmount)}</strong></div>
+        <div className={styles.economicsTotal}><span>Total de la propuesta</span><strong>{discountErrors.length ? 'Revise el descuento' : money(totals.totalAmount)}</strong></div>
         <Field label="Notas importantes"><textarea value={form.notes} onChange={(event) => patchForm('notes', event.target.value)} disabled={locked} /></Field>
       </EditorSection>
 
@@ -431,6 +459,6 @@ function MaterialRow({ item, index, line, locked, patch, remove }: { item: Item;
   </div>;
 }
 
-function EconomicRow({ label, field, value, amount, patch, disabled }: { label: string; field: 'material_increase_pct' | 'administration_pct' | 'contingency_pct' | 'utility_pct' | 'vat_utility_pct'; value: string; amount: string; patch: (key: typeof field, value: string) => void; disabled: boolean }) {
-  return <><span>{label} (%)</span><input aria-label={`${label} porcentaje`} type="number" min="0" step="0.01" value={value} onChange={(event) => patch(field, event.target.value)} disabled={disabled} /><strong>{amount}</strong></>;
+function EconomicRow({ label, field, value, amount, patch, disabled }: { label: string; field: 'material_increase_pct' | 'administration_pct' | 'contingency_pct' | 'utility_pct' | 'vat_utility_pct' | 'vat_direct_pct'; value: string; amount: string; patch: (key: typeof field, value: string) => void; disabled: boolean }) {
+  return <><span>{label} (%)</span><input aria-label={`${label} porcentaje`} type="number" min="0" max={field === 'vat_direct_pct' ? 100 : undefined} step="0.01" value={value} onChange={(event) => patch(field, event.target.value)} disabled={disabled} /><strong>{amount}</strong></>;
 }

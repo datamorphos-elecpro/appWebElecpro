@@ -59,6 +59,8 @@ La ruta protegida raíz es el panel general. La ruta heredada `/finanzas` rediri
 - Crear/actualizar cotizaciones y convertirlas a proyecto llama a funciones RPC de PostgreSQL para preservar consistencia.
 - Las búsquedas, filtros y orden de tablas se expresan mediante parámetros de URL validados, para poder compartir enlaces y mantener renderizado en servidor.
 - El editor sincroniza los valores locales de campos en cada entrada; antes de vista previa, impresión o guardado realiza validación y conserva el último valor escrito.
+- `GET /api/analisis/detalle` autoriza sesión y perfil activo, valida métrica/filtros/paginación y llama `analytics_metric_detail`. Devuelve filas tipadas, total completo y componentes de fórmula en una misma instantánea, sin caché compartida. Los modales cancelan lecturas antiguas y conservan paginación local.
+- Retenciones se crean/anulan mediante Server Actions y RPC transaccionales con idempotencia y bloqueo por proyecto; las mutaciones revalidan `/panel`, detalle, cartera, análisis y alertas. `dashboard_snapshot.recent_projects` incluye `withheld`; Cubierto se deriva de anticipos más retenciones vigentes.
 
 ## Autenticación y usuarios
 

@@ -5,11 +5,12 @@ import { ProjectWorkspace, type ProjectDetailSection } from '../../../../compone
 import { createClient } from '../../../../lib/supabase/server';
 import { defaultPageSize, pageRange, pagination, type PageSize, parsePageSize, parsePositiveInteger } from '../../../../lib/pagination';
 import { projectStatusText } from '../../../../lib/presentation';
+import type { AttachmentType, ProjectFile } from '../../../../lib/project-files';
 
-const sections = ['summary', 'payments', 'costs', 'shares', 'dates'] as const;
+const sections = ['summary', 'payments', 'costs', 'shares', 'dates', 'attachments'] as const;
 type SearchParams = Record<string, string | string[] | undefined>;
 function one(params: SearchParams, key: string) { const value = params[key]; return Array.isArray(value) ? (value.length === 1 ? value[0] ?? '' : '') : value ?? ''; }
-function queryFrom(params: SearchParams) { return { withholdings: parsePositiveInteger(one(params, 'withholdings_page'), 1), payments: parsePositiveInteger(one(params, 'payments_page'), 1), expenses: parsePositiveInteger(one(params, 'expenses_page'), 1), budgets: parsePositiveInteger(one(params, 'budgets_page'), 1), shares: parsePositiveInteger(one(params, 'shares_page'), 1), pageSize: parsePageSize(one(params, 'pageSize')) }; }
+function queryFrom(params: SearchParams) { return { attachments: parsePositiveInteger(one(params, 'attachments_page'), 1), withholdings: parsePositiveInteger(one(params, 'withholdings_page'), 1), payments: parsePositiveInteger(one(params, 'payments_page'), 1), expenses: parsePositiveInteger(one(params, 'expenses_page'), 1), budgets: parsePositiveInteger(one(params, 'budgets_page'), 1), shares: parsePositiveInteger(one(params, 'shares_page'), 1), pageSize: parsePageSize(one(params, 'pageSize')) }; }
 function detailHref(projectId: string, section: ProjectDetailSection, query: ReturnType<typeof queryFrom>, pages: Record<string, number>) {
   const values = new URLSearchParams(); if (section !== 'summary') values.set('section', section); if (query.pageSize !== defaultPageSize) values.set('pageSize', String(query.pageSize));
   for (const [key, value] of Object.entries(pages)) if (value > 1) values.set(key, String(value));
@@ -33,14 +34,31 @@ export default async function ProjectDetail({ params, searchParams }: { params: 
   if (projectError || !project) notFound(); if (summaryError) throw new Error(summaryError.message);
   let payments: Awaited<ReturnType<typeof pageFor>> | undefined; let expenses: Awaited<ReturnType<typeof pageFor>> | undefined; let budgets: Awaited<ReturnType<typeof pageFor>> | undefined; let shares: Awaited<ReturnType<typeof pageFor>> | undefined;
   let withholdings: Awaited<ReturnType<typeof pageFor>> | undefined;
+  let receipts: ProjectFile[] = []; let attachmentTypes: AttachmentType[] = [];
+  let attachments: { records: ProjectFile[]; page: ReturnType<typeof pagination> } | undefined;
   if (section === 'payments') [payments, withholdings] = await Promise.all([
     pageFor(supabase, 'project_payments', projectId, query.payments, query.pageSize, 'payment_date'),
     pageFor(supabase, 'project_withholdings', projectId, query.withholdings, query.pageSize, 'withholding_date'),
   ]);
+  if (payments?.records.length) {
+    const { data, error } = await supabase.from('project_files').select('*').eq('project_id', projectId).eq('kind', 'receipt').eq('status', 'ready').in('payment_id', payments.records.map((payment) => payment.id));
+    if (error) throw new Error(error.message); receipts = data ?? [];
+  }
+  if (section === 'attachments') {
+    const [{ count, error: countError }, { data: types, error: typesError }] = await Promise.all([
+      supabase.from('project_files').select('id', { count: 'exact', head: true }).eq('project_id', projectId).eq('kind', 'attachment').eq('status', 'ready'),
+      supabase.from('project_attachment_types').select('id,name').order('name'),
+    ]);
+    if (countError || typesError) throw new Error((countError ?? typesError)!.message);
+    const info = pagination(count ?? 0, query.attachments, query.pageSize); const range = pageRange(info.page, query.pageSize);
+    const { data, error } = await supabase.from('project_files').select('*,project_attachment_types(id,name)').eq('project_id', projectId).eq('kind', 'attachment').eq('status', 'ready').order('created_at', { ascending: false }).order('id').range(range.from, range.to);
+    if (error) throw new Error(error.message);
+    attachments = { records: (data ?? []) as ProjectFile[], page: info }; attachmentTypes = types ?? [];
+  }
   if (section === 'costs') [expenses, budgets] = await Promise.all([pageFor(supabase, 'project_expenses', projectId, query.expenses, query.pageSize, 'expense_date'), pageFor(supabase, 'project_budgets', projectId, query.budgets, query.pageSize, 'created_at')]);
   if (section === 'shares') shares = await pageFor(supabase, 'project_shares', projectId, query.shares, query.pageSize, 'created_at');
-  const pages = { withholdings_page: withholdings?.page.page ?? query.withholdings, payments_page: payments?.page.page ?? query.payments, expenses_page: expenses?.page.page ?? query.expenses, budgets_page: budgets?.page.page ?? query.budgets, shares_page: shares?.page.page ?? query.shares };
+  const pages = { attachments_page: attachments?.page.page ?? query.attachments, withholdings_page: withholdings?.page.page ?? query.withholdings, payments_page: payments?.page.page ?? query.payments, expenses_page: expenses?.page.page ?? query.expenses, budgets_page: budgets?.page.page ?? query.budgets, shares_page: shares?.page.page ?? query.shares };
   const canonical = detailHref(projectId, section, query, pages); const incomingValues = new URLSearchParams(); for (const [key, value] of Object.entries(raw)) { if (typeof value === 'string') incomingValues.set(key, value); else if (Array.isArray(value)) incomingValues.set(`invalid_${key}`, '1'); } const incoming = `/proyectos/${projectId}${incomingValues.size ? `?${incomingValues}` : ''}`;
   if (incoming !== canonical) redirect(canonical);
-  return <Page actions={<Link href="/proyectos">← Volver a proyectos</Link>} title={project.title} description={`${project.clients?.name ?? 'Cliente'} · ${projectStatusText(project.status)}`}><ProjectWorkspace project={project} summary={summary} section={section} payments={payments} expenses={expenses} budgets={budgets} shares={shares} withholdings={withholdings} /></Page>;
+  return <Page actions={<Link href="/proyectos">← Volver a proyectos</Link>} title={project.title} description={`${project.clients?.name ?? 'Cliente'} · ${projectStatusText(project.status)}`}><ProjectWorkspace project={project} summary={summary} section={section} payments={payments} expenses={expenses} budgets={budgets} shares={shares} withholdings={withholdings} receipts={receipts} attachments={attachments} attachmentTypes={attachmentTypes} /></Page>;
 }

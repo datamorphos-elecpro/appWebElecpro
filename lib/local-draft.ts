@@ -46,7 +46,7 @@ export function useNativeFormDraft(kind: string, recordId = 'new', serverUpdated
     const form = formRef.current; if (!form) return;
     const values: Record<string, string> = {};
     for (const field of Array.from(form.elements)) {
-      if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) || !field.name || field.type === 'password') continue;
+      if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) || !field.name || field.type === 'password' || field.type === 'file') continue;
       values[field.name] = field instanceof HTMLInputElement && field.type === 'checkbox' ? String(field.checked) : field.value;
     }
     draft.write({ ...values, ...(overrides && typeof overrides === 'object' && 'client_id' in overrides ? { client_id: String(overrides.client_id) } : {}) }, serverUpdatedAt);
@@ -55,7 +55,7 @@ export function useNativeFormDraft(kind: string, recordId = 'new', serverUpdated
     const stored = draft.read(); const form = formRef.current; if (!stored || !form) return;
     for (const [name, value] of Object.entries(stored.value)) {
       const field = form.elements.namedItem(name);
-      if (field instanceof HTMLInputElement) { if (field.type === 'checkbox') field.checked = value === 'true'; else field.value = value; }
+      if (field instanceof HTMLInputElement) { if (field.type === 'file') continue; if (field.type === 'checkbox') field.checked = value === 'true'; else field.value = value; }
       else if (field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) field.value = value;
     }
     onRestore?.(stored.value); setAvailable(false); setConflict(false);

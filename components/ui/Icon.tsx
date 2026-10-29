@@ -1,6 +1,6 @@
 ﻿import type { SVGProps } from 'react';
 
-export type IconName = 'dashboard' | 'query_stats' | 'folder_open' | 'request_quote' | 'inventory_2' | 'local_shipping' | 'groups' | 'account_balance_wallet' | 'notifications' | 'left_panel_open' | 'left_panel_close' | 'menu_open' | 'admin_panel_settings' | 'logout' | 'close' | 'check_circle' | 'error' | 'warning' | 'info' | 'visibility' | 'visibility_off';
+export type IconName = 'dashboard' | 'query_stats' | 'folder_open' | 'request_quote' | 'inventory_2' | 'local_shipping' | 'groups' | 'account_balance_wallet' | 'notifications' | 'left_panel_open' | 'left_panel_close' | 'menu_open' | 'admin_panel_settings' | 'logout' | 'close' | 'check_circle' | 'error' | 'warning' | 'info' | 'visibility' | 'visibility_off' | 'download' | 'edit' | 'delete';
 
 const paths: Record<IconName, string[]> = {
   dashboard: ['M4 5h7v7H4z', 'M13 5h7v4h-7z', 'M13 11h7v8h-7z', 'M4 14h7v5H4z'],
@@ -24,6 +24,9 @@ const paths: Record<IconName, string[]> = {
   info: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18', 'M12 11v6', 'M12 7h.1'],
   visibility: ['M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-9.5 6-9.5-6-9.5-6z', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6'],
   visibility_off: ['M3 3l18 18', 'M10.6 6.2A10.6 10.6 0 0 1 12 6c6 0 9.5 6 9.5 6a17.7 17.7 0 0 1-3.1 3.8', 'M6.2 6.2A17.9 17.9 0 0 0 2.5 12S6 18 12 18c.9 0 1.8-.1 2.6-.4', 'M9.9 9.9a3 3 0 0 0 4.2 4.2'],
+  download: ['M12 3v12', 'M7 10l5 5 5-5', 'M4 16v5h16v-5'],
+  edit: ['M14 5l5 5', 'M4 16l-.5 5 5-.5L21 8a2.1 2.1 0 0 0-5-5z'],
+  delete: ['M3 6h18', 'M9 6V3h6v3', 'M5 6l1 15h12l1-15', 'M10 10v7', 'M14 10v7'],
 };
 
 export function Icon({ name, title, className, ...props }: { name: IconName; title?: string } & SVGProps<SVGSVGElement>) {

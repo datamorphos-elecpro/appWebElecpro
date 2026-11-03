@@ -9,7 +9,7 @@ Elecpro centraliza la operación comercial, técnica y financiera de proyectos d
 - Idioma: español de Colombia. Moneda: pesos colombianos (`COP`), mostrados sin decimales con `Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })`.
 - Zona horaria de presentación: `America/Bogota`. Las fechas operativas se guardan como `date`; las marcas de auditoría como `timestamptz`.
 - Empresa única: Elecpro. La configuración de empresa es una única fila editable y no se filtra por organización.
-- Estados de proyecto: `Borrador`, `Cotizado`, `Aprobado`, `En proceso`, `Pausado`, `Finalizado`, `Cancelado`.
+- Estados de proyecto: `Borrador`, `Cotizado`, `Pendiente por aprobar`, `Aprobado`, `En proceso`, `Pausado`, `Finalizado`, `Cancelado`.
 - Estados de cotización: `Borrador`, `Enviada`, `Aprobada`, `Rechazada`. Una cotización no decidida cuya `valid_until` sea anterior a hoy se muestra como `Vencida`, sin cambiar automáticamente el estado guardado.
 - Prioridades: `Baja`, `Media`, `Alta`, `Crítica`.
 - Roles: `administrator` y `management`. Ambos pueden crear, editar, eliminar y consultar datos de negocio. Solo `administrator` gestiona usuarios y roles.
@@ -134,3 +134,7 @@ Conservar de `index.html` la paleta verde, superficies claras, logo, barra later
 ## Distribuciones pagadas por proyecto
 
 Las nuevas distribuciones, incluidas las generales, son valores fijos manuales. Ganancia actual = base del modelo menos gastos reales menos importes congelados de distribuciones pagadas por proyecto. Pendientes y distribuciones generales no descuentan. El pago no puede superar la ganancia disponible; reabrir restaura el importe. Se conservan caja, presupuesto y resultado proyectado. Ver [contrato y despliegue](../docs/PAID-PROJECT-DISTRIBUTIONS.md).
+
+## Anticipos y proyectos pendientes por aprobar
+
+Desde noviembre de 2026, `pending_approval` conserva detalle y movimientos, pero no contribuye a consolidados financieros ni alertas. Permanece en inventario, recientes y Operación. Anticipos editables y eliminables lógicamente con motivo obligatorio, auditoría y soporte conservado; eliminados ocultos y excluidos de cálculos. Soportes PDF/JPG/JPEG/PNG hasta 10 MB. Panel reemplaza Próximas finalizaciones por Ganancia menos cartera; Análisis muestra Cartera Pendiente y Total de Cartera del conjunto filtrado completo. Contrato, migraciones y procedimiento: [anticipos y aprobación](../docs/PAYMENT-MANAGEMENT-AND-APPROVAL.md).

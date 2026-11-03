@@ -50,7 +50,7 @@ begin
   perform pg_temp.check_true(not exists(select 1 from public.project_active_alerts where project_id=p),'cancelado sin alertas');
   update public.projects set status='cancelled' where client_id='ca200000-0000-4000-8000-000000000001' and id::text>'ca300000-0000-4000-8000-000000000020';
   perform pg_temp.check_true((public.alerts_page_v2('Cliente alertas vigentes','cartera',2,20)->>'page')::int=1,'última página desaparecida vuelve a primera');
-  insert into public.project_payments(project_id,payment_date,amount,payment_method) values ('ca300000-0000-4000-8000-000000000002',current_date,1000,'Transferencia');
+  perform public.save_project_payment_with_file(jsonb_build_object('project_id','ca300000-0000-4000-8000-000000000002','request_id',gen_random_uuid(),'payment_date',current_date,'amount','1000','payment_method','Transferencia'));
   perform pg_temp.check_true(not exists(select 1 from public.project_active_alerts where project_id='ca300000-0000-4000-8000-000000000002' and kind='cartera'),'pago completo saldo cero');
 end $$;
 

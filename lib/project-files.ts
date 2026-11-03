@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const projectFilesBucket = 'project-files';
+export const receiptExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+export const receiptAccept = receiptExtensions.map((extension) => `.${extension}`).join(',');
 export const receiptMaxBytes = 10 * 1024 * 1024;
 export const attachmentMaxBytes = 50 * 1024 * 1024;
 export type ProjectFileKind = 'receipt' | 'attachment';
@@ -27,7 +29,7 @@ export function validateProjectFile(file: Pick<File, 'name' | 'size'>, kind: Pro
   if (!file.name || file.name.length > 240 || /[\x00-\x1f\x7f/\\]/.test(file.name)) throw new Error('El nombre del archivo no es válido (máximo 240 caracteres y sin rutas).');
   const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
   const mime = fileMimeTypes[extension];
-  if (!mime || (kind === 'receipt' && extension !== 'pdf')) throw new Error(kind === 'receipt' ? 'El soporte de pago debe ser un PDF.' : 'Formato de archivo no permitido.');
+  if (!mime || (kind === 'receipt' && !receiptExtensions.includes(extension))) throw new Error(kind === 'receipt' ? 'El soporte de pago debe ser PDF, JPG, JPEG o PNG.' : 'Formato de archivo no permitido.');
   const maximum = kind === 'receipt' ? receiptMaxBytes : attachmentMaxBytes;
   if (!Number.isSafeInteger(file.size) || file.size <= 0 || file.size > maximum) throw new Error(`Seleccione un archivo no vacío de máximo ${kind === 'receipt' ? '10' : '50'} MB.`);
   return mime;

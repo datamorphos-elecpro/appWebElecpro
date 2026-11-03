@@ -10,3 +10,12 @@ export async function voidWithholding(input: unknown) {
 export async function saveProject() { return { id: '33333333-3333-4333-8333-333333333333' }; }
 export async function saveProjectRecord(kind: string, input: unknown) { localStorage.setItem('elecpro:test:project-record', JSON.stringify({ kind, input })); }
 export async function settleProjectShares() {}
+
+export async function editProjectPayment(input: unknown) {
+  const { editPaymentSchema } = await import('../../lib/validators/payment');
+  localStorage.setItem('elecpro:test:payment-edit', JSON.stringify(editPaymentSchema.parse(input)));
+}
+export async function deleteProjectPayment(input: unknown) {
+  const { deletePaymentSchema } = await import('../../lib/validators/payment');
+  localStorage.setItem('elecpro:test:payment-delete', JSON.stringify(deletePaymentSchema.parse(input)));
+}

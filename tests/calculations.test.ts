@@ -42,3 +42,7 @@ describe('cálculos Elecpro', () => {
     expect(alertKinds({ status: 'in_progress', expectedEnd: '2026-09-20', expenses: '0', budget: '0', value: '0', paid: '0' }, '2026-09-09')).toContain('finalizacion_proxima');
   });
 });
+
+it('los proyectos pendientes por aprobar no producen alertas aunque tengan deuda y sobrecosto', () => {
+  expect(alertKinds({ status: 'pending_approval', expectedEnd: '2026-01-01', expenses: '200', budget: '100', value: '1000', paid: '0' }, '2026-11-03')).toEqual([]);
+});

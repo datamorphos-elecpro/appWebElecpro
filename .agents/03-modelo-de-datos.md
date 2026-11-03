@@ -84,7 +84,7 @@ Actualización 20261013: añade `vat_pct numeric(5,2) not null default 0 check (
 
 `id`, `quote_id uuid unique references quotes(id)`, `quote_number text not null`, `client_id uuid not null references clients(id)`, `title text not null`, `project_value numeric(14,2) not null check (project_value >= 0)`, `status project_status not null default 'approved'`, `responsible text not null`, `location text not null`, `priority project_priority not null default 'medium'`, `start_date date not null`, `expected_end_date date not null check (expected_end_date >= start_date)`, `actual_end_date date check (actual_end_date is null or actual_end_date >= start_date)`, `observations text not null default ''`, `profit_mode profit_mode not null default 'value'`, `initial_profit numeric(14,2) not null default 0 check (initial_profit >= 0)`, auditoría.
 
-Enums: `project_status` = `draft`, `quoted`, `approved`, `in_progress`, `paused`, `finished`, `cancelled`; `project_priority` = `low`, `medium`, `high`, `critical`; `profit_mode` = `value`, `manual`.
+Enums: `project_status` = `draft`, `quoted`, `pending_approval`, `approved`, `in_progress`, `paused`, `finished`, `cancelled`; `project_priority` = `low`, `medium`, `high`, `critical`; `profit_mode` = `value`, `manual`.
 
 ### `project_payments`
 
@@ -119,3 +119,7 @@ Ambas tablas contienen `id`, `participant text not null`, `mode share_mode not n
 ## Vistas de lectura
 
 La migración podrá crear `project_financial_summary` y `portfolio_financial_summary` para cálculos de lectura. Ambas deben usar `security_invoker = true`, no conceder más permisos que las tablas y calcular pagos, gastos, presupuesto, saldo y ganancia sin almacenar valores derivados redundantes.
+
+## Actualización 20261103
+
+`project_payments` añade `deleted_at`, `deleted_by`, `delete_reason`, `last_mutation_id` único y `last_mutation_payload`. Las mutaciones usan RPC autorizados, bloqueo por proyecto y revisión `updated_at` monotónica; RLS oculta eliminados y se revoca escritura directa. `active_project_payments` excluye eliminados y `financial_projects` excluye `pending_approval`, ambas con `security_invoker`. La vista individual conserva proyectos pendientes; la consolidada los excluye. Los soportes vigentes de anticipos eliminados permanecen almacenados y sin acceso ordinario. Ver [contrato](../docs/PAYMENT-MANAGEMENT-AND-APPROVAL.md).

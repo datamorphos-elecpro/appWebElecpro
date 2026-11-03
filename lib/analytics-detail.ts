@@ -8,11 +8,11 @@ export const metricLabels = {
 } as const;
 export type AnalysisMetric = keyof typeof metricLabels;
 const metrics = Object.keys(metricLabels) as [AnalysisMetric, ...AnalysisMetric[]];
-const projectStatuses = ['draft', 'quoted', 'approved', 'in_progress', 'paused', 'finished', 'cancelled'] as const;
+const projectStatuses = ['draft', 'quoted', 'pending_approval', 'approved', 'in_progress', 'paused', 'finished', 'cancelled'] as const;
 const quoteStatuses = ['draft', 'sent', 'approved', 'rejected', 'expired'] as const;
 const ids = z.array(z.string().uuid()).max(500);
 const filtersSchema = z.object({
-  management_client: ids, management_project: ids, management_status: z.array(z.enum(projectStatuses)).max(7),
+  management_client: ids, management_project: ids, management_status: z.array(z.enum(projectStatuses)).max(8),
   commercial_client: ids, commercial_status: z.array(z.enum(quoteStatuses)).max(5),
   commercial_month: z.string().regex(/^(?:\d{4}-(?:0[1-9]|1[0-2]))?$/),
   distribution_q: z.string().trim().max(200),

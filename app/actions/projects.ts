@@ -11,7 +11,7 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use una fecha válida.');
 
 const projectSchema = z.object({
   id: z.string().uuid().optional(), client_id: z.string().uuid(), title: z.string().min(1), project_value: decimal,
-  status: z.enum(['draft', 'quoted', 'approved', 'in_progress', 'paused', 'finished', 'cancelled']),
+  status: z.enum(['draft', 'quoted', 'pending_approval', 'approved', 'in_progress', 'paused', 'finished', 'cancelled']),
   priority: z.enum(['low', 'medium', 'high', 'critical']), responsible: z.string(), address: z.string(), city: z.string(),
   start_date: date, expected_end_date: date, actual_end_date: z.string().optional(), observations: z.string().optional(),
   profit_mode: z.enum(['value', 'manual']), initial_profit: decimal,
@@ -40,6 +40,12 @@ export async function saveProjectRecord(kind: 'payment' | 'expense' | 'budget' |
   const { supabase, profile } = await requireProfile();
   const schemas = { payment: paymentSchema, expense: expenseSchema, budget: budgetSchema, share: shareSchema };
   const data = schemas[kind].parse(input);
+  if (kind === 'payment') {
+    const { error } = await supabase.rpc('save_project_payment_with_file', { payload: { ...data, request_id: crypto.randomUUID() } });
+    if (error) throw new Error(error.message);
+    revalidateBusinessViews(data.project_id);
+    return;
+  }
   const table = { payment: 'project_payments', expense: 'project_expenses', budget: 'project_budgets', share: 'project_shares' }[kind];
   const { id, ...values } = data as { id?: string; project_id: string } & Record<string, unknown>;
   const body = { ...values, updated_by: profile.id };

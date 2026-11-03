@@ -61,8 +61,8 @@ test('rechaza otros formatos en soporte y no guarda archivos en el borrador', as
   await page.goto(`${fixture}?section=payments`);
   await page.getByRole('button', { name: 'Registrar anticipo', exact: true }).click();
   await page.getByLabel('Valor', { exact: true }).fill('2000');
-  await page.locator('input[type=file]').setInputFiles({ name: 'imagen.png', mimeType: 'image/png', buffer: Buffer.from('imagen') });
-  await expect(page.getByRole('alert')).toContainText('debe ser un PDF');
+  await page.locator('input[type=file]').setInputFiles({ name: 'archivo.doc', mimeType: 'application/msword', buffer: Buffer.from('documento') });
+  await expect(page.getByRole('alert')).toContainText('PDF, JPG, JPEG o PNG');
   await page.locator('input[type=file]').setInputFiles(pdf);
   const drafts = await page.evaluate(() => Object.keys(localStorage).filter((key) => key.includes('draft')).map((key) => JSON.parse(localStorage.getItem(key)!)));
   for (const draft of drafts) expect(draft.value).not.toHaveProperty('support_file');

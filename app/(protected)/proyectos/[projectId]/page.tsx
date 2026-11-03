@@ -37,7 +37,7 @@ export default async function ProjectDetail({ params, searchParams }: { params: 
   let receipts: ProjectFile[] = []; let attachmentTypes: AttachmentType[] = [];
   let attachments: { records: ProjectFile[]; page: ReturnType<typeof pagination> } | undefined;
   if (section === 'payments') [payments, withholdings] = await Promise.all([
-    pageFor(supabase, 'project_payments', projectId, query.payments, query.pageSize, 'payment_date'),
+    pageFor(supabase, 'active_project_payments', projectId, query.payments, query.pageSize, 'payment_date'),
     pageFor(supabase, 'project_withholdings', projectId, query.withholdings, query.pageSize, 'withholding_date'),
   ]);
   if (payments?.records.length) {

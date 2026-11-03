@@ -1,5 +1,7 @@
 # Soportes y archivos de proyectos
 
+Las mejoras de noviembre requieren también las dos migraciones y reglas de [anticipos y aprobación](PAYMENT-MANAGEMENT-AND-APPROVAL.md).
+
 ## Despliegue
 
 1. Aplicar `supabase/migrations/20261029100000_project_files.sql` **después de `20261023100000_current_alerts.sql` y antes de desplegar la aplicación**. Usar el historial normal de Supabase CLI o ejecutar el archivo completo una sola vez desde SQL Editor. La migración es transaccional y crea el bucket privado, catálogo, metadatos, RPC, auditoría y políticas; no recalcula importes anteriores.
@@ -7,7 +9,7 @@
 3. En **Storage → Settings**, comprobar que **Global file size limit** sea al menos **52.428.800 bytes (50 MiB)**. La migración configura ese límite en el bucket, pero no modifica el límite global del servicio. En pantalla se presenta como 50 MB; soportes: 10.485.760 bytes, presentados como 10 MB.
 4. Verificar que `project-files` sea privado y que no haya políticas generales de otros desarrollos que permitan acceso anónimo o escritura sin restricciones sobre ese bucket. Las políticas nuevas tienen prefijo `project_files_storage_`.
 5. Desplegar la aplicación con las variables de Supabase ya utilizadas: `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Esta funcionalidad usa la sesión autenticada y no requiere `service_role`.
-6. Con cada rol activo, registrar un anticipo sin soporte y otro con PDF, adjuntar un archivo general y probar vista previa, descarga, reemplazo y retiro. Verificar las carpetas por código en Storage.
+6. Con cada rol activo, registrar un anticipo sin soporte y otro con PDF o imagen, adjuntar un archivo general y probar vista previa, descarga, reemplazo y retiro. Verificar las carpetas por código en Storage.
 
 Las carpetas son prefijos virtuales. Solo aparecen cuando contienen objetos:
 
@@ -30,7 +32,7 @@ where quote_number is null
 
 ## Comportamiento y recuperación
 
-- Soportes: un PDF opcional por anticipo, hasta 10 MB, gestionado exclusivamente desde Anticipos. Adjuntos: un archivo por registro, hasta 50 MB; PDF, JPG/JPEG, PNG, DOC/DOCX, XLS/XLSX, DWG, DXF y ZIP. Se valida extensión, tamaño y MIME canónico; no se realiza análisis antivirus ni validación semántica del contenido del documento.
+- Soportes: un archivo PDF/JPG/JPEG/PNG opcional por anticipo, hasta 10 MB, gestionado exclusivamente desde Anticipos. Adjuntos: un archivo por registro, hasta 50 MB; PDF, JPG/JPEG, PNG, DOC/DOCX, XLS/XLSX, DWG, DXF y ZIP. Se valida extensión, tamaño y MIME canónico; no se realiza análisis antivirus ni validación semántica del contenido del documento.
 - Ambos roles activos pueden consultar y gestionar archivos. Los anónimos y perfiles inactivos quedan bloqueados por RLS. Los enlaces firmados duran 60 segundos y no se guardan en base de datos; una URL emitida antes de cerrar sesión puede seguir siendo válida hasta su expiración. La vista previa permite actualizar el enlace.
 - El selector crea tipos globales al finalizar el documento. La unicidad ignora mayúsculas, tildes y espacios redundantes. Hay 14 categorías iniciales, sin pantalla de administración ni versiones anteriores descargables.
 - La carga directa usa TUS, bloques de 6 MiB y reintentos. No se envían archivos grandes por Server Actions. El navegador conserva el archivo seleccionado en memoria; no se incorpora al borrador local. Después de recargar la página debe seleccionarse de nuevo.

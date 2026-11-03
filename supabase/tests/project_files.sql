@@ -22,7 +22,7 @@ select set_config('request.jwt.claim.sub','fa000000-0000-4000-8000-000000000001'
 set local role authenticated;
 select pg_temp.reject($q$select public.prepare_project_file('fa000000-0000-4000-8000-000000000011','fa000000-0000-4000-8000-000000000006','receipt','pago.pdf','application/pdf',100)$q$,'código');
 select pg_temp.reject($q$select public.prepare_project_file('fa000000-0000-4000-8000-000000000011','fa000000-0000-4000-8000-000000000007','receipt','pago.pdf','application/pdf',100)$q$,'código');
-select pg_temp.reject($q$select public.prepare_project_file('fa000000-0000-4000-8000-000000000011','fa000000-0000-4000-8000-000000000004','receipt','pago.png','image/png',100)$q$,'Formato');
+select pg_temp.reject($q$select public.prepare_project_file('fa000000-0000-4000-8000-000000000011','fa000000-0000-4000-8000-000000000004','receipt','pago.webp','image/webp',100)$q$,'Formato');
 select pg_temp.reject($q$select public.prepare_project_file('fa000000-0000-4000-8000-000000000011','fa000000-0000-4000-8000-000000000004','receipt','pago.pdf','application/pdf',10485761)$q$,'Formato');
 select pg_temp.reject($q$select public.prepare_project_file('fa000000-0000-4000-8000-000000000011','fa000000-0000-4000-8000-000000000004','attachment','pago.pdf','application/pdf',52428801)$q$,'Formato');
 select pg_temp.reject($q$select public.prepare_project_file('fa000000-0000-4000-8000-000000000011','fa000000-0000-4000-8000-000000000004','attachment','pago.pdf','application/pdf',0)$q$,'Formato');

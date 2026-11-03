@@ -5,7 +5,11 @@ describe('archivos de proyectos', () => {
   it('acepta un soporte PDF dentro del límite, conservando mayúsculas del nombre', () => {
     expect(validateProjectFile({ name: 'Comprobante.PDF', size: receiptMaxBytes }, 'receipt')).toBe('application/pdf');
     expect(() => validateProjectFile({ name: 'comprobante.pdf', size: receiptMaxBytes + 1 }, 'receipt')).toThrow('10 MB');
-    expect(() => validateProjectFile({ name: 'comprobante.png', size: 100 }, 'receipt')).toThrow('PDF');
+    expect(validateProjectFile({ name: 'comprobante.png', size: 100 }, 'receipt')).toBe('image/png');
+  });
+  it.each(['pdf', 'jpg', 'jpeg', 'png'])('acepta soportes %s y aplica el límite de 10 MB', (extension) => {
+    expect(validateProjectFile({ name: `soporte.${extension}`, size: receiptMaxBytes }, 'receipt')).toBeTruthy();
+    expect(() => validateProjectFile({ name: `soporte.${extension}`, size: receiptMaxBytes + 1 }, 'receipt')).toThrow('10 MB');
   });
   it.each(['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'dwg', 'dxf', 'zip'])('admite %s como adjunto de hasta 50 MB', (extension) => {
     expect(validateProjectFile({ name: `Documento.${extension}`, size: attachmentMaxBytes }, 'attachment')).toBeTruthy();

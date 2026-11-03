@@ -73,3 +73,6 @@
 }
 
 .management .tableSection p { font-size: 11px; }
+
+.tableHeading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.tableHeading strong { overflow-wrap: anywhere; }

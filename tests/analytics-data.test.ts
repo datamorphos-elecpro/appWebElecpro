@@ -11,6 +11,19 @@ const data: AnalyticsData = {
 };
 
 describe('análisis', () => {
+  it('excluye pendientes de Gerencia y caja, pero los conserva en Operación y los reincorpora al aprobar', () => {
+    const pending = { ...data.projects[0], status: 'pending_approval' };
+    const input = { ...data, projects: [pending] };
+    const result = managementAnalysis(input, {});
+    expect(result.projects).toEqual([]);
+    expect(result.balance).toBe('0'); expect(result.profit).toBe('0');
+    expect(result.movements).toEqual([]); expect(cashByProject(input, {})).toEqual([]);
+    expect(operationAnalysis(input, {}).byStatus).toEqual([{ key: 'pending_approval', label: 'Pendiente por aprobar', value: '1', unit: 'count' }]);
+    expect(operationAnalysis(input, {}).byResponsible).toEqual([]);
+    const approved = managementAnalysis({ ...input, projects: [{ ...pending, status: 'approved' }] }, {});
+    expect(approved.balance).toBe('900.15'); expect(approved.movements).toHaveLength(2);
+  });
+
   it('filtra gerencia por IDs y conserva importes exactos con diferencia negativa', () => {
     const result = managementAnalysis(data, { client: 'c1', month: '2026-02' });
     expect(result.projects).toHaveLength(1);

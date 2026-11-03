@@ -1,8 +1,10 @@
 ﻿import type { SVGProps } from 'react';
 
-export type IconName = 'dashboard' | 'query_stats' | 'folder_open' | 'request_quote' | 'inventory_2' | 'local_shipping' | 'groups' | 'account_balance_wallet' | 'notifications' | 'left_panel_open' | 'left_panel_close' | 'menu_open' | 'admin_panel_settings' | 'logout' | 'close' | 'check_circle' | 'error' | 'warning' | 'info' | 'visibility' | 'visibility_off' | 'download' | 'edit' | 'delete';
+export type IconName = 'dashboard' | 'query_stats' | 'folder_open' | 'request_quote' | 'inventory_2' | 'local_shipping' | 'groups' | 'account_balance_wallet' | 'notifications' | 'left_panel_open' | 'left_panel_close' | 'menu_open' | 'admin_panel_settings' | 'logout' | 'close' | 'check_circle' | 'error' | 'warning' | 'info' | 'visibility' | 'visibility_off' | 'download' | 'edit' | 'delete' | 'image' | 'description';
 
 const paths: Record<IconName, string[]> = {
+  image: ['M3 3h18v18H3z', 'M3 17l6-6 4 4 3-3 5 5', 'M16 8h.1'],
+  description: ['M6 3h9l3 3v15H6z', 'M15 3v4h4', 'M8 11h8', 'M8 15h8'],
   dashboard: ['M4 5h7v7H4z', 'M13 5h7v4h-7z', 'M13 11h7v8h-7z', 'M4 14h7v5H4z'],
   query_stats: ['M4 19h17', 'M6 16l4-4 3 3 6-8', 'M19 7h-4V3'],
   folder_open: ['M3 7h7l2 2h9v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'M3 11h18'],

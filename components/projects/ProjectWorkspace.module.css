@@ -16,3 +16,5 @@
 .sectionHead { flex-wrap: wrap; }
 @media (max-width: 900px) { .summaryGrid, .twoCol { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 680px) { .projectHeader { grid-template-columns: minmax(0, 1fr); } }
+
+.paymentActions { display: flex; align-items: center; gap: 4px; width: max-content; }

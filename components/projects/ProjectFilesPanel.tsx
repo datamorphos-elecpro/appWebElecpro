@@ -1,17 +1,17 @@
 'use client';
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
-import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { changeProjectFile, cleanupProjectFiles, finishProjectFile } from '../../app/actions/project-files';
-import { attachmentAccept, attachmentTypeName, canPreviewFile, fileSizeText, validateProjectFile, type AttachmentType, type ProjectFile, type ProjectFileKind } from '../../lib/project-files';
+import { receiptAccept, attachmentAccept, attachmentTypeName, canPreviewFile, fileSizeText, validateProjectFile, type AttachmentType, type ProjectFile, type ProjectFileKind } from '../../lib/project-files';
 import { uploadProjectFile, type FileUploadAttempt } from '../../lib/project-file-upload';
 import type { PageInfo } from '../../lib/pagination';
 import { bogotaDateText } from '../../lib/presentation';
 import { Dialog } from '../ui/Dialog';
 import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 import { Pagination } from '../ui/Pagination';
-import { Icon, type IconName } from '../ui/Icon';
+import { Icon } from '../ui/Icon';
+import { IconAction } from '../ui/IconAction';
 import styles from './ProjectFilesPanel.module.css';
 import workspaceStyles from './ProjectWorkspace.module.css';
 
@@ -19,11 +19,11 @@ export function FilePicker({ kind, file, onChange, disabled = false }: { kind: P
   const input = useRef<HTMLInputElement>(null);
   const labelId = useId(); const helpId = useId();
   const [error, setError] = useState('');
-  return <div className={styles.picker}><strong id={labelId}>{kind === 'receipt' ? 'Soporte de pago (opcional)' : 'Archivo'}</strong><input ref={input} type="file" hidden aria-labelledby={labelId} name={kind === 'receipt' ? 'support_file' : 'attachment_file'} accept={kind === 'receipt' ? '.pdf,application/pdf' : attachmentAccept} disabled={disabled} onChange={(event) => {
+  return <div className={styles.picker}><strong id={labelId}>{kind === 'receipt' ? 'Soporte de pago (opcional)' : 'Archivo'}</strong><input ref={input} type="file" hidden aria-labelledby={labelId} name={kind === 'receipt' ? 'support_file' : 'attachment_file'} accept={kind === 'receipt' ? receiptAccept : attachmentAccept} disabled={disabled} onChange={(event) => {
     const next = event.target.files?.[0] ?? null;
     try { if (next) validateProjectFile(next, kind); setError(''); onChange(next); }
     catch (reason) { event.target.value = ''; onChange(null); setError(reason instanceof Error ? reason.message : 'Archivo no válido.'); }
-  }} /><button type="button" aria-label={kind === 'receipt' ? 'Seleccionar soporte de pago' : 'Seleccionar archivo adjunto'} aria-describedby={helpId} disabled={disabled} onClick={() => input.current?.click()}>Seleccionar archivo</button><small id={helpId}>{kind === 'receipt' ? 'Un PDF de máximo 10 MB.' : 'PDF, imágenes JPG/PNG, Word, Excel, DWG, DXF o ZIP. Máximo 50 MB.'}</small>
+  }} /><button type="button" aria-label={kind === 'receipt' ? 'Seleccionar soporte de pago' : 'Seleccionar archivo adjunto'} aria-describedby={helpId} disabled={disabled} onClick={() => input.current?.click()}>Seleccionar archivo</button><small id={helpId}>{kind === 'receipt' ? 'Un archivo .pdf, .jpg, .jpeg o .png de máximo 10 MB.' : 'PDF, imágenes JPG/PNG, Word, Excel, DWG, DXF o ZIP. Máximo 50 MB.'}</small>
     {file && <div className={styles.actions}><span>{file.name} · {fileSizeText(file.size)}</span><button type="button" disabled={disabled} onClick={() => { if (input.current) input.current.value = ''; setError(''); onChange(null); }}>Retirar selección</button></div>}
     {error && <p role="alert">{error}</p>}
   </div>;
@@ -105,11 +105,11 @@ function PdfIcon({ muted = false }: { muted?: boolean }) { return <svg className
 export function PaymentReceiptCell({ projectId, paymentId, file }: { projectId: string; paymentId: string; file?: ProjectFile }) {
   const router = useRouter(); const [preview, setPreview] = useState(false); const [edit, setEdit] = useState(false); const [remove, setRemove] = useState(false);
   return <div className={styles.receipt}>
-    {file ? <button type="button" className={styles.fileButton} onClick={() => setPreview(true)} aria-label={`Abrir soporte de pago ${file.original_name}`}><PdfIcon /><span>{file.original_name}</span></button> : <span className={styles.noReceipt}><PdfIcon muted />No tiene soporte de pago</span>}
+    {file ? <button type="button" className={styles.fileButton} onClick={() => setPreview(true)} aria-label={`Abrir soporte de pago ${file.original_name}`}><Icon name={file.mime_type === 'application/pdf' ? 'description' : 'image'} /><span>{file.original_name}</span></button> : <span className={styles.noReceipt}><PdfIcon muted />No tiene soporte de pago</span>}
     <div className={styles.actions}><button type="button" onClick={() => setEdit(true)}>{file ? 'Reemplazar' : 'Agregar soporte'}</button>{file && <><a href={`/api/proyectos/archivos/${file.id}?download=1`} target="_blank" rel="noopener noreferrer">Descargar</a><button type="button" onClick={() => setRemove(true)}>Quitar</button></>}</div>
     {preview && file && <FilePreview file={file} onClose={() => setPreview(false)} />}
     {edit && <ProjectFileEditor projectId={projectId} kind="receipt" paymentId={paymentId} existing={file} onClose={() => setEdit(false)} />}
-    {remove && file && <ConfirmationDialog open title="Quitar soporte de pago" description="Se retirará el PDF. Los datos del anticipo se conservarán." recordName={file.original_name} confirmLabel="Quitar soporte" variant="danger" onClose={() => setRemove(false)} onConfirm={async () => { await changeProjectFile({ id: file.id, expectedUpdatedAt: file.updated_at, remove: true }); setRemove(false); router.refresh(); }} />}
+    {remove && file && <ConfirmationDialog open title="Quitar soporte de pago" description="Se retirará el archivo de soporte. Los datos del anticipo se conservarán." recordName={file.original_name} confirmLabel="Quitar soporte" variant="danger" onClose={() => setRemove(false)} onConfirm={async () => { await changeProjectFile({ id: file.id, expectedUpdatedAt: file.updated_at, remove: true }); setRemove(false); router.refresh(); }} />}
   </div>;
 }
 
@@ -119,38 +119,15 @@ export function ProjectFilesCleanup({ projectId, revision = '' }: { projectId: s
   return pending ? <p role="status" className={styles.cleanup}>Hay archivos retirados pendientes de limpieza del almacenamiento. <button type="button" onClick={() => { void cleanupProjectFiles(projectId).then((result) => setPending(result.pending)).catch(() => setPending(true)); }}>Reintentar limpieza</button></p> : null;
 }
 
-function FileAction({ label, fileName, icon, onClick, href, danger = false }: { label: string; fileName: string; icon: IconName; onClick?: () => void; href?: string; danger?: boolean }) {
-  const tooltipId = useId(); const root = useRef<HTMLSpanElement>(null); const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [position, setPosition] = useState<{ left: number; top: number; above: boolean } | null>(null);
-  function cancelClose() { if (closeTimer.current) clearTimeout(closeTimer.current); }
-  function show() {
-    cancelClose(); const rect = root.current?.getBoundingClientRect(); if (!rect) return;
-    const above = rect.bottom + 44 > window.innerHeight;
-    setPosition({ left: Math.max(64, Math.min(window.innerWidth - 64, rect.left + rect.width / 2)), top: above ? rect.top - 8 : rect.bottom + 8, above });
-  }
-  useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
-  useEffect(() => {
-    if (!position) return;
-    const dismiss = () => setPosition(null);
-    const dismissOnEscape = (event: globalThis.KeyboardEvent) => { if (event.key === 'Escape') dismiss(); };
-    window.addEventListener('scroll', dismiss, true); window.addEventListener('resize', dismiss); window.addEventListener('keydown', dismissOnEscape);
-    return () => { window.removeEventListener('scroll', dismiss, true); window.removeEventListener('resize', dismiss); window.removeEventListener('keydown', dismissOnEscape); };
-  }, [position]);
-  const controlProps = { className: `${styles.iconAction}${danger ? ` ${styles.dangerAction}` : ''}`, 'aria-label': `${label} ${fileName}`, 'aria-describedby': position ? tooltipId : undefined };
-  return <span ref={root} className={styles.actionItem} onMouseEnter={show} onMouseLeave={() => { cancelClose(); closeTimer.current = setTimeout(() => { if (!root.current?.contains(document.activeElement)) setPosition(null); }, 150); }} onFocus={() => { show(); requestAnimationFrame(() => { if (root.current?.contains(document.activeElement)) show(); }); }} onBlur={() => setPosition(null)} onClickCapture={() => setPosition(null)} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); cancelClose(); setPosition(null); } }}>
-    {href ? <a {...controlProps} href={href} target="_blank" rel="noopener noreferrer"><Icon name={icon} /></a> : <button {...controlProps} type="button" onClick={onClick}><Icon name={icon} /></button>}
-    {position && createPortal(<span id={tooltipId} role="tooltip" className={styles.actionTooltip} style={{ left: position.left, top: position.top, transform: `translate(-50%, ${position.above ? '-100%' : '0'})` }} onMouseEnter={cancelClose} onMouseLeave={() => { if (!root.current?.contains(document.activeElement)) setPosition(null); }}>{label}</span>, document.body)}
-  </span>;
-}
 
 export function ProjectFilesPanel({ projectId, result, types }: { projectId: string; result?: { records: ProjectFile[]; page: PageInfo }; types: AttachmentType[] }) {
   const router = useRouter(); const [editor, setEditor] = useState<ProjectFile | 'new' | null>(null); const [preview, setPreview] = useState<ProjectFile | null>(null); const [remove, setRemove] = useState<ProjectFile | null>(null);
   return <section className={workspaceStyles.section}><header className={workspaceStyles.sectionHead}><h3>Archivos Adjuntos · {result?.page.total ?? 0} registros</h3><button type="button" className={workspaceStyles.secondary} onClick={() => setEditor('new')}>Agregar archivo adjunto</button></header>
     <div className={`${workspaceStyles.tableWrap} ${styles.attachmentTable}`}><table><caption className="srOnly">Archivos adjuntos del proyecto</caption><thead><tr>{['Tipo de documento', 'Nombre del archivo', 'Tamaño', 'Fecha de carga', 'Cargado por', 'Acciones'].map((column) => <th key={column} scope="col">{column}</th>)}</tr></thead><tbody>{result?.records.length ? result.records.map((file) => <tr key={file.id}><td>{file.project_attachment_types?.name}</td><td><button type="button" className={styles.fileLink} onClick={() => setPreview(file)}>{file.original_name}</button></td><td>{fileSizeText(file.size_bytes)}</td><td>{bogotaDateText(file.created_at.slice(0, 10))}</td><td>{file.uploader_name || 'Usuario'}</td><td><div className={styles.rowActions}>
-      <FileAction label="Abrir" fileName={file.original_name} icon="visibility" onClick={() => setPreview(file)} />
-      <FileAction label="Descargar" fileName={file.original_name} icon="download" href={`/api/proyectos/archivos/${file.id}?download=1`} />
-      <FileAction label="Editar" fileName={file.original_name} icon="edit" onClick={() => setEditor(file)} />
-      <FileAction label="Eliminar" fileName={file.original_name} icon="delete" danger onClick={() => setRemove(file)} />
+      <IconAction label="Abrir" accessibleLabel={`Abrir ${file.original_name}`} icon="visibility" onClick={() => setPreview(file)} />
+      <IconAction label="Descargar" accessibleLabel={`Descargar ${file.original_name}`} icon="download" href={`/api/proyectos/archivos/${file.id}?download=1`} />
+      <IconAction label="Editar" accessibleLabel={`Editar ${file.original_name}`} icon="edit" onClick={() => setEditor(file)} />
+      <IconAction label="Eliminar" accessibleLabel={`Eliminar ${file.original_name}`} icon="delete" danger onClick={() => setRemove(file)} />
     </div></td></tr>) : <tr><td colSpan={6}>Aún no hay archivos adjuntos.</td></tr>}</tbody></table></div>
     {result && <Pagination page={result.page} pageParam="attachments_page" />}
     <div className={styles.dialogs}>

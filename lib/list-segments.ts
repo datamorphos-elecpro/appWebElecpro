@@ -6,7 +6,7 @@ export const quoteListOptions = {
 };
 export const projectListOptions = {
   sort: ['created_at', 'title', 'status', 'expected_end_date', 'project_value'] as const, defaultSort: 'created_at' as const,
-  filters: { status: ['', 'draft', 'quoted', 'approved', 'in_progress', 'paused', 'finished', 'cancelled'] as const, segment: ['', 'active', 'paid', 'receivable', 'expenses', 'delayed', 'ending_soon'] as const },
+  filters: { status: ['', 'draft', 'quoted', 'pending_approval', 'approved', 'in_progress', 'paused', 'finished', 'cancelled'] as const, segment: ['', 'active', 'paid', 'receivable', 'expenses', 'delayed', 'ending_soon'] as const },
 };
 export const metricLinks = {
   'Cotizaciones': '/cotizaciones', 'Valor aprobado': '/cotizaciones?status=approved',

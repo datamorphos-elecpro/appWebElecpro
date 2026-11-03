@@ -7,7 +7,7 @@ export const coverageProject = {
   project_value: '100000', paid: '90000', withheld: '10000', balance: '0', expenses: '1000', budget: '2000', real_profit: '99000', projected_profit: '98000',
 };
 export async function getDashboardSnapshot() {
-  return { consulted_at: fixtureTimestamp(), financial: { ...coverageProject, contracted: '100000' }, project_total: 1, active_total: 1, delayed_total: 0, soon_total: 0, alert_total: fixtureAlerts().length, recent_projects: [coverageProject], priority_alerts: fixtureAlerts() };
+  return { consulted_at: fixtureTimestamp(), financial: { ...coverageProject, contracted: '100000', real_profit: new URLSearchParams(location.search).get('profit') ?? coverageProject.real_profit, balance: new URLSearchParams(location.search).get('balance') ?? coverageProject.balance }, project_total: 1, active_total: 1, delayed_total: 0, soon_total: 0, alert_total: fixtureAlerts().length, recent_projects: [coverageProject], priority_alerts: fixtureAlerts() };
 }
 function fixtureTimestamp() {
   const params = new URLSearchParams(location.search);
@@ -30,7 +30,7 @@ export async function getManagement(input?: { page?: number }) {
   }
   return {
     snapshot: {
-      metrics: { projectValue: '100000', paid: '90000', balance: '0', expenses: '1000', budget: '2000', profit: '99000', projectedProfit: '98000' },
+      metrics: { projectValue: '100000', paid: '90000', balance: new URLSearchParams(location.search).get('balance') ?? '0', expenses: '1000', budget: '2000', profit: '99000', projectedProfit: '98000' },
       period: { paid: '90000', expenses: '1000', movementCount: 2 },
       monthly: [{ key: '2026-10', label: 'Octubre', paid: '90000', expenses: '1000', difference: '89000' }],
       balances: [], cashByProject: [], budgetExecution: [], profitMargins: [], excluded: { budgetExecution: 1, profitMargins: 1 },

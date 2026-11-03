@@ -1,7 +1,7 @@
 ﻿import { decimal } from './calculations';
 import { bogotaDate, money } from './money';
 
-export const projectStatusLabel: Record<string, string> = { draft: 'Borrador', quoted: 'Cotizado', approved: 'Aprobado', in_progress: 'En proceso', paused: 'Pausado', finished: 'Finalizado', cancelled: 'Cancelado' };
+export const projectStatusLabel: Record<string, string> = { draft: 'Borrador', quoted: 'Cotizado', pending_approval: 'Pendiente por aprobar', approved: 'Aprobado', in_progress: 'En proceso', paused: 'Pausado', finished: 'Finalizado', cancelled: 'Cancelado' };
 export const quoteStatusLabel: Record<string, string> = { draft: 'Borrador', sent: 'Enviada', approved: 'Aprobada', rejected: 'Rechazada', expired: 'Vencida' };
 export const priorityLabel: Record<string, string> = { low: 'Baja', medium: 'Media', high: 'Alta', critical: 'Crítica' };
 export const categoryLabel: Record<string, string> = { material: 'Material', design: 'Diseño', technical_visit: 'Visita Técnica', labor: 'Servicio MO', all_inclusive: 'Todocosto', transport: 'Transporte' };

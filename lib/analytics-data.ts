@@ -18,7 +18,7 @@ export type AnalyticsFilters = Record<string, string>;
 export type { ChartDatum, ChartUnit } from './chart-data';
 export type ProjectCashDatum = { key: string; label: string; paid: string; expenses: string; difference: string };
 
-export const projectStates = ['draft', 'quoted', 'approved', 'in_progress', 'paused', 'finished', 'cancelled'];
+export const projectStates = ['draft', 'quoted', 'pending_approval', 'approved', 'in_progress', 'paused', 'finished', 'cancelled'];
 export const quoteStates = ['draft', 'sent', 'approved', 'rejected', 'expired'];
 export const activeProjectStates = new Set(['approved', 'in_progress', 'paused']);
 
@@ -28,7 +28,7 @@ const monthOf = (date: string) => date.slice(0, 7);
 const countValue = () => '1';
 
 export function filterManagementProjects(data: AnalyticsData, filters: AnalyticsFilters) {
-  return data.projects.filter((project) => matches(project.client_id, filters.client) && matches(project.id, filters.project) && matches(project.status, filters.status));
+  return data.projects.filter((project) => project.status !== 'pending_approval' && matches(project.client_id, filters.client) && matches(project.id, filters.project) && matches(project.status, filters.status));
 }
 
 export function filterOperationProjects(data: AnalyticsData, filters: AnalyticsFilters) {
@@ -141,6 +141,7 @@ export function operationAnalysis(data: AnalyticsData, filters: AnalyticsFilters
 }
 
 export function delayDays(project: Pick<ProjectRecord, 'status' | 'expected_end_date' | 'actual_end_date'>, today = bogotaDate()) {
+  if (project.status === 'pending_approval') return 0;
   const reference = project.status === 'finished' && project.actual_end_date ? project.actual_end_date : today;
   if (reference <= project.expected_end_date) return 0;
   const expected = new Date(`${project.expected_end_date}T12:00:00-05:00`).getTime();

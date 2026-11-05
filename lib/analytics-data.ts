@@ -1,3 +1,4 @@
+import { projectSchedule, scheduleOptions, sortProjectStatuses } from './operation-schedule';
 ﻿import { decimal } from './calculations';
 import { bogotaDate } from './money';
 import { projectStatusText, quoteDisplayStatus, quoteStatusText } from './presentation';
@@ -32,7 +33,7 @@ export function filterManagementProjects(data: AnalyticsData, filters: Analytics
 }
 
 export function filterOperationProjects(data: AnalyticsData, filters: AnalyticsFilters) {
-  return data.projects.filter((project) => matches(project.client_id, filters.client) && matches(project.responsible, filters.responsible) && matches(project.status, filters.status) && matches(project.priority, filters.priority));
+  return data.projects.filter((project) => matches(project.client_id, filters.client) && matches(project.responsible, filters.responsible) && matches(project.status, filters.status) && matches(project.priority, filters.priority) && (!filters.schedule || projectSchedule(project) === filters.schedule));
 }
 
 export function visibleQuoteStatus(quote: QuoteRecord, today = bogotaDate()) {
@@ -137,7 +138,7 @@ export function operationAnalysis(data: AnalyticsData, filters: AnalyticsFilters
   const projects = filterOperationProjects(data, filters);
   const byStatus = grouped(projects, (project) => ({ key: project.status, label: projectStatusText(project.status) }), countValue, 'count');
   const byResponsible = grouped(projects.filter((project) => activeProjectStates.has(project.status)), (project) => ({ key: project.responsible || unassignedResponsibleKey, label: project.responsible || 'Sin responsable' }), countValue, 'count');
-  return { projects, byStatus, byResponsible };
+  return { projects, byStatus: sortProjectStatuses(byStatus), byResponsible, bySchedule: scheduleOptions.map((item) => ({ key: item.value, label: item.label, value: String(projects.filter((project) => projectSchedule(project) === item.value).length), unit: 'count' as const })) };
 }
 
 export function delayDays(project: Pick<ProjectRecord, 'status' | 'expected_end_date' | 'actual_end_date'>, today = bogotaDate()) {
@@ -153,10 +154,12 @@ export function commercialAnalysis(data: AnalyticsData, filters: AnalyticsFilter
   const quotes = filterCommercialQuotes(data, filters, today);
   const byStatus = grouped(quotes, (quote) => ({ key: visibleQuoteStatus(quote, today), label: quoteStatusText(visibleQuoteStatus(quote, today)) }), countValue, 'count');
   const byMonth = grouped(quotes, (quote) => ({ key: monthOf(quote.issued_on), label: monthOf(quote.issued_on) }), (quote) => quote.total_amount).sort((a, b) => a.key.localeCompare(b.key));
-  const byClient = grouped(quotes, (quote) => ({ key: quote.client_id, label: clientName(quote) }), (quote) => quote.total_amount).sort((a, b) => decimal(b.value).comparedTo(decimal(a.value)));
+  const clientTotals = grouped(quotes, (quote) => ({ key: quote.client_id, label: clientName(quote) }), (quote) => quote.total_amount).sort((a, b) => decimal(b.value).comparedTo(decimal(a.value)));
+  const byClient = clientTotals.map((client) => { const entries = quotes.filter((quote) => quote.client_id === client.key); return { ...client, count: entries.length, segments: quoteStates.map((status) => { const records = entries.filter((quote) => quote.status === status); return { status, count: records.length, value: records.reduce((sum, quote) => sum.plus(quote.total_amount), decimal(0)).toString() }; }).filter((segment) => segment.count) }; });
+  const pending = quotes.filter((quote) => quote.status === 'sent' && quote.valid_until >= today);
   const approved = quotes.filter((quote) => visibleQuoteStatus(quote, today) === 'approved');
   const rejected = quotes.filter((quote) => visibleQuoteStatus(quote, today) === 'rejected');
   const approvedValue = approved.reduce((total, quote) => total.plus(decimal(quote.total_amount)), decimal(0)).toString();
   const decisions = approved.length + rejected.length;
-  return { quotes, byStatus, byMonth, byClient, approvedValue, validSent: quotes.filter((quote) => visibleQuoteStatus(quote, today) === 'sent').length, expired: quotes.filter((quote) => visibleQuoteStatus(quote, today) === 'expired').length, approval: decisions ? `${decimal(approved.length).div(decisions).times(100).toFixed(1)}%` : 'No calculable' };
+  return { quotes, byStatus, byMonth, byClient, approvedValue, pendingValue: pending.reduce((sum, quote) => sum.plus(quote.total_amount), decimal(0)).toString(), validSent: pending.length, expired: quotes.filter((quote) => visibleQuoteStatus(quote, today) === 'expired').length, approval: decisions ? `${decimal(approved.length).div(decisions).times(100).toFixed(1)}%` : 'No calculable' };
 }

@@ -12,6 +12,7 @@ import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 import { Pagination } from '../ui/Pagination';
 import { Icon } from '../ui/Icon';
 import { IconAction } from '../ui/IconAction';
+import { FileUploadStatus, type FileUploadState } from './FileUploadStatus';
 import styles from './ProjectFilesPanel.module.css';
 import workspaceStyles from './ProjectWorkspace.module.css';
 
@@ -19,12 +20,26 @@ export function FilePicker({ kind, file, onChange, disabled = false }: { kind: P
   const input = useRef<HTMLInputElement>(null);
   const labelId = useId(); const helpId = useId();
   const [error, setError] = useState('');
-  return <div className={styles.picker}><strong id={labelId}>{kind === 'receipt' ? 'Soporte de pago (opcional)' : 'Archivo'}</strong><input ref={input} type="file" hidden aria-labelledby={labelId} name={kind === 'receipt' ? 'support_file' : 'attachment_file'} accept={kind === 'receipt' ? receiptAccept : attachmentAccept} disabled={disabled} onChange={(event) => {
-    const next = event.target.files?.[0] ?? null;
-    try { if (next) validateProjectFile(next, kind); setError(''); onChange(next); }
-    catch (reason) { event.target.value = ''; onChange(null); setError(reason instanceof Error ? reason.message : 'Archivo no válido.'); }
-  }} /><button type="button" aria-label={kind === 'receipt' ? 'Seleccionar soporte de pago' : 'Seleccionar archivo adjunto'} aria-describedby={helpId} disabled={disabled} onClick={() => input.current?.click()}>Seleccionar archivo</button><small id={helpId}>{kind === 'receipt' ? 'Un archivo .pdf, .jpg, .jpeg o .png de máximo 10 MB.' : 'PDF, imágenes JPG/PNG, Word, Excel, DWG, DXF o ZIP. Máximo 50 MB.'}</small>
+  const [dragging, setDragging] = useState(false);
+  const dragDepth = useRef(0);
+  function selectFiles(files: File[]) {
+    if (disabled) return;
+    if (!files.length) return;
+    try {
+      if (files.length !== 1) throw new Error('Arrastre un solo archivo a la vez.');
+      validateProjectFile(files[0], kind); setError(''); onChange(files[0]);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Archivo no válido.'); }
+    if (input.current) input.current.value = '';
+  }
+  return <div className={styles.picker}><strong id={labelId}>{kind === 'receipt' ? 'Soporte de pago (opcional)' : 'Archivo'}</strong><input ref={input} type="file" hidden aria-labelledby={labelId} name={kind === 'receipt' ? 'support_file' : 'attachment_file'} accept={kind === 'receipt' ? receiptAccept : attachmentAccept} disabled={disabled} onChange={(event) => selectFiles(Array.from(event.target.files ?? []))} />
+    <div className={styles.dropzone} data-dragging={!disabled && dragging} aria-disabled={disabled} onDragEnter={(event) => { event.preventDefault(); if (!disabled) { dragDepth.current++; setDragging(true); } }} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = disabled ? 'none' : 'copy'; }} onDragLeave={(event) => { event.preventDefault(); if (--dragDepth.current <= 0) { dragDepth.current = 0; setDragging(false); } }} onDrop={(event) => {
+      event.preventDefault(); dragDepth.current = 0; setDragging(false); if (disabled) return;
+      const items = Array.from(event.dataTransfer.items ?? []);
+      if (items.some((item) => item.webkitGetAsEntry?.()?.isDirectory)) { setError('Seleccione un archivo, no una carpeta.'); return; }
+      selectFiles(Array.from(event.dataTransfer.files));
+    }}><span>Arrastra tu archivo aquí o selecciona uno</span><button type="button" aria-label={kind === 'receipt' ? 'Seleccionar soporte de pago' : 'Seleccionar archivo adjunto'} aria-describedby={helpId} disabled={disabled} onClick={() => input.current?.click()}>Seleccionar archivo</button></div><small id={helpId}>{kind === 'receipt' ? 'Un archivo .pdf, .jpg, .jpeg o .png de máximo 10 MB.' : 'PDF, imágenes JPG/PNG, Word, Excel, DWG, DXF o ZIP. Máximo 50 MB.'}</small>
     {file && <div className={styles.actions}><span>{file.name} · {fileSizeText(file.size)}</span><button type="button" disabled={disabled} onClick={() => { if (input.current) input.current.value = ''; setError(''); onChange(null); }}>Retirar selección</button></div>}
+    {file && <FileUploadStatus state={{ phase: 'selected', percent: 0 }} />}
     {error && <p role="alert">{error}</p>}
   </div>;
 }
@@ -74,30 +89,32 @@ function TypeSelector({ types, value, onChange }: { types: AttachmentType[]; val
 
 export function ProjectFileEditor({ projectId, kind, paymentId, existing, types = [], onClose }: { projectId: string; kind: ProjectFileKind; paymentId?: string; existing?: ProjectFile; types?: AttachmentType[]; onClose: () => void }) {
   const router = useRouter(); const [file, setFile] = useState<File | null>(null); const [typeName, setTypeName] = useState(existing?.project_attachment_types?.name ?? '');
-  const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [progress, setProgress] = useState(0); const [confirm, setConfirm] = useState(false);
+  const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [uploadState, setUploadState] = useState<FileUploadState>({ phase: 'selected', percent: 0 }); const [confirm, setConfirm] = useState(false);
   const attempt = useRef<FileUploadAttempt>({ id: crypto.randomUUID() });
   const needsFile = !existing || kind === 'receipt';
   async function save() {
     if (busy) return; setBusy(true); setError('');
     try {
       if (file) {
-        const id = await uploadProjectFile(file, { projectId, kind, paymentId, replacesId: existing?.id, expectedUpdatedAt: existing?.updated_at }, attempt.current, setProgress);
+        setUploadState({ phase: 'preparing', percent: attempt.current.uploaded ? 100 : 0 });
+        const id = await uploadProjectFile(file, { projectId, kind, paymentId, replacesId: existing?.id, expectedUpdatedAt: existing?.updated_at }, attempt.current, (percent) => setUploadState({ phase: 'uploading', percent }));
+        setUploadState({ phase: 'saving', percent: 100 });
         await finishProjectFile({ id, ...(kind === 'attachment' ? { typeName } : {}) });
       } else if (existing && kind === 'attachment') await changeProjectFile({ id: existing.id, expectedUpdatedAt: existing.updated_at, typeName });
       else throw new Error('Seleccione el archivo.');
-      router.refresh(); onClose();
-    } catch (reason) { const message = reason instanceof Error ? reason.message : 'No fue posible guardar el archivo.'; setError(message); throw reason; }
+      if (file) setUploadState({ phase: 'success', percent: 100 });
+      else { router.refresh(); onClose(); }
+    } catch (reason) { const message = reason instanceof Error ? reason.message : 'No fue posible guardar el archivo.'; setError(message); if (file) setUploadState((state) => ({ ...state, phase: 'error' })); throw reason; }
     finally { setBusy(false); }
   }
   return <><Dialog open title={kind === 'receipt' ? (existing ? 'Reemplazar soporte de pago' : 'Agregar soporte de pago') : (existing ? 'Editar archivo adjunto' : 'Agregar archivo adjunto')} onClose={onClose} locked={busy}>
     <form className={styles.editor} onSubmit={(event) => { event.preventDefault(); try { if (kind === 'attachment') attachmentTypeName.parse(typeName); if (needsFile && !file) throw new Error('Seleccione el archivo.'); setError(''); setConfirm(true); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Revise los datos.'); } }}>
-      {kind === 'attachment' && <TypeSelector types={types} value={typeName} onChange={setTypeName} />}
+      {kind === 'attachment' && <fieldset disabled={busy || uploadState.phase === 'success'} className={styles.typeFieldset}><TypeSelector types={types} value={typeName} onChange={setTypeName} /></fieldset>}
       {existing && <p>Archivo actual: {existing.original_name}{kind === 'attachment' ? '. Seleccione otro solo si desea reemplazarlo.' : ''}</p>}
-      <FilePicker kind={kind} file={file} disabled={busy} onChange={(next) => { setFile(next); attempt.current = { id: crypto.randomUUID() }; setProgress(0); }} />
-      {busy && <p role="status">Guardando… {file ? `${progress}%` : ''}</p>}{file && <progress value={progress} max={100} aria-label="Progreso de carga" />}
+      <FilePicker kind={kind} file={file} disabled={busy || uploadState.phase === 'success'} onChange={(next) => { setFile(next); attempt.current = { id: crypto.randomUUID() }; setUploadState({ phase: 'selected', percent: 0 }); }} />
       {error && <p role="alert">{error}</p>}<div className={styles.actions}><button type="button" disabled={busy} onClick={onClose}>Cancelar</button><button type="submit" disabled={busy}>Guardar</button></div>
     </form>
-  </Dialog>{confirm && <ConfirmationDialog open title={existing ? 'Confirmar cambios del archivo' : 'Confirmar archivo'} description={existing && file ? 'El archivo anterior será reemplazado. Se conservará la auditoría del cambio.' : 'Se guardará este documento en el proyecto.'} recordName={file?.name ?? existing?.original_name ?? ''} confirmLabel="Guardar archivo" onClose={() => setConfirm(false)} onConfirm={save} detail={busy ? <p role="status">Cargando y guardando… {progress}%</p> : undefined} />}</>;
+  </Dialog>{confirm && <ConfirmationDialog open title={existing ? 'Confirmar cambios del archivo' : 'Confirmar archivo'} description={existing && file ? 'El archivo anterior será reemplazado. Se conservará la auditoría del cambio.' : 'Se guardará este documento en el proyecto.'} recordName={file?.name ?? existing?.original_name ?? ''} confirmLabel="Guardar archivo" success={uploadState.phase === 'success'} onClose={() => { if (uploadState.phase === 'success') { router.refresh(); onClose(); } else setConfirm(false); }} onConfirm={save} detail={file ? <FileUploadStatus state={uploadState} /> : undefined} />}</>;
 }
 
 function PdfIcon({ muted = false }: { muted?: boolean }) { return <svg className={muted ? styles.mutedIcon : styles.pdfIcon} viewBox="0 0 32 36" width="28" height="32" aria-hidden="true"><path d="M5 1h14l8 8v25H5z" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M19 1v9h8" fill="none" stroke="currentColor" strokeWidth="2" /><text x="6" y="26" fill="currentColor" fontSize="10" fontWeight="bold">PDF</text></svg>; }

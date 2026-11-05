@@ -1,5 +1,10 @@
+import { ClientQuotesChart } from '../../../../components/analytics/ClientQuotesChart';
+import { ManagementMetricReport } from '../../../../components/analytics/ManagementMetricReport';
+import { managementMetrics, type ManagementMetric, type ManagementReport } from '../../../../lib/management-report';
+import { metricLabels, parseAnalysisDetailRequest } from '../../../../lib/analytics-detail';
+import { scheduleOptions, sortProjectStatuses, type OperationSchedule } from '../../../../lib/operation-schedule';
 import { financialAttributes } from '../../../../lib/financial-tone';
-import { getCommercial, getFilterOptions, getManagement, getOperation, type CommercialRow, type ManagementRow, type OperationRow } from '../../../../lib/analytics-queries';
+import { getCommercial, getFilterOptions, getManagement, getManagementReport, getOperation, type CommercialRow, type ManagementRow, type OperationRow } from '../../../../lib/analytics-queries';
 import { money } from '../../../../lib/money';
 import { bogotaDateText, monthText, priorityText, projectStatusText, quoteStatusText } from '../../../../lib/presentation';
 import { ManagementReportChart } from '../../../../components/analytics/ManagementReportChart';
@@ -18,7 +23,8 @@ const selected = (params: Params, key: string, allowed: string[]) => [...new Set
 export default async function AnalysisReport({ searchParams }: { searchParams: Promise<Params> }) {
   await requireProfile();
   const params = await searchParams;
-  const tab = select(value(params, 'tab'), ['management', 'operation', 'commercial']) || 'management';
+  const metric = value(params, 'metric');
+  const tab = metric ? 'management' : select(value(params, 'tab'), ['management', 'operation', 'commercial']) || 'management';
   const options = await getFilterOptions(tab as 'management' | 'operation' | 'commercial');
   const client = selected(params, `${tab}_client`, options.clients.map((item) => item.value));
   const month = /^\d{4}-(0[1-9]|1[0-2])$/.test(value(params, `${tab}_month`)) ? value(params, `${tab}_month`) : '';
@@ -26,7 +32,26 @@ export default async function AnalysisReport({ searchParams }: { searchParams: P
   const filters = [client.length && `Clientes: ${options.clients.filter((item) => client.includes(item.value)).map((item) => item.label).join(', ')}`, status.length && `Estados: ${status.map((item) => tab === 'commercial' ? quoteStatusText(item) : projectStatusText(item)).join(', ')}`, month && `Mes: ${monthText(month)}`];
   let content: React.ReactNode;
   let recordCount = 0;
-  if (tab === 'management') {
+  if (metric) {
+    if (!managementMetrics.includes(metric as ManagementMetric)) return <p role="alert">Métrica de informe no válida.</p>;
+    const query = new URLSearchParams();
+    for (const [key, raw] of Object.entries(params)) for (const item of Array.isArray(raw) ? raw : raw ? [raw] : []) query.append(key, item);
+    query.set('page', '1'); query.set('pageSize', '100');
+    let report: ManagementReport;
+    try {
+      const request = parseAnalysisDetailRequest(query);
+      report = await getManagementReport(metric as ManagementMetric, request.filters);
+      filters.length = 0;
+      const active = request.filters;
+      if (active.management_client.length) filters.push(`Clientes: ${active.management_client.map((id) => options.clients.find((item) => item.value === id)?.label ?? id).join(', ')}`);
+      if (active.management_project.length) filters.push(`Proyectos: ${active.management_project.map((id) => options.projects.find((item) => item.value === id)?.label ?? id).join(', ')}`);
+      if (active.management_status.length) filters.push(`Estados: ${active.management_status.map(projectStatusText).join(', ')}`);
+    } catch (error) {
+      console.error('No fue posible cargar el informe de la métrica', error);
+      return <p role="alert">No fue posible cargar el informe completo. Reintente desde la vista previa.</p>;
+    }
+    recordCount = report.total; content = <ManagementMetricReport report={report} />;
+  } else if (tab === 'management') {
     const project = selected(params, 'management_project', options.projects.filter((item) => !client.length || client.includes(item.parentId)).map((item) => item.value));
     filters.push(project.length && `Proyectos: ${options.projects.filter((item) => project.includes(item.value)).map((item) => item.label).join(', ')}`);
     const input = { client, project, status, month, page: 1, pageSize: 100 as const };
@@ -37,17 +62,19 @@ export default async function AnalysisReport({ searchParams }: { searchParams: P
     const responsible = selected(params, 'operation_responsible', options.responsible.map((item) => item.value));
     const priority = selected(params, 'operation_priority', ['low','medium','high','critical']);
     filters.push(responsible.length && `Responsables: ${options.responsible.filter((item) => responsible.includes(item.value)).map((item) => item.label).join(', ')}`, priority.length && `Prioridades: ${priority.map(priorityText).join(', ')}`);
-    const input = { client, responsible, status, priority, page: 1, pageSize: 100 as const };
+    const schedule = select(value(params, 'operation_schedule'), scheduleOptions.map((item) => item.value)) as OperationSchedule;
+    filters.push(schedule && `Cronograma: ${scheduleOptions.find((item) => item.value === schedule)?.label}`);
+    const input = { client, responsible, status, priority, schedule, page: 1, pageSize: 100 as const };
     const first = await getOperation(input); const rows: OperationRow[] = [...first.table.records];
     for (let page = 2; page <= first.table.page.pageCount; page++) rows.push(...(await getOperation({ ...input, page })).table.records);
-    recordCount = rows.length; const s = first.snapshot; content = <><div className={styles.metrics}><Metric label="Proyectos filtrados" value={String(s.total)} /></div><div className={styles.charts}><Chart title="Proyectos por estado" data={s.byStatus.map((x) => ({ ...x, label: projectStatusText(x.key), unit: 'count' as const }))} /><Chart title="Activos por responsable" data={s.byResponsible.map((x) => ({ ...x, unit: 'count' as const }))} /></div><Table title="Cronograma y retrasos" headers={['Proyecto','Responsable','Inicio','Prevista','Real','Estado']} rows={rows.map((r) => [r.quote_number || r.title, r.responsible || '—', bogotaDateText(r.start_date), bogotaDateText(r.expected_end_date), bogotaDateText(r.actual_end_date), projectStatusText(r.status)])} /></>;
+    recordCount = rows.length; const s = first.snapshot; content = <><div className={styles.metrics}><Metric label="Proyectos filtrados" value={String(s.total)} /></div><div className={styles.charts}><Chart title="Proyectos por estado" data={sortProjectStatuses(s.byStatus).map((x) => ({ ...x, label: projectStatusText(x.key), unit: 'count' as const }))} /><Chart title="Estado del cronograma" data={s.bySchedule.map((x) => ({ ...x, unit: 'count' as const }))} /></div><Table title="Cronograma y retrasos" headers={['Proyecto','Responsable','Inicio','Prevista','Real','Estado']} rows={rows.map((r) => [r.quote_number || r.title, r.responsible || '—', bogotaDateText(r.start_date), bogotaDateText(r.expected_end_date), bogotaDateText(r.actual_end_date), projectStatusText(r.status)])} /></>;
   } else {
     const input = { client, status, month, page: 1, pageSize: 100 as const };
     const first = await getCommercial(input); const rows: CommercialRow[] = [...first.table.records];
     for (let page = 2; page <= first.table.page.pageCount; page++) rows.push(...(await getCommercial({ ...input, page })).table.records);
-    recordCount = rows.length; const s = first.snapshot; content = <><div className={styles.metrics}><Metric label="Valor aprobado" value={money(s.metrics.approvedValue)} /><Metric label="Propuestas vigentes" value={String(s.metrics.validSent)} /><Metric label="Vencidas" value={String(s.metrics.expired)} /><Metric label="Aprobación" value={s.metrics.approval ? `${s.metrics.approval}%` : 'No calculable'} /></div><div className={styles.charts}><Chart title="Valor por cliente" data={s.byClient} /><Chart title="Cotizaciones por estado" data={s.byStatus.map((x) => ({ ...x, label: quoteStatusText(x.key), unit: 'count' as const }))} /><Chart title="Valor emitido por mes" data={s.byMonth.map((x) => ({ ...x, label: monthText(x.key) }))} /></div><Table title="Detalle de cotizaciones" headers={['Número','Cliente','Emisión','Estado','Valor']} numericFrom={4} rows={rows.map((r) => [r.number, r.client_name, bogotaDateText(r.issued_on), quoteStatusText(r.visible_status), money(r.total_amount)])} /></>;
+    recordCount = rows.length; const s = first.snapshot; content = <><div className={styles.metrics}><Metric label="Valor aprobado" value={money(s.metrics.approvedValue)} /><Metric label="Valor pendiente de aprobación" value={money(s.metrics.pendingValue)} /><Metric label="Vencidas" value={String(s.metrics.expired)} /><Metric label="Aprobación" value={s.metrics.approval ? `${s.metrics.approval}%` : 'No calculable'} /></div><div className={styles.charts}><section className={styles.chart}><h2>Valor por cliente</h2><ClientQuotesChart data={s.byClient} /></section><Chart title="Cotizaciones por estado" data={s.byStatus.map((x) => ({ ...x, label: quoteStatusText(x.key), unit: 'count' as const }))} /><Chart title="Valor emitido por mes" data={s.byMonth.map((x) => ({ ...x, label: monthText(x.key) }))} /></div><Table title="Detalle de cotizaciones" headers={['Número','Cliente','Emisión','Estado','Valor']} numericFrom={4} rows={rows.map((r) => [r.number, r.client_name, bogotaDateText(r.issued_on), quoteStatusText(r.visible_status), money(r.total_amount)])} /></>;
   }
-  return <article className={`${styles.report} ${tab === 'management' ? styles.management : ''} analysis-print-root`} data-preview={value(params, 'preview') === '1'}><div className={styles.controls}><a href={`/analisis${tab === 'management' ? '' : `?tab=${tab}`}`}>Volver a Análisis</a><PrintFinanceButton /></div><header className={styles.header}><Image src="/images/elecpro-logo.png" width={154} height={67} alt="Elecpro Ingeniería Eléctrica" /><div><small>INFORME DE ANÁLISIS</small><h1>{tab === 'management' ? 'Gerencia y rentabilidad' : tab === 'operation' ? 'Operación' : 'Comercial'}</h1><p>Generado el {new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', dateStyle: 'long', timeStyle: 'short' }).format(new Date())} · Bogotá · {recordCount} registros</p><p>Filtros: {filters.filter(Boolean).join(' · ') || 'Todos'}</p></div></header>{content}</article>;
+  return <article className={`${styles.report} ${tab === 'management' ? styles.management : ''} analysis-print-root`} data-preview={value(params, 'preview') === '1'}><div className={styles.controls}><a href={`/analisis${tab === 'management' ? '' : `?tab=${tab}`}`}>Volver a Análisis</a><PrintFinanceButton /></div><header className={styles.header}><Image src="/images/elecpro-logo.png" width={154} height={67} alt="Elecpro Ingeniería Eléctrica" /><div><small>INFORME DE ANÁLISIS</small><h1>{metric ? metricLabels[metric as ManagementMetric] : tab === 'management' ? 'Gerencia y rentabilidad' : tab === 'operation' ? 'Operación' : 'Comercial'}</h1><p>Generado el {new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', dateStyle: 'long', timeStyle: 'short' }).format(new Date())} · Bogotá · {recordCount} registros</p><p>Filtros: {filters.filter(Boolean).join(' · ') || 'Todos'}</p></div></header>{content}</article>;
 }
 
 function Metric({ label, value }: { label: string; value: string }) { return <div className={styles.metric}><span>{label}</span><strong>{value}</strong></div>; }

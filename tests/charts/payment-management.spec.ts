@@ -29,6 +29,7 @@ test('permite soporte PNG y muestra las extensiones permitidas', async ({ page }
   await page.locator('input[type=file]').setInputFiles({ name: 'comprobante.png', mimeType: 'image/png', buffer: Buffer.from('imagen de prueba') });
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
   await page.getByRole('button', { name: 'Guardar archivo', exact: true }).click();
+  await page.getByRole('button', { name: 'Listo', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Abrir soporte de pago comprobante.png' })).toBeVisible();
 });
 

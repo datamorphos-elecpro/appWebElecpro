@@ -6,3 +6,4 @@
 .actions button { min-height: 36px; border: 1px solid var(--border); border-radius: 8px; padding: 7px 11px; background: var(--surface); font-weight: 700; }
 .actions .warning { border-color: #b77a15; background: #fff2d6; color: #704800; }
 .actions .danger { border-color: #a83b3b; background: #fff0f0; color: #8b2424; }
+.actions .success { border-color: #187044; background: #187044; color: #fff; }

@@ -10,7 +10,7 @@ Elecpro centraliza la operación comercial, técnica y financiera de proyectos d
 - Zona horaria de presentación: `America/Bogota`. Las fechas operativas se guardan como `date`; las marcas de auditoría como `timestamptz`.
 - Empresa única: Elecpro. La configuración de empresa es una única fila editable y no se filtra por organización.
 - Estados de proyecto: `Borrador`, `Cotizado`, `Pendiente por aprobar`, `Aprobado`, `En proceso`, `Pausado`, `Finalizado`, `Cancelado`.
-- Estados de cotización: `Borrador`, `Enviada`, `Aprobada`, `Rechazada`. Una cotización no decidida cuya `valid_until` sea anterior a hoy se muestra como `Vencida`, sin cambiar automáticamente el estado guardado.
+- Estados de cotización: `Borrador`, `Enviada`, `Aprobada`, `Rechazada`. La fecha de vigencia no cambia el estado guardado ni el mostrado. Las propuestas vigentes y el valor pendiente de aprobación sí consideran la vigencia como criterio de cálculo, independiente del estado. Ver [mejoras de Análisis e informes](../docs/ANALYTICS-REPORTS-AND-MANUAL-QUOTE-STATUS.md).
 - Prioridades: `Baja`, `Media`, `Alta`, `Crítica`.
 - Roles: `administrator` y `management`. Ambos pueden crear, editar, eliminar y consultar datos de negocio. Solo `administrator` gestiona usuarios y roles.
 

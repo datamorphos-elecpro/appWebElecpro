@@ -33,8 +33,9 @@ export function roleText(role: string | null | undefined) { return controlledTex
 export function profitModeText(mode: string | null | undefined) { return controlledText(mode, profitModeLabel); }
 export function shareModeText(mode: string | null | undefined) { return controlledText(mode, shareModeLabel); }
 export function shareBasisText(basis: string | null | undefined) { return controlledText(basis, shareBasisLabel); }
-export function quoteDisplayStatus(quote: { status: string; valid_until?: string | null }, today = bogotaDate()) {
-  return ['draft', 'sent'].includes(quote.status) && quote.valid_until && quote.valid_until < today ? 'expired' : quote.status;
+export function quoteDisplayStatus(quote: { status: string; valid_until?: string | null }, _today?: string) {
+  // La vigencia es informativa: únicamente una acción explícita cambia el estado.
+  return quote.status;
 }
 export function statusLabel(status: string) { return projectStatusText(status); }
 export function presentationLabel(value: string, domain: ControlledDomain) {

@@ -1,5 +1,7 @@
 import type { AlertRecord } from '../../lib/data';
 import { pagination } from '../../lib/pagination';
+import { metricReportFixture, commercialFixture, operationFixture } from './analytics-improvements-data';
+import type { ManagementMetric } from '../../lib/management-report';
 
 export const coverageProject = {
   id: '33333333-3333-4333-8333-333333333333', client_id: '22222222-2222-4222-8222-222222222222', title: 'Instalación eléctrica', quote_number: 'PRY-TEST',
@@ -38,8 +40,9 @@ export async function getManagement(input?: { page?: number }) {
     table: { records: [coverageProject], page: pagination(1, 1, 20) },
   };
 }
-export async function getCommercial() { throw new Error('Fuera de esta fixture'); }
-export async function getOperation() { throw new Error('Fuera de esta fixture'); }
+export const getCommercial = commercialFixture;
+export const getOperation = operationFixture;
+export async function getManagementReport(metric: ManagementMetric) { return metricReportFixture(metric); }
 export async function requireProfile() { return {}; }
 
 function fixtureAlerts(): AlertRecord[] {

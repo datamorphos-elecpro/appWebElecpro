@@ -10,8 +10,8 @@ describe('presentation labels', () => {
     expect(presentationLabel('labor', 'category')).toBe('Servicio MO');
     expect(presentationLabel('legacy_unknown', 'category')).toBe('Sin clasificar');
   });
-  it('shows only undecided, expired quotes as Vencida', () => {
-    expect(quoteDisplayStatus({ status: 'sent', valid_until: '2026-09-13' }, '2026-09-14')).toBe('expired');
+  it('preserves the explicitly saved quote status regardless of validity date', () => {
+    expect(quoteDisplayStatus({ status: 'sent', valid_until: '2026-09-13' }, '2026-09-14')).toBe('sent');
     expect(quoteDisplayStatus({ status: 'draft', valid_until: '2026-09-14' }, '2026-09-14')).toBe('draft');
     expect(quoteDisplayStatus({ status: 'approved', valid_until: '2026-09-13' }, '2026-09-14')).toBe('approved');
     expect(quoteDisplayStatus({ status: 'rejected', valid_until: '2026-09-13' }, '2026-09-14')).toBe('rejected');

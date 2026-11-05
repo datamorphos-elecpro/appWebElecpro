@@ -12,6 +12,12 @@ beforeEach(() => {
   rpc.mockResolvedValue({ data: { metric: 'management.projectValue', records: [], total: 0, page: 1, pageSize: 20, value: '0', unit: 'money', components: {} }, error: null });
 });
 describe('GET detalle autenticado', () => {
+  it('acepta el nuevo valor pendiente de aprobación como importe monetario', async () => {
+    rpc.mockResolvedValue({ data: { metric: 'commercial.pendingValue', records: [], total: 0, page: 1, pageSize: 20, value: '0', unit: 'money', components: {} }, error: null });
+    const response = await GET(request('metric=commercial.pendingValue&commercial_status=sent&commercial_month=2026-11'));
+    expect(response.status).toBe(200);
+    expect(rpc).toHaveBeenCalledWith('analytics_metric_detail', expect.objectContaining({ p_metric: 'commercial.pendingValue', p_filters: expect.objectContaining({ commercial_status: ['sent'], commercial_month: '2026-11' }) }));
+  });
   it('rechaza anónimos antes de consultar perfiles o RPC', async () => {
     getClaims.mockResolvedValue({ data: null }); expect((await GET(request())).status).toBe(401); expect(from).not.toHaveBeenCalled(); expect(rpc).not.toHaveBeenCalled();
   });

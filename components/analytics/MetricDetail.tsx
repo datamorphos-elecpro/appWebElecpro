@@ -1,16 +1,14 @@
 'use client';
 
-import Link from 'next/link';
-import { financialAttributes } from '../../lib/financial-tone';
 import { useSearchParams } from 'next/navigation';
-import { type ComponentProps, type ReactNode, useEffect, useState } from 'react';
-import { analysisDetailResponseSchema, metricLabels, type AnalysisDetail, type AnalysisDetailRow, type AnalysisMetric } from '../../lib/analytics-detail';
-import { projectCovered } from '../../lib/calculations';
+import { type ComponentProps, useEffect, useState } from 'react';
+import { analysisDetailResponseSchema, metricLabels, type AnalysisDetail, type AnalysisMetric } from '../../lib/analytics-detail';
 import { money } from '../../lib/money';
-import { bogotaDateText, profitModeText, projectStatusText, quoteStatusText } from '../../lib/presentation';
 import { Metric } from '../ui/Page';
 import { Dialog } from '../ui/Dialog';
 import { ResponsiveTable } from '../ui/ResponsiveTable';
+import { columns, cells, cellAttributes } from './MetricDetailTable';
+import { AnalysisReportDialog } from './AnalysisReportDialog';
 import styles from './MetricDetail.module.css';
 import pagerStyles from '../ui/Pagination.module.css';
 
@@ -21,6 +19,8 @@ export function AnalysisMetricCard({ metric, ...props }: Omit<ComponentProps<typ
 }
 
 function MetricDetail({ metric, query, onClose }: { metric: AnalysisMetric; query: string; onClose: () => void }) {
+  const [reportOpen, setReportOpen] = useState(false);
+  const reportParams = new URLSearchParams(query); reportParams.set('metric', metric); reportParams.set('tab', 'management');
   const [page, setPage] = useState(1); const [size, setSize] = useState(20);
   const [retry, setRetry] = useState(0);
   const [result, setResult] = useState<{ url: string; data?: AnalysisDetail; error?: string } | null>(null);
@@ -44,8 +44,9 @@ function MetricDetail({ metric, query, onClose }: { metric: AnalysisMetric; quer
   const current = result?.url === url ? result : null; const data = current?.data;
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
   const displayValue = !data || data.value === null ? 'No calculable' : data.unit === 'money' ? money(data.value) : data.unit === 'percent' ? `${data.value}%` : data.value;
-  return <Dialog open wide title={metricLabels[metric]} onClose={onClose}>
+  return <><Dialog open wide title={metricLabels[metric]} onClose={onClose}>
     <div className={styles.detail}>
+      {metric.startsWith('management.') && <button type="button" disabled={!data} onClick={() => setReportOpen(true)}>Imprimir como PDF</button>}
       <p className={styles.scope}>{metric.startsWith('management.') ? 'Acumulado de los proyectos filtrados. El periodo de caja no limita esta métrica.' : metric === 'distribution.result' || metric === 'distribution.available' ? 'El resultado usa el portafolio completo; las asignaciones respetan los filtros de Distribuciones.' : 'Detalle correspondiente a los filtros activos de esta vista.'}</p>
       {!current && <p role="status">Cargando detalle…</p>}
       {current?.error && <div role="alert"><p>{current.error}</p><button type="button" onClick={() => { setResult(null); setRetry((value) => value + 1); }}>Reintentar</button></div>}
@@ -61,35 +62,5 @@ function MetricDetail({ metric, query, onClose }: { metric: AnalysisMetric; quer
         </nav>
       </>}
     </div>
-  </Dialog>;
-}
-
-function columns(metric: AnalysisMetric): string[] {
-  if (metric === 'management.projectValue') return ['Proyecto', 'Cliente', 'Estado', 'Valor contratado'];
-  if (metric === 'management.balance') return ['Proyecto', 'Cliente', 'Valor', 'Anticipos', 'Retenciones', 'Cubierto', 'Saldo'];
-  if (metric === 'management.expenses') return ['Fecha', 'Proyecto', 'Cliente', 'Categoría', 'Descripción', 'Valor'];
-  if (metric === 'management.profit' || metric === 'management.projectedProfit' || metric === 'distribution.result') return ['Proyecto', 'Cliente', 'Modelo', 'Base', metric === 'management.projectedProfit' ? 'Presupuesto' : 'Gastos', ...(metric === 'management.projectedProfit' ? [] : ['Distribuciones pagadas']), 'Resultado'];
-  if (metric.startsWith('commercial.')) return ['Cotización', 'Cliente', 'Emisión', 'Vigencia', 'Estado', 'Valor'];
-  if (metric === 'distribution.available') return ['Origen', 'Proyecto / Participante', 'Detalle', 'Aporte al disponible'];
-  return ['Participante', 'Regla', 'Estado', 'Fecha de pago', 'Importe aplicado'];
-}
-function cells(metric: AnalysisMetric, row: AnalysisDetailRow): ReactNode[] {
-  const project = row.kind === 'project' || row.kind === 'expense' ? <Link href={`/proyectos/${row.project_id}`}>{row.label} · {row.title}</Link> : null;
-  if (row.kind === 'expense') return [bogotaDateText(row.date), project, row.client_name, row.category, row.note || '—', money(row.amount)];
-  if (row.kind === 'quote') return [<Link key={row.id} href={`/cotizaciones/${row.quote_id}`}>{row.label} · {row.title}</Link>, row.client_name, bogotaDateText(row.date), bogotaDateText(row.valid_until), quoteStatusText(row.status), money(row.quote_value)];
-  if (metric === 'distribution.available') return row.kind === 'project' ? ['Resultado del proyecto', project, `${profitModeText(row.profit_mode)} · Base ${money(row.base)} − gastos ${money(row.expenses)} - distribuciones pagadas ${money(row.paid_distributions)}`, money(row.amount)] : ['Distribución', row.label, `${row.is_paid ? 'Pagada' : 'Pendiente'} · ${row.mode === 'percent' ? `${row.rule_value}%` : money(row.rule_value)}`, money(row.amount)];
-  if (row.kind === 'distribution') return [row.label, row.mode === 'percent' ? `${row.rule_value}% del resultado` : money(row.rule_value), row.is_paid ? 'Pagada' : row.is_active ? 'Pendiente' : 'Inactiva', row.date ? bogotaDateText(row.date) : '—', money(row.amount)];
-  if (metric === 'management.projectValue') return [project, row.client_name, projectStatusText(row.status), money(row.amount)];
-  if (metric === 'management.balance') return [project, row.client_name, money(row.project_value), money(row.paid), money(row.withheld), money(projectCovered(row.paid, row.withheld)), money(row.balance)];
-  return [project, row.client_name, profitModeText(row.profit_mode), money(row.base), money(metric === 'management.projectedProfit' ? row.budget : row.expenses), ...(metric === 'management.projectedProfit' ? [] : [money(row.paid_distributions)]), money(row.amount)];
-}
-
-function cellAttributes(metric: AnalysisMetric, row: AnalysisDetailRow, index: number) {
-  // Negative accounting deductions are descriptive, never losses by themselves.
-  if (row.kind !== 'project') return {};
-  const last = cells(metric, row).length - 1;
-  if (index === last && metric === 'management.balance') return financialAttributes(row.balance, 'balance');
-  if (index === last && ['management.profit', 'management.projectedProfit', 'distribution.result', 'distribution.available'].includes(metric)) return financialAttributes(row.amount, 'result');
-  if (index === 4 && ['management.profit', 'distribution.result'].includes(metric)) return financialAttributes(row.expenses, 'expense', row.budget);
-  return {};
+  </Dialog>{reportOpen && <AnalysisReportDialog open src={`/analisis/informe?${reportParams}`} onClose={() => setReportOpen(false)} />}</>;
 }

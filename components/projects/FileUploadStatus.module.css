@@ -1,0 +1,9 @@
+.status { --upload-color: #175da8; display: grid; gap: 8px; min-width: 0; padding: 12px; border: 1px solid currentColor; border-radius: 8px; color: var(--upload-color); background: var(--surface); }
+.status p { margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
+.status span { font-size: .85rem; font-weight: 700; text-align: right; }
+.status[data-state=success] { --upload-color: #187044; }
+.status[data-state=error] { --upload-color: #b42318; }
+.progress { display: block; appearance: none; width: 100%; height: 10px; border: 0; border-radius: 999px; overflow: hidden; background: #e3e8ee; color: var(--upload-color); accent-color: var(--upload-color); }
+.progress::-webkit-progress-bar { background: #e3e8ee; border-radius: 999px; }
+.progress::-webkit-progress-value { background: var(--upload-color); border-radius: 999px; }
+.progress::-moz-progress-bar { background: var(--upload-color); border-radius: 999px; }

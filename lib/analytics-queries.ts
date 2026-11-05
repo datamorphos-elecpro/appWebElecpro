@@ -1,6 +1,9 @@
 import { pageRange, paginated, pagination, type PageSize, type PaginatedResult } from './pagination';
 import { createClient } from './supabase/server';
 import type { ChartDatum } from './chart-data';
+import type { OperationSchedule } from './operation-schedule';
+import { managementReportSchema, type ManagementMetric } from './management-report';
+import type { AnalysisDetailFilters } from './analytics-detail';
 
 export type AnalyticsTab = 'management' | 'operation' | 'commercial' | 'distribution';
 export type { ChartDatum } from './chart-data';
@@ -13,10 +16,17 @@ export type CommercialRow = { id: string; number: string; client_name: string; i
 export type BudgetExecutionDatum = { key: string; label: string; value: string; expenses: string; budget: string; overBudget: boolean; unit: 'percent' };
 export type ProfitMarginDatum = { key: string; label: string; current: string; projected: string; unit: 'percent' };
 export type ManagementSnapshot = { metrics: { projectValue: string; paid: string; balance: string; expenses: string; budget: string; profit: string; projectedProfit: string }; period: { paid: string; expenses: string; movementCount: number }; monthly: Array<{ key: string; label: string; paid: string; expenses: string; difference: string }>; balances: ChartDatum[]; cashByProject: Array<{ key: string; label: string; paid: string; expenses: string; difference: string }>; budgetExecution: BudgetExecutionDatum[]; profitMargins: ProfitMarginDatum[]; excluded: { budgetExecution: number; profitMargins: number } };
-export type OperationSnapshot = { total: number; byStatus: ChartDatum[]; byResponsible: ChartDatum[] };
-export type CommercialSnapshot = { metrics: { approvedValue: string; validSent: number; expired: number; approval: string | null }; byStatus: ChartDatum[]; byMonth: ChartDatum[]; byClient: ChartDatum[] };
+export type OperationSnapshot = { total: number; byStatus: ChartDatum[]; bySchedule: ChartDatum[] };
+export type ClientQuoteDatum = ChartDatum & { count: number; segments: { status: string; count: number; value: string }[] };
+export type CommercialSnapshot = { metrics: { approvedValue: string; pendingValue: string; validSent: number; expired: number; approval: string | null }; byStatus: ChartDatum[]; byMonth: ChartDatum[]; byClient: ClientQuoteDatum[] };
 
 function nullable(value: string) { return value || null; }
+export async function getManagementReport(metric: ManagementMetric, filters: AnalysisDetailFilters) {
+  const supabase = await createClient();
+  const { data, error: rpcError } = await supabase.rpc('analytics_management_report', { p_metric: metric, p_filters: filters });
+  if (rpcError) error(rpcError.message);
+  return managementReportSchema.parse(data);
+}
 function error(message: string) { throw new Error(`No fue posible cargar Análisis: ${message}`); }
 function rows<T>(data: unknown, page: number, pageSize: PageSize): PaginatedResult<T> {
   const raw = (data ?? []) as Array<T & { total_count: number }>;
@@ -45,10 +55,10 @@ export async function getManagement(input: { client: string[]; project: string[]
   return { snapshot: snapshot.data as ManagementSnapshot, table: rows<ManagementRow>(table.data, input.page, input.pageSize) };
 }
 
-export async function getOperation(input: { client: string[]; responsible: string[]; status: string[]; priority: string[]; page: number; pageSize: PageSize }) {
+export async function getOperation(input: { client: string[]; responsible: string[]; status: string[]; priority: string[]; schedule?: OperationSchedule; page: number; pageSize: PageSize }) {
   const supabase = await createClient(); const range = pageRange(input.page, input.pageSize);
-  const args = { p_clients: input.client, p_responsibles: input.responsible, p_statuses: input.status, p_priorities: input.priority };
-  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_operation_snapshot_multi', args), supabase.rpc('analytics_operation_page_multi', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
+  const args = { p_clients: input.client, p_responsibles: input.responsible, p_statuses: input.status, p_priorities: input.priority, p_schedule: input.schedule || null };
+  const [snapshot, table] = await Promise.all([supabase.rpc('analytics_operation_snapshot_v2', args), supabase.rpc('analytics_operation_page_v2', { ...args, p_offset: range.from, p_limit: input.pageSize })]);
   if (snapshot.error || table.error) error(snapshot.error?.message ?? table.error?.message ?? 'respuesta inválida');
   return { snapshot: snapshot.data as OperationSnapshot, table: rows<OperationRow>(table.data, input.page, input.pageSize) };
 }

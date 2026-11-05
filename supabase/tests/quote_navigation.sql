@@ -78,7 +78,7 @@ begin
       'responsible','Prueba','priority','medium','start_date',today-30,
       'expected_end_date',case when i=0 then today when i=1 then today+15 when i=6 then today+16 else today-4 end,
       'actual_end_date',case when i=5 then today-1 else null end,'profit_mode','value','initial_profit','0'));
-    if i=0 then insert into public.project_payments(project_id,payment_date,amount,payment_method) values(p.id,today,250.25,'Transferencia'); end if;
+    if i=0 then perform public.save_project_payment_with_file(jsonb_build_object('project_id',p.id,'request_id',gen_random_uuid(),'payment_date',today,'amount','250.25','payment_method','Transferencia')); end if;
     if i=2 then insert into public.project_expenses(project_id,expense_date,amount,category,payment_method) values(p.id,today,50.25,'Material','Transferencia'); end if;
   end loop;
 end $$;

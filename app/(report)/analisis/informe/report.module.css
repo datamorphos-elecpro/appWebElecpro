@@ -24,7 +24,7 @@
 @media (max-width: 700px) { .charts { grid-template-columns: 1fr; } .report { padding: 12px; } }
 @media print {
   .report, .report * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .report { max-width: none; margin: 0; padding: 0; }
+  .report { max-width: none; min-height: 0; margin: 0; padding: 0; }
   .controls { display: none; }
   .metrics { grid-template-columns: repeat(3, 1fr); break-inside: avoid; }
   .charts { display: block; }
@@ -76,3 +76,20 @@
 
 .tableHeading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .tableHeading strong { overflow-wrap: anywhere; }
+
+.subtotal { background: #e8f3ee; font-weight: 700; }
+.grandTotal { text-align: right; font-size: 16px; margin-top: 24px; }
+.groupCaption { text-align: left; }
+.reportBarRow { display: grid; grid-template-columns: minmax(140px, 28%) minmax(0, 1fr); gap: 12px; align-items: center; padding: 7px 0; break-inside: avoid; }
+.reportBarName { overflow-wrap: anywhere; font-size: 12px; }
+.reportBarLine { display: grid; grid-template-columns: minmax(0, 1fr) var(--report-amount-width); gap: 12px; align-items: center; }
+.reportBarPlot { position: relative; min-height: 22px; }
+.reportBarAxis { position: absolute; top: -5px; bottom: -5px; border-left: 1px solid #acbdb4; }
+.reportBar { display: block; position: absolute; top: 2px; height: 18px; border-radius: 3px; }
+.reportBarValue { font-variant-numeric: tabular-nums; font-size: 12px; text-align: right; white-space: nowrap; }
+@media screen and (max-width: 700px) { .reportBarRow { grid-template-columns: 1fr; gap: 5px; } }
+@media print {
+  .groupCaption, .tableSection thead { break-after: avoid; }
+  .tableLead { break-before: avoid; }
+  .tableTail { break-inside: avoid; }
+}

@@ -16,5 +16,5 @@ const formatValue = (value: string | number, unit: ChartUnit = 'money') => {
 export function AnalyticsBarChart({ data, label, onSelect, groupSize }: { data: ChartDatum[]; label: string; onSelect?: (key: string) => void; groupSize?: number }) {
   if (!data.length) return <p className={styles.empty}>No hay datos para los filtros seleccionados.</p>;
   const series = [...new Set(data.map((row) => row.series).filter(Boolean))];
-  return <HorizontalBarChart groupSize={groupSize} data={data.map((row) => ({ ...row, formattedValue: formatValue(row.value, row.unit), color: colors[Math.max(0, series.indexOf(row.series)) % colors.length] }))} label={label} onSelect={onSelect ? (key) => onSelect(key.split(':')[0]) : undefined} />;
+  return <HorizontalBarChart groupSize={groupSize} data={data.map((row) => ({ ...row, formattedValue: formatValue(row.value, row.unit), color: row.color ?? colors[Math.max(0, series.indexOf(row.series)) % colors.length] }))} label={label} onSelect={onSelect ? (key) => onSelect(key.split(':')[0]) : undefined} />;
 }

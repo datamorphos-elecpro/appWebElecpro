@@ -4,6 +4,33 @@ const fixture = '/tests/fixtures/project-files.html';
 const pdf = { name: 'comprobante.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\nprueba') };
 const longFileName = `Memoria-de-calculo-${'instalacion-electrica-'.repeat(7)}revision-final.pdf`;
 
+test('arrastrar selecciona sin cargar y los errores conservan la selección válida', async ({ page }) => {
+  await page.goto(`${fixture}?section=payments`);
+  await page.getByRole('button', { name: 'Registrar anticipo', exact: true }).click();
+  const zone = page.getByText('Arrastra tu archivo aquí o selecciona uno', { exact: true }).locator('..');
+  const drop = async (names: string[], folder = false) => {
+    await zone.evaluate((node, { names, folder }) => {
+      const dataTransfer = new DataTransfer();
+      for (const name of names) dataTransfer.items.add(new File(['%PDF-1.4 prueba'], name, { type: 'application/pdf' }));
+      if (folder) Object.defineProperty(dataTransfer, 'items', { value: [{ webkitGetAsEntry: () => ({ isDirectory: true }) }] });
+      node.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, dataTransfer }));
+      node.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer }));
+    }, { names, folder });
+  };
+  await drop(['arrastrado.pdf']);
+  await expect(page.getByText(/arrastrado.pdf ·/)).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('elecpro:test:project-record'))).toBeNull();
+  await drop(['uno.pdf', 'dos.pdf']); await expect(page.getByRole('alert')).toContainText('un solo archivo');
+  await expect(page.getByText(/arrastrado.pdf ·/)).toBeVisible();
+  await drop(['archivo.exe']); await expect(page.getByRole('alert')).toContainText('PDF, JPG, JPEG o PNG');
+  await drop(['carpeta'], true); await expect(page.getByRole('alert')).toContainText('no una carpeta');
+  await page.getByLabel('Valor', { exact: true }).fill('2000');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  await page.getByRole('button', { name: 'Guardar registro', exact: true }).click();
+  await page.getByRole('button', { name: 'Listo', exact: true }).click();
+  await expect(page.getByRole('table', { name: 'Anticipos registrados' })).toContainText('arrastrado.pdf');
+});
+
 async function seedAttachment(page: Page, name = longFileName) {
   await page.addInitScript((fileName) => localStorage.setItem('elecpro:test:files', JSON.stringify([{
     id: 'fa000000-0000-4000-8000-000000000011', project_id: '33333333-3333-4333-8333-333333333333', kind: 'attachment',
@@ -21,6 +48,7 @@ test('crea categoría global y adjunto, permite reclasificarlo y eliminarlo', as
   await page.locator('input[type=file]').setInputFiles(pdf);
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
   await page.getByRole('button', { name: 'Guardar archivo', exact: true }).click();
+  await page.getByRole('button', { name: 'Listo', exact: true }).click();
   const table = page.getByRole('table', { name: 'Archivos adjuntos del proyecto' });
   await expect(table).toContainText('Acta especial'); await expect(table).toContainText('comprobante.pdf');
   await table.getByRole('button', { name: 'Editar comprobante.pdf', exact: true }).click();
@@ -38,6 +66,7 @@ test('permite completar y retirar el soporte de un anticipo anterior', async ({ 
   await table.getByRole('button', { name: 'Agregar soporte' }).click();
   await page.locator('input[type=file]').setInputFiles(pdf);
   await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await page.getByRole('button', { name: 'Guardar archivo', exact: true }).click();
+  await page.getByRole('button', { name: 'Listo', exact: true }).click();
   await expect(table.getByRole('button', { name: 'Abrir soporte de pago comprobante.pdf' })).toBeVisible();
   await table.getByRole('button', { name: 'Quitar', exact: true }).click(); await page.getByRole('button', { name: 'Quitar soporte', exact: true }).click();
   await expect(table).toContainText('No tiene soporte de pago'); await expect(table).toContainText('1.000');
@@ -54,6 +83,7 @@ test('una carga fallida no crea el anticipo; conserva el formulario para reinten
   expect(await page.evaluate(() => localStorage.getItem('elecpro:test:project-record'))).toBeNull();
   await page.evaluate(() => localStorage.removeItem('elecpro:test:fail-upload'));
   await page.getByRole('button', { name: 'Guardar registro', exact: true }).click();
+  await page.getByRole('button', { name: 'Listo', exact: true }).click();
   await expect(page.getByRole('table', { name: 'Anticipos registrados' })).toContainText('comprobante.pdf');
 });
 
@@ -76,6 +106,7 @@ test('el selector admite teclado y la vista previa conserva descarga', async ({ 
   await expect(type).toHaveValue('Informe');
   await page.locator('input[type=file]').setInputFiles(pdf);
   await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await page.getByRole('button', { name: 'Guardar archivo', exact: true }).click();
+  await page.getByRole('button', { name: 'Listo', exact: true }).click();
   await page.route('**/api/proyectos/archivos/*?format=json', (route) => route.fulfill({ json: { url: 'about:blank' } }));
   await page.getByRole('table').getByRole('button', { name: 'Abrir comprobante.pdf', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'comprobante.pdf', exact: true });

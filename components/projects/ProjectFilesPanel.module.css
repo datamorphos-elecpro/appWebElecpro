@@ -6,3 +6,7 @@
 .fileLink{display:inline;padding:0;border:0;background:transparent;color:var(--green-dark);font:inherit;text-align:left;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;overflow-wrap:anywhere;cursor:pointer}
 .fileLink:hover,.fileLink:focus-visible{text-decoration-color:currentColor}
 .rowActions{display:flex;align-items:center;gap:4px;width:max-content}
+.dropzone { display: grid; justify-items: center; gap: 12px; padding: 24px 16px; border: 2px dashed var(--green-700); border-radius: 12px; text-align: center; transition: background .15s, border-color .15s; }
+.dropzone[data-dragging="true"] { background: var(--green-100, #e5f3ec); border-style: solid; }
+.dropzone[aria-disabled="true"] { opacity: .55; }
+.typeFieldset { border: 0; padding: 0; margin: 0; min-width: 0; }

@@ -8,4 +8,5 @@ export type ChartDatum = {
   value: string;
   unit?: ChartUnit;
   series?: string;
+  color?: string;
 };

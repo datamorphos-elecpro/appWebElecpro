@@ -63,9 +63,9 @@ describe('análisis', () => {
     expect(result.balances.map((row) => row.key).sort()).toEqual(['c1', 'c2']);
   });
   it('presenta las cotizaciones vencidas y no calcula aprobación sin decisión', () => {
-    expect(filterCommercialQuotes(data, { status: 'expired' }, '2026-02-16').map((quote) => quote.id)).toEqual(['q1']);
+    expect(filterCommercialQuotes(data, { status: 'expired' }, '2026-02-16').map((quote) => quote.id)).toEqual([]);
     const result = commercialAnalysis({ ...data, quotes: [data.quotes[0]] }, {}, '2026-02-16');
-    expect(result.expired).toBe(1);
+    expect(result.expired).toBe(0); expect(result.validSent).toBe(0); expect(result.pendingValue).toBe('0');
     expect(result.approval).toBe('No calculable');
   });
   it('mide retraso contra la fecha real para finalizados y Bogotá para abiertos', () => {

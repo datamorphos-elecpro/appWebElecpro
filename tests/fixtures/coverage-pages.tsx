@@ -14,6 +14,6 @@ async function main() {
     : view === 'report' ? await Report({ searchParams: Promise.resolve({}) })
     : view === 'analytics' ? <AnalyticsWorkspace tab="management" data={await getManagement()} options={await getFilterOptions()} />
     : await Dashboard();
-  createRoot(document.getElementById('root')!).render(<main style={{ padding: 16 }}>{content}</main>);
+  createRoot(document.getElementById('root')!).render(view === 'report' ? content : <main style={{ padding: 16 }}>{content}</main>);
 }
 void main();

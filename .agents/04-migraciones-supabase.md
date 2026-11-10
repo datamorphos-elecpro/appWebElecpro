@@ -119,3 +119,7 @@ Aplicar 20261023100000_current_alerts.sql después de 20261022130000 y antes de 
 ## Anticipos y aprobación, noviembre de 2026
 
 Aplicar `20261103100000_pending_project_status.sql` y confirmar antes de ejecutar `20261103110000_payment_management_pending_finance.sql`. Desplegar la aplicación después de ambas. No reclasificar proyectos automáticamente. Contrato, procedimiento manual y validaciones SQL/RLS y de navegador en [PAYMENT-MANAGEMENT-AND-APPROVAL](../docs/PAYMENT-MANAGEMENT-AND-APPROVAL.md).
+
+## Incremento de mano de obra y documento, noviembre de 2026
+
+Desde `20261110100000_quote_labor_increase.sql`, `labor_increase_pct numeric(7,2)` inicia en 0 y se aplica solo a Servicio MO, después del IVA por ítem, con las mismas reglas de formato que materiales. Descuentos, AIU e impuestos usan el costo ajustado; el presupuesto excluye ambos incrementos. Con AIU oculto e IVA directo activo, el documento omite la fila IVA sobre utilidad, conservando su importe en el total. Aplica a documentos anteriores sin recalcular datos históricos; las convertidas siguen bloqueadas. Contrato, migración y pruebas: [mano de obra y presentación del IVA](../docs/QUOTE-LABOR-INCREASE.md).

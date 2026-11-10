@@ -2,6 +2,8 @@
 
 Actualización del 22 de octubre de 2026.
 
+Presentación actualizada el 10 de noviembre de 2026: con AIU oculto e IVA directo activo, IVA sobre utilidad deja de desglosarse en el documento, pero permanece en el total. Ver [contrato vigente](QUOTE-LABOR-INCREASE.md).
+
 ## Comportamiento entregado
 
 - Cotizaciones: Mostrar AIU afecta solo el documento; al desactivarlo, Costo directo + Administración + Imprevistos + Utilidad se presentan como Subtotal del servicio. El editor conserva todos los campos económicos. Ambos impuestos siguen separados.

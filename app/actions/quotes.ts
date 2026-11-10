@@ -11,6 +11,7 @@ export type QuoteActionResult<T> =
   | { ok: false; message: string; reference?: string };
 
 const expectedMessages = [
+  'El incremento sobre mano de obra debe ser un decimal no negativo con máximo dos decimales y cinco dígitos enteros.',
   directDiscountExcessMessage, directDiscountFixedMessage, directDiscountPctMessage, 'Tipo de descuento inválido',
   'No autorizado', 'Cliente activo requerido', 'La vigencia debe ser posterior a la emisión',
   'Los porcentajes no pueden ser negativos', 'Agregue al menos un ítem', 'Cotización no encontrada',

@@ -45,6 +45,7 @@ function initialForm(quote?: InitialQuote) {
     address: String(quote?.address ?? ''), city: String(quote?.city ?? ''),
     issued_on: String(quote?.issued_on ?? today), valid_until: String(quote?.valid_until ?? datePlusDays(today, 15)),
     material_increase_pct: decimalInput(quote?.material_increase_pct, '0'), administration_pct: decimalInput(quote?.administration_pct, '8'),
+    labor_increase_pct: decimalInput(quote?.labor_increase_pct, '0'),
     contingency_pct: decimalInput(quote?.contingency_pct, '3'), utility_pct: decimalInput(quote?.utility_pct, '10'), vat_utility_pct: decimalInput(quote?.vat_utility_pct, '19'),
     show_aiu: String(quote?.show_aiu ?? true), apply_direct_vat: String(quote?.apply_direct_vat ?? false), vat_direct_pct: decimalInput(quote?.vat_direct_pct, '19'),
     apply_direct_discount: String(quote?.apply_direct_discount ?? false), direct_discount_type: String(quote?.direct_discount_type ?? 'percent'),
@@ -131,16 +132,17 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
   }
 
   const totals = useMemo(() => calculateQuote(items.map((item) => ({
-    category: (item.category || 'labor') as CatalogCategory, quantity: item.quantity, baseUnitPrice: normalizeBasePrice(item.base_unit_price) ?? '0',
+    category: item.category, quantity: item.quantity, baseUnitPrice: normalizeBasePrice(item.base_unit_price) ?? '0',
     vatPct: normalizeItemVat(item.vat_pct) ?? '0',
   })), {
     materialIncreasePct: form.material_increase_pct, administrationPct: form.administration_pct, contingencyPct: form.contingency_pct,
+    laborIncreasePct: form.labor_increase_pct,
     utilityPct: form.utility_pct, vatUtilityPct: form.vat_utility_pct,
     applyDirectVat: form.apply_direct_vat === 'true', vatDirectPct: normalizeItemVat(form.vat_direct_pct) ?? '0',
     applyDirectDiscount: form.apply_direct_discount === 'true', directDiscountType: form.direct_discount_type === 'fixed' ? 'fixed' : 'percent',
     directDiscountPct: directDiscountPctSchema.safeParse(form.direct_discount_pct).data ?? '0',
     directDiscountFixedAmount: directDiscountFixedSchema.safeParse(form.direct_discount_fixed_amount).data ?? '0',
-  }), [items, form.material_increase_pct, form.administration_pct, form.contingency_pct, form.utility_pct, form.vat_utility_pct, form.apply_direct_vat, form.vat_direct_pct, form.apply_direct_discount, form.direct_discount_type, form.direct_discount_pct, form.direct_discount_fixed_amount]);
+  }), [items, form.material_increase_pct, form.labor_increase_pct, form.administration_pct, form.contingency_pct, form.utility_pct, form.vat_utility_pct, form.apply_direct_vat, form.vat_direct_pct, form.apply_direct_discount, form.direct_discount_type, form.direct_discount_pct, form.direct_discount_fixed_amount]);
 
   const discountCheck = quotePayloadSchema.safeParse({ ...form, show_aiu: form.show_aiu === 'true', apply_direct_vat: form.apply_direct_vat === 'true', apply_direct_discount: form.apply_direct_discount === 'true', items });
   const discountErrors = discountCheck.success ? [] : [...new Set(discountCheck.error.issues.filter((issue) => String(issue.path[0]).startsWith('direct_discount')).map((issue) => issue.message))];
@@ -375,6 +377,7 @@ export function QuoteEditor({ quote, initialClient, company, userId }: { quote?:
             <span>Costo directo neto</span><span>—</span><strong>{discountErrors.length ? '—' : money(totals.netDirectCost)}</strong>
           </>}
           <EconomicRow label="Incremento sobre materiales" field="material_increase_pct" value={form.material_increase_pct} amount="-" patch={patchForm} disabled={locked} />
+          <EconomicRow label="Incremento sobre mano de obra" field="labor_increase_pct" value={form.labor_increase_pct} amount="-" patch={patchForm} disabled={locked} />
           <EconomicRow label="Administración" field="administration_pct" value={form.administration_pct} amount={money(totals.administrationAmount)} patch={patchForm} disabled={locked} />
           <EconomicRow label="Imprevistos" field="contingency_pct" value={form.contingency_pct} amount={money(totals.contingencyAmount)} patch={patchForm} disabled={locked} />
           <EconomicRow label="Utilidad" field="utility_pct" value={form.utility_pct} amount={money(totals.utilityAmount)} patch={patchForm} disabled={locked} />
@@ -459,6 +462,6 @@ function MaterialRow({ item, index, line, locked, patch, remove }: { item: Item;
   </div>;
 }
 
-function EconomicRow({ label, field, value, amount, patch, disabled }: { label: string; field: 'material_increase_pct' | 'administration_pct' | 'contingency_pct' | 'utility_pct' | 'vat_utility_pct' | 'vat_direct_pct'; value: string; amount: string; patch: (key: typeof field, value: string) => void; disabled: boolean }) {
+function EconomicRow({ label, field, value, amount, patch, disabled }: { label: string; field: 'material_increase_pct' | 'labor_increase_pct' | 'administration_pct' | 'contingency_pct' | 'utility_pct' | 'vat_utility_pct' | 'vat_direct_pct'; value: string; amount: string; patch: (key: typeof field, value: string) => void; disabled: boolean }) {
   return <><span>{label} (%)</span><input aria-label={`${label} porcentaje`} type="number" min="0" max={field === 'vat_direct_pct' ? 100 : undefined} step="0.01" value={value} onChange={(event) => patch(field, event.target.value)} disabled={disabled} /><strong>{amount}</strong></>;
 }

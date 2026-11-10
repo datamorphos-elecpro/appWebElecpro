@@ -123,3 +123,7 @@ La migración podrá crear `project_financial_summary` y `portfolio_financial_su
 ## Actualización 20261103
 
 `project_payments` añade `deleted_at`, `deleted_by`, `delete_reason`, `last_mutation_id` único y `last_mutation_payload`. Las mutaciones usan RPC autorizados, bloqueo por proyecto y revisión `updated_at` monotónica; RLS oculta eliminados y se revoca escritura directa. `active_project_payments` excluye eliminados y `financial_projects` excluye `pending_approval`, ambas con `security_invoker`. La vista individual conserva proyectos pendientes; la consolidada los excluye. Los soportes vigentes de anticipos eliminados permanecen almacenados y sin acceso ordinario. Ver [contrato](../docs/PAYMENT-MANAGEMENT-AND-APPROVAL.md).
+
+## Incremento de mano de obra y documento, noviembre de 2026
+
+Desde `20261110100000_quote_labor_increase.sql`, `labor_increase_pct numeric(7,2)` inicia en 0 y se aplica solo a Servicio MO, después del IVA por ítem, con las mismas reglas de formato que materiales. Descuentos, AIU e impuestos usan el costo ajustado; el presupuesto excluye ambos incrementos. Con AIU oculto e IVA directo activo, el documento omite la fila IVA sobre utilidad, conservando su importe en el total. Aplica a documentos anteriores sin recalcular datos históricos; las convertidas siguen bloqueadas. Contrato, migración y pruebas: [mano de obra y presentación del IVA](../docs/QUOTE-LABOR-INCREASE.md).

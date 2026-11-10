@@ -55,6 +55,7 @@ export const quotePayloadSchema = z.object({
   address: z.string().default(''),
   city: z.string().default(''),
   material_increase_pct: quoteDecimalString(5),
+  labor_increase_pct: quoteDecimalString(5).default('0'),
   administration_pct: quoteDecimalString(5),
   contingency_pct: quoteDecimalString(5),
   utility_pct: quoteDecimalString(5),
@@ -82,9 +83,10 @@ export const quotePayloadSchema = z.object({
   if (value.apply_direct_discount && value.direct_discount_type === 'fixed'
     && directDiscountFixedSchema.safeParse(value.direct_discount_fixed_amount).success
     && quoteDecimalString(5).safeParse(value.material_increase_pct).success
+    && quoteDecimalString(5).safeParse(value.labor_increase_pct).success
     && z.array(quoteItemSchema).safeParse(value.items).success) {
     const { directCost } = calculateQuote(value.items.map((item) => ({ category: item.category, quantity: item.quantity, baseUnitPrice: item.base_unit_price, vatPct: item.vat_pct })), {
-      materialIncreasePct: value.material_increase_pct, administrationPct: '0', contingencyPct: '0', utilityPct: '0', vatUtilityPct: '0',
+      materialIncreasePct: value.material_increase_pct, laborIncreasePct: value.labor_increase_pct, administrationPct: '0', contingencyPct: '0', utilityPct: '0', vatUtilityPct: '0',
     });
     if (decimal(value.direct_discount_fixed_amount).greaterThan(directCost)) context.addIssue({ code: z.ZodIssueCode.custom, path: ['direct_discount_fixed_amount'], message: directDiscountExcessMessage });
   }

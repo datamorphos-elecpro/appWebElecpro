@@ -6,6 +6,7 @@ export async function saveQuote(input: unknown) {
   const payload = quotePayloadSchema.parse(input);
   const totals = calculateQuote(payload.items.map((item) => ({ category: item.category, quantity: item.quantity, baseUnitPrice: item.base_unit_price, vatPct: item.vat_pct })), {
     materialIncreasePct: payload.material_increase_pct, administrationPct: payload.administration_pct, contingencyPct: payload.contingency_pct,
+    laborIncreasePct: payload.labor_increase_pct,
     utilityPct: payload.utility_pct, vatUtilityPct: payload.vat_utility_pct,
     applyDirectVat: payload.apply_direct_vat, vatDirectPct: payload.vat_direct_pct,
     applyDirectDiscount: payload.apply_direct_discount, directDiscountType: payload.direct_discount_type,

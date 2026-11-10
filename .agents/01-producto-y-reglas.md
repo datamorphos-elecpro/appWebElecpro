@@ -69,6 +69,7 @@ Para cada ítem `i`:
 ```text
 costo_unitario_i = precio_base_i × (1 + iva_item_i / 100)
 precio_final_i = costo_unitario_i × (1 + incremento_materiales / 100)  si categoría = Material
+precio_final_i = costo_unitario_i × (1 + incremento_mano_obra / 100)  si categoría = Servicio MO
 precio_final_i = costo_unitario_i                                    en otro caso
 total_base_i = cantidad_i × precio_base_i
 total_costo_i = cantidad_i × costo_unitario_i
@@ -84,7 +85,7 @@ iva_costo_directo = costo_directo_neto × iva_costo_directo_pct / 100 si está a
 total_cotización = costo_directo_neto + administración + imprevistos + utilidad + iva_utilidad + iva_costo_directo
 ```
 
-El incremento solo se aplica una vez sobre el costo con IVA de cada material. AIU y el IVA adicional usan el costo directo neto; el IVA sobre utilidad usa solo utilidad. Usar valores `numeric` y redondear para presentación, no entre pasos de la fórmula.
+Cada incremento se aplica una sola vez sobre el costo con IVA de su categoría: Material o Servicio MO. AIU y el IVA adicional usan el costo directo neto; el IVA sobre utilidad usa solo utilidad. Usar valores `numeric` y redondear para presentación, no entre pasos de la fórmula.
 
 Para un proyecto:
 
@@ -138,3 +139,7 @@ Las nuevas distribuciones, incluidas las generales, son valores fijos manuales. 
 ## Anticipos y proyectos pendientes por aprobar
 
 Desde noviembre de 2026, `pending_approval` conserva detalle y movimientos, pero no contribuye a consolidados financieros ni alertas. Permanece en inventario, recientes y Operación. Anticipos editables y eliminables lógicamente con motivo obligatorio, auditoría y soporte conservado; eliminados ocultos y excluidos de cálculos. Soportes PDF/JPG/JPEG/PNG hasta 10 MB. Panel reemplaza Próximas finalizaciones por Ganancia menos cartera; Análisis muestra Cartera Pendiente y Total de Cartera del conjunto filtrado completo. Contrato, migraciones y procedimiento: [anticipos y aprobación](../docs/PAYMENT-MANAGEMENT-AND-APPROVAL.md).
+
+## Incremento de mano de obra y documento, noviembre de 2026
+
+Desde `20261110100000_quote_labor_increase.sql`, `labor_increase_pct numeric(7,2)` inicia en 0 y se aplica solo a Servicio MO, después del IVA por ítem, con las mismas reglas de formato que materiales. Descuentos, AIU e impuestos usan el costo ajustado; el presupuesto excluye ambos incrementos. Con AIU oculto e IVA directo activo, el documento omite la fila IVA sobre utilidad, conservando su importe en el total. Aplica a documentos anteriores sin recalcular datos históricos; las convertidas siguen bloqueadas. Contrato, migración y pruebas: [mano de obra y presentación del IVA](../docs/QUOTE-LABOR-INCREASE.md).

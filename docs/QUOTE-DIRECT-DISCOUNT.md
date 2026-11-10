@@ -2,6 +2,8 @@
 
 Actualización del 22 de octubre de 2026.
 
+Desde el 10 de noviembre de 2026, la base también incluye el incremento independiente de Servicio MO. Con AIU oculto e IVA directo activo se omite visualmente IVA sobre utilidad, conservándolo en el total. Ver [incremento de mano de obra](QUOTE-LABOR-INCREASE.md).
+
 ## Comportamiento y contrato
 
 El interruptor **Aplicar descuento al costo directo** inicia apagado. Al activarlo se elige Porcentaje o Valor fijo, ambos inicialmente 0. Los dos valores se conservan por separado al alternar, apagar, guardar y recuperar borradores. Se aceptan coma o punto decimal, máximo dos decimales, sin separadores de miles. Porcentaje: 0–100; fijo: no negativo y, cuando está seleccionado y activado, no superior al costo directo. Si reducir ítems provoca un exceso, se indica el error y se impiden guardado, vista previa, impresión y conversión. Apagar permite conservar ese monto para futuras modificaciones.

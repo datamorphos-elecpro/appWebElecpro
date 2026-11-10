@@ -16,7 +16,7 @@
 
 | Área | Escenario esperado |
 | --- | --- |
-| Cotización | Un material con incremento de 10 % aplica el factor solo una vez; mano de obra conserva el precio base. |
+| Cotización | Material y Servicio MO aplican únicamente su propio incremento una vez sobre el costo con IVA; otras categorías conservan ese costo. |
 | Cotización | AIU se calcula sobre costo directo e IVA solo sobre utilidad; el total coincide en editor, vista previa y proyecto convertido. |
 | Cotización | No se permite incremento cuando hay ítems sin categoría. |
 | Cotización | IVA por ítem inicia en 0, admite vacío/coma/punto, aumenta el costo y precio; Material aplica incremento una vez y Todocosto/Transporte no lo reciben. |
@@ -49,3 +49,7 @@ Comparar cada módulo con `../index.html` en escritorio, 900 px, 680 px y 380 px
 ## Criterios de aceptación
 
 La primera versión queda lista cuando un administrador puede invitar a un usuario, un usuario activo puede iniciar sesión, crear catálogo y cliente, emitir y aprobar una cotización, convertirla una sola vez en proyecto, registrar movimientos y consultar el panel sin depender de `localStorage`. Las políticas deben impedir cualquier acceso anónimo o de usuario inactivo, y los importes mostrados deben coincidir con los cálculos de servidor.
+
+## Incremento de mano de obra y documento, noviembre de 2026
+
+Desde `20261110100000_quote_labor_increase.sql`, `labor_increase_pct numeric(7,2)` inicia en 0 y se aplica solo a Servicio MO, después del IVA por ítem, con las mismas reglas de formato que materiales. Descuentos, AIU e impuestos usan el costo ajustado; el presupuesto excluye ambos incrementos. Con AIU oculto e IVA directo activo, el documento omite la fila IVA sobre utilidad, conservando su importe en el total. Aplica a documentos anteriores sin recalcular datos históricos; las convertidas siguen bloqueadas. Contrato, migración y pruebas: [mano de obra y presentación del IVA](../docs/QUOTE-LABOR-INCREASE.md).

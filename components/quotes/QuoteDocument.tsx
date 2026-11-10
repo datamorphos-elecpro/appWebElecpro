@@ -52,7 +52,10 @@ export function QuoteDocument({ form, items, totals, number, client, company, pr
     ['Imprevistos', `${form.contingency_pct || '0'}%`, totals.contingencyAmount],
     ['Utilidad', `${form.utility_pct || '0'}%`, totals.utilityAmount],
   ];
-  economicRows.push(['IVA sobre utilidad', `${form.vat_utility_pct || '0'}%`, totals.vatUtilityAmount]);
+  // Esta opción solo cambia el desglose; el impuesto permanece incluido en el total.
+  if (!(form.show_aiu === 'false' && form.apply_direct_vat === 'true')) {
+    economicRows.push(['IVA sobre utilidad', `${form.vat_utility_pct || '0'}%`, totals.vatUtilityAmount]);
+  }
   if (form.apply_direct_vat === 'true') economicRows.push(['IVA sobre costo directo', `${form.vat_direct_pct || '0'}%`, totals.vatDirectAmount ?? 0]);
   const contact = [client?.contact_name, client?.email].filter(Boolean).join(' · ');
 

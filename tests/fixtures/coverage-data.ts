@@ -6,7 +6,7 @@ import type { ManagementMetric } from '../../lib/management-report';
 export const coverageProject = {
   id: '33333333-3333-4333-8333-333333333333', client_id: '22222222-2222-4222-8222-222222222222', title: 'Instalación eléctrica', quote_number: 'PRY-TEST',
   status: 'approved', priority: 'medium', responsible: 'Ana', clients: { name: 'Cliente de prueba' }, expected_end_date: '2099-12-01', actual_end_date: null,
-  project_value: '100000', paid: '90000', withheld: '10000', balance: '0', expenses: '1000', budget: '2000', real_profit: '99000', projected_profit: '98000',
+  direct_cost: '90000', total_aiu: '10000', invoices: [{ id: 'fa000000-0000-4000-8000-000000000011', original_name: 'Factura-electronica.pdf', mime_type: 'application/pdf' }, { id: 'fa000000-0000-4000-8000-000000000012', original_name: 'Factura-anterior.xlsx', mime_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }], project_value: '100000', paid: '90000', withheld: '10000', balance: '0', expenses: '1000', budget: '2000', real_profit: '99000', projected_profit: '98000',
 };
 export async function getDashboardSnapshot() {
   return { consulted_at: fixtureTimestamp(), financial: { ...coverageProject, contracted: '100000', real_profit: new URLSearchParams(location.search).get('profit') ?? coverageProject.real_profit, balance: new URLSearchParams(location.search).get('balance') ?? coverageProject.balance }, project_total: 1, active_total: 1, delayed_total: 0, soon_total: 0, alert_total: fixtureAlerts().length, recent_projects: [coverageProject], priority_alerts: fixtureAlerts() };

@@ -10,7 +10,8 @@ export function metricReportFixture(metric: ManagementMetric, empty = typeof loc
     if (metric === 'management.expenses') return { ...common, kind: 'expense' as const, date: '2026-11-04', category: n % 2 ? 'Materiales' : 'Mano de obra', note: 'Suministro y montaje de elementos eléctricos', amount: '1200000' };
     return { ...common, kind: 'project' as const, status: n % 2 ? 'approved' : 'in_progress', project_value: '1500000', paid: '100000', withheld: '50000', balance: '1350000', profit_mode: 'value' as const, base: '1500000', paid_distributions: '400000', expenses: '1200000', budget: '1600000', amount: metric === 'management.balance' ? '1350000' : metric === 'management.projectValue' ? '1500000' : '-100000' };
   });
-  return managementReportSchema.parse({ metric, total: rows.length, value: rows.reduce((sum, row) => sum.plus(row.amount), decimal(0)).toString(), unit: 'money', components: {}, records: rows });
+  const projects = rows.map(row => ({...row,project_value:'1500000',direct_cost:'1500000',total_aiu:'0',expenses:'1200000',paid_distributions:'400000',real_profit:'-100000',projected_profit:'-100000',discount:'0',has_quote:false,items:[],expenses_detail:metric==='management.expenses'?[{id:row.id,date:'2026-11-04',category:'Materiales',note:'Gasto de prueba',method:'Transferencia',amount:'1200000'}]:[],distributions:[]}));
+  return managementReportSchema.parse({ projects, metric, total: rows.length, value: rows.reduce((sum, row) => sum.plus(row.amount), decimal(0)).toString(), unit: 'money', components: {}, records: rows });
 }
 export async function commercialFixture() {
   return { snapshot: { metrics: { approvedValue: '1000000', pendingValue: '2000000', validSent: 4, expired: 0, approval: '75' }, byStatus: [{ key: 'sent', label: 'Enviada', value: '4' }], byMonth: [], byClient: [

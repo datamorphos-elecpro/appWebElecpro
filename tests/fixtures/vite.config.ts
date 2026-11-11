@@ -11,4 +11,4 @@ export default defineConfig({ plugins: [react()], resolve: { alias: [
   { find: /.*app\/actions\/project-files$/, replacement: fileURLToPath(new URL('./project-file-actions.ts', import.meta.url)) },
   { find: /.*lib\/project-file-upload$/, replacement: fileURLToPath(new URL('./project-file-upload.ts', import.meta.url)) },
   { find: /.*supabase\/client$/, replacement: fileURLToPath(new URL('./supabase-client.ts', import.meta.url)) },
-] }, server: { host: '127.0.0.1', port: 3100, strictPort: true } });
+] }, server: { watch: { ignored: ['**/.supabase/**', '**/.next/**'] }, host: '127.0.0.1', port: 3100, strictPort: true } });

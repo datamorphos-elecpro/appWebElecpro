@@ -27,8 +27,9 @@ for (const metric of managementMetrics) test(`informe completo ${metric}`, async
   test.setTimeout(90000);
   await page.goto(`${fixture}?view=report&metric=${metric}&management_month=1900-01`);
   await expect(page.getByRole('heading', { name: metricLabels[metric], exact: true })).toBeVisible();
-  const rows = page.locator('table').filter({ has: page.locator('thead') }).locator('tbody tr:not([class*=subtotal])');
+  const rows = page.locator('table[data-metric-detail]').locator('tbody tr:not([class*=subtotal])');
   await expect(rows).toHaveCount(135);
+  await expect(page.locator('[data-economic-summary] > div')).toHaveCount(6);
   await expect(page.getByText('Total general:')).toBeVisible();
   await expect(page.getByText(/El periodo de caja no limita este informe/)).toBeVisible();
   if (metric === 'management.profit') await expect(page.locator('[data-tone=danger]').first()).toBeVisible();

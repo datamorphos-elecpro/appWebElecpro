@@ -9,7 +9,7 @@ for (const width of [1440, 900, 680, 380]) test(`cobertura y desglose a ${width}
   await expect(bar).toBeVisible();
   await expect(bar.locator('span')).toHaveAttribute('style', 'width: 100%;');
   await expect(bar.locator('..')).toContainText(/100\.000.*100%/);
-  await expect(page.locator('header').filter({ hasText: 'PRY-TEST' })).toContainText(/Anticipos.*90\.000.*Retenciones.*10\.000.*Saldo.*\$\s*0/);
+  await expect(page.locator('header').filter({ hasText: 'PRY-TEST' })).toContainText(/Anticipos.*90\.000.*Retenciones.*10\.000.*Cartera Pendiente.*\$\s*0/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath(`coverage-${width}.png`), fullPage: true });
 });
@@ -17,7 +17,7 @@ for (const width of [1440, 900, 680, 380]) test(`cobertura y desglose a ${width}
 test('retención anulada, excedente y valor cero', async ({ page }) => {
   await page.goto(`${fixture}&withheld=0`);
   await expect(page.locator('[aria-label="Cubierto: 90%"] span')).toHaveAttribute('style', 'width: 90%;');
-  await expect(page.locator('header').filter({ hasText: 'PRY-TEST' })).toContainText(/Saldo.*10\.000/);
+  await expect(page.locator('header').filter({ hasText: 'PRY-TEST' })).toContainText(/Cartera Pendiente.*10\.000/);
   await page.goto(`${fixture}&paid=110000`);
   await expect(page.locator('[aria-label="Cubierto: 120%"] span')).toHaveAttribute('style', 'width: 100%;');
   await page.goto(`${fixture}&value=0&paid=0&withheld=0`);
@@ -53,11 +53,11 @@ for (const view of ['dashboard', 'projects', 'analytics', 'report']) {
     } else {
       const table = page.locator('table').filter({ has: page.getByRole('columnheader', { name: 'Cubierto', exact: true }) });
       const cells = table.locator('tbody tr').first().getByRole('cell');
-      await expect(cells.nth(3)).toContainText('90.000');
-      await expect(cells.nth(4)).toContainText('10.000');
-      await expect(cells.nth(5)).toContainText('100.000');
-      await expect(cells.nth(6)).toHaveText(view === 'report' ? '0' : /\$\s*0/);
-      await expect(cells.nth(9)).toContainText('89.000');
+      await expect(cells.nth(5)).toContainText('90.000');
+      await expect(cells.nth(6)).toContainText('10.000');
+      await expect(cells.nth(7)).toContainText('100.000');
+      await expect(cells.nth(8)).toHaveText(view === 'report' ? '0' : /\$\s*0/);
+      await expect(cells.nth(11)).toContainText('89.000');
     }
     if (view !== 'report') expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (view === 'report' && width === 1440) {
@@ -67,3 +67,12 @@ for (const view of ['dashboard', 'projects', 'analytics', 'report']) {
     await page.screenshot({ path: info.outputPath(`${view}-${width}.png`), fullPage: true });
   });
 }
+
+for (const width of [380,680,900,1440]) test(`anticipos completos a ${width}px`, async ({page}, info) => {
+ await page.setViewportSize({width,height:1000});
+ await page.goto('/tests/fixtures/finance-workspace.html?view=project&section=payments&paymentRow=1');
+ const table=page.locator('table').filter({has:page.getByText('Anticipos registrados',{exact:true})});
+ for (const index of [0,1]) {const cell=table.locator('tbody tr').first().locator('td').nth(index); expect(await cell.evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true); await expect(cell).toHaveCSS('white-space','nowrap');}
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:info.outputPath('anticipos.png'),fullPage:true});
+});

@@ -6,7 +6,7 @@ import { pagination } from '../../lib/pagination';
 import type { ProjectFile } from '../../lib/project-files';
 import '../../app/globals.css';
 
-const project = { id: '33333333-3333-4333-8333-333333333333', title: 'Instalación eléctrica', quote_number: 'PRY-TEST', client_id: '22222222-2222-4222-8222-222222222222', clients: { name: 'Cliente' }, project_value: '100000', status: new URLSearchParams(location.search).has('pending') ? 'pending_approval' : 'approved', priority: 'medium', responsible: 'Ana', address: 'Bogotá', profit_mode: 'value', initial_profit: '0', start_date: '2026-10-22', expected_end_date: '2026-11-22' };
+const project = { id: '33333333-3333-4333-8333-333333333333', title: 'Instalación eléctrica', quote_number: 'PRY-TEST', direct_cost: '100000', total_aiu: '0', client_id: '22222222-2222-4222-8222-222222222222', clients: { name: 'Cliente' }, project_value: '100000', status: new URLSearchParams(location.search).has('pending') ? 'pending_approval' : 'approved', priority: 'medium', responsible: 'Ana', address: 'Bogotá', profit_mode: 'value', initial_profit: '0', start_date: '2026-10-22', expected_end_date: '2026-11-22' };
 const types = ['Factura Electrónica', 'Planos', 'Informe'].map((name, index) => ({ id: `type-${index}`, name }));
 function Fixture() {
   const [files, setFiles] = useState<ProjectFile[]>(fixtureFiles); const [savedPayment, setSavedPayment] = useState(false);

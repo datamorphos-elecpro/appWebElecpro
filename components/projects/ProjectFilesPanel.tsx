@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { changeProjectFile, cleanupProjectFiles, finishProjectFile } from '../../app/actions/project-files';
-import { receiptAccept, attachmentAccept, attachmentTypeName, canPreviewFile, fileSizeText, validateProjectFile, type AttachmentType, type ProjectFile, type ProjectFileKind } from '../../lib/project-files';
+import { receiptAccept, attachmentAccept, attachmentTypeName, fileSizeText, validateProjectFile, type AttachmentType, type ProjectFile, type ProjectFileKind } from '../../lib/project-files';
 import { uploadProjectFile, type FileUploadAttempt } from '../../lib/project-file-upload';
 import type { PageInfo } from '../../lib/pagination';
 import { bogotaDateText } from '../../lib/presentation';
@@ -13,6 +13,7 @@ import { Pagination } from '../ui/Pagination';
 import { Icon } from '../ui/Icon';
 import { IconAction } from '../ui/IconAction';
 import { FileUploadStatus, type FileUploadState } from './FileUploadStatus';
+import { FilePreview } from './FilePreview';
 import styles from './ProjectFilesPanel.module.css';
 import workspaceStyles from './ProjectWorkspace.module.css';
 
@@ -44,27 +45,6 @@ export function FilePicker({ kind, file, onChange, disabled = false }: { kind: P
   </div>;
 }
 
-export function FilePreview({ file, onClose }: { file: ProjectFile; onClose: () => void }) {
-  const [url, setUrl] = useState(''); const [error, setError] = useState(''); const [attempt, setAttempt] = useState(0);
-  const endpoint = `/api/proyectos/archivos/${file.id}`;
-  useEffect(() => {
-    if (!canPreviewFile(file.mime_type)) return;
-    const controller = new AbortController();
-    void fetch(`${endpoint}?format=json`, { cache: 'no-store', signal: controller.signal }).then(async (response) => {
-      const body = await response.json(); if (!response.ok) throw new Error(body.error); setUrl(body.url);
-    }).catch((reason) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'No fue posible mostrar la vista previa.'); });
-    return () => controller.abort();
-  }, [endpoint, attempt, file.mime_type]);
-  return <Dialog open title={file.original_name} onClose={onClose} wide><div className={styles.preview}>
-    <div className={styles.actions}><a href={`${endpoint}?download=1`} target="_blank" rel="noopener noreferrer">Descargar archivo</a>{canPreviewFile(file.mime_type) && <button type="button" onClick={() => { setUrl(''); setError(''); setAttempt((value) => value + 1); }}>Actualizar vista previa</button>}</div>
-    {error && <p role="alert">{error} Puede descargar el archivo.</p>}
-    {!canPreviewFile(file.mime_type) ? <p>Este formato está disponible para descarga.</p> : !url && !error ? <p role="status">Cargando vista previa…</p> : url && (file.mime_type === 'application/pdf'
-      ? <><iframe src={url} title={`Vista previa de ${file.original_name}`} /><p>Si su navegador no muestra el PDF, use Descargar archivo.</p></>
-      // Native images preserve the authenticated, short-lived URL without an image proxy.
-      // eslint-disable-next-line @next/next/no-img-element
-      : <img src={url} alt={file.original_name} onError={() => setError('No se pudo mostrar la imagen.')} />)}
-  </div></Dialog>;
-}
 
 function TypeSelector({ types, value, onChange }: { types: AttachmentType[]; value: string; onChange: (name: string) => void }) {
   const [open, setOpen] = useState(false);

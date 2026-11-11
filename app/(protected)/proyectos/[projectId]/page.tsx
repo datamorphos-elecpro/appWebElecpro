@@ -1,3 +1,4 @@
+import { getProjectReportingDetails } from '../../../../lib/project-reporting';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Page } from '../../../../components/ui/Page';
@@ -32,6 +33,7 @@ export default async function ProjectDetail({ params, searchParams }: { params: 
     supabase.from('projects').select('*,clients(id,name,address,contact_name,email)').eq('id', projectId).single(), supabase.from('project_financial_summary').select('*').eq('id', projectId).single(),
   ]);
   if (projectError || !project) notFound(); if (summaryError) throw new Error(summaryError.message);
+  const reporting = (await getProjectReportingDetails([projectId])).get(projectId)!;
   let payments: Awaited<ReturnType<typeof pageFor>> | undefined; let expenses: Awaited<ReturnType<typeof pageFor>> | undefined; let budgets: Awaited<ReturnType<typeof pageFor>> | undefined; let shares: Awaited<ReturnType<typeof pageFor>> | undefined;
   let withholdings: Awaited<ReturnType<typeof pageFor>> | undefined;
   let receipts: ProjectFile[] = []; let attachmentTypes: AttachmentType[] = [];
@@ -60,5 +62,5 @@ export default async function ProjectDetail({ params, searchParams }: { params: 
   const pages = { attachments_page: attachments?.page.page ?? query.attachments, withholdings_page: withholdings?.page.page ?? query.withholdings, payments_page: payments?.page.page ?? query.payments, expenses_page: expenses?.page.page ?? query.expenses, budgets_page: budgets?.page.page ?? query.budgets, shares_page: shares?.page.page ?? query.shares };
   const canonical = detailHref(projectId, section, query, pages); const incomingValues = new URLSearchParams(); for (const [key, value] of Object.entries(raw)) { if (typeof value === 'string') incomingValues.set(key, value); else if (Array.isArray(value)) incomingValues.set(`invalid_${key}`, '1'); } const incoming = `/proyectos/${projectId}${incomingValues.size ? `?${incomingValues}` : ''}`;
   if (incoming !== canonical) redirect(canonical);
-  return <Page actions={<Link href="/proyectos">← Volver a proyectos</Link>} title={project.title} description={`${project.clients?.name ?? 'Cliente'} · ${projectStatusText(project.status)}`}><ProjectWorkspace project={project} summary={summary} section={section} payments={payments} expenses={expenses} budgets={budgets} shares={shares} withholdings={withholdings} receipts={receipts} attachments={attachments} attachmentTypes={attachmentTypes} /></Page>;
+  return <Page actions={<Link href="/proyectos">← Volver a proyectos</Link>} title={project.title} description={`${project.clients?.name ?? 'Cliente'} · ${projectStatusText(project.status)}`}><ProjectWorkspace project={{ ...project, ...reporting }} summary={summary} section={section} payments={payments} expenses={expenses} budgets={budgets} shares={shares} withholdings={withholdings} receipts={receipts} attachments={attachments} attachmentTypes={attachmentTypes} /></Page>;
 }

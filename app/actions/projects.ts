@@ -14,7 +14,7 @@ const projectSchema = z.object({
   status: z.enum(['draft', 'quoted', 'pending_approval', 'approved', 'in_progress', 'paused', 'finished', 'cancelled']),
   priority: z.enum(['low', 'medium', 'high', 'critical']), responsible: z.string(), address: z.string(), city: z.string(),
   start_date: date, expected_end_date: date, actual_end_date: z.string().optional(), observations: z.string().optional(),
-  profit_mode: z.enum(['value', 'manual']), initial_profit: decimal,
+  profit_mode: z.enum(['value', 'manual']).default('value'), initial_profit: decimal.default('0'),
 }).refine((value) => !value.actual_end_date || value.actual_end_date >= value.start_date, 'La fecha final real no puede ser anterior al inicio.')
   .refine((value) => value.expected_end_date >= value.start_date, 'La fecha final prevista no puede ser anterior al inicio.');
 
@@ -26,8 +26,8 @@ const shareSchema = z.object({ project_id: z.string().uuid(), participant: z.str
 export async function saveProject(input: unknown) {
   const value = projectSchema.parse(input);
   const { supabase, profile } = await requireProfile();
-  const { id, actual_end_date, ...data } = value;
-  const body = { ...data, location: data.address, actual_end_date: actual_end_date || null, observations: data.observations ?? '', updated_by: profile.id };
+  const { id, actual_end_date, profit_mode, initial_profit, ...data } = value;
+  const body = { ...data, ...(!id ? { profit_mode, initial_profit } : {}), location: data.address, actual_end_date: actual_end_date || null, observations: data.observations ?? '', updated_by: profile.id };
   const result = id
     ? await supabase.from('projects').update(body).eq('id', id).select('id').single()
     : await supabase.rpc('create_manual_project', { payload: body });

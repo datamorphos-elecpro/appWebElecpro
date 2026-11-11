@@ -25,6 +25,8 @@ export async function finishProjectFile(input: unknown) {
   const { data, error } = await supabase.rpc('finish_project_file', { p_id: value.id, p_type_name: value.typeName ?? null });
   if (error) throw new Error(error.message);
   revalidatePath(`/proyectos/${data.project_id}`);
+  revalidatePath('/analisis');
+  revalidatePath('/analisis/informe');
   await cleanupProjectFiles(data.project_id);
 }
 
@@ -36,6 +38,8 @@ export async function changeProjectFile(input: unknown) {
   const { error } = await supabase.rpc('change_project_file', { p_id: value.id, p_expected_updated_at: value.expectedUpdatedAt, p_delete: value.remove, p_type_name: value.typeName ?? null });
   if (error) throw new Error(error.message);
   revalidatePath(`/proyectos/${file.project_id}`);
+  revalidatePath('/analisis');
+  revalidatePath('/analisis/informe');
   await cleanupProjectFiles(file.project_id);
 }
 

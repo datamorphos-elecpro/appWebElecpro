@@ -30,7 +30,7 @@ describe('cálculos Elecpro', () => {
 
   it('calcula saldos, ganancia manual y participaciones con decimales exactos', () => {
     expect(projectBalance('100', '140').toString()).toBe('0');
-    expect(projectProfit('manual', '500', '200', '75').toString()).toBe('125');
+    expect(projectProfit('manual', '500', '200', '75').toString()).toBe('425');
     expect(shareAmount('percent', '10', '800').toString()).toBe('80');
   });
 

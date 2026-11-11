@@ -74,6 +74,16 @@
 
 .management .tableSection p { font-size: 11px; }
 
+/* Reserve room for invoice names while keeping every financial column on Letter. */
+@media print {
+  .management .financialReportTable table { table-layout: fixed; font-size: 7pt; }
+  .management .financialReportTable th:nth-child(1) { width: 7%; }
+  .management .financialReportTable th:nth-child(2) { width: 14%; }
+  .management .financialReportTable th:nth-child(3) { width: 7%; }
+  .management .financialReportTable .numeric { width: auto; white-space: normal; overflow-wrap: anywhere; }
+  .management .financialReportTable th:nth-child(-n+2), .management .financialReportTable td:nth-child(-n+2) { min-width: 0; }
+}
+
 .tableHeading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .tableHeading strong { overflow-wrap: anywhere; }
 
@@ -93,3 +103,5 @@
   .tableLead { break-before: avoid; }
   .tableTail { break-inside: avoid; }
 }
+
+.costComparison{table-layout:fixed}.costComparison th:first-child{width:34%}.costComparison th{overflow-wrap:normal;word-break:normal}.costComparison td:first-child{overflow-wrap:anywhere}

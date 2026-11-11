@@ -17,7 +17,7 @@ describe('cronograma de Bogotá', () => {
 
 const id = (n: number) => `ab040000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 function reportFixture() {
-  return { metric: 'management.balance', total: 135, unit: 'money', value: '135', components: {}, records: Array.from({ length: 135 }, (_, n) => ({ kind: 'project', id: id(n), project_id: id(n), client_id: id(n % 2 + 1000), client_name: 'Mismo nombre', label: `PRY-${n}`, title: `Proyecto ${n}`, status: 'approved', amount: '1', project_value: '10', paid: '8', withheld: '1', balance: '1', profit_mode: 'value', base: '10', paid_distributions: '0', expenses: '2', budget: '3' })) };
+  return { projects: [], metric: 'management.balance', total: 135, unit: 'money', value: '135', components: {}, records: Array.from({ length: 135 }, (_, n) => ({ kind: 'project', id: id(n), project_id: id(n), client_id: id(n % 2 + 1000), client_name: 'Mismo nombre', label: `PRY-${n}`, title: `Proyecto ${n}`, status: 'approved', amount: '1', project_value: '10', paid: '8', withheld: '1', balance: '1', profit_mode: 'value', base: '10', paid_distributions: '0', expenses: '2', budget: '3' })) };
 }
 describe('informes completos de Gerencia', () => {
   it('incluye más de 100 filas y separa clientes homónimos por ID', () => {

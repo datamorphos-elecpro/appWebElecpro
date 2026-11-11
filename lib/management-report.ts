@@ -7,8 +7,14 @@ import { financialTone } from './financial-tone';
 
 export const managementMetrics = ['management.projectValue', 'management.balance', 'management.expenses', 'management.profit', 'management.projectedProfit'] as const;
 export type ManagementMetric = typeof managementMetrics[number];
-export const managementReportSchema = analysisDetailResponseSchema.omit({ page: true, pageSize: true }).extend({ metric: z.enum(managementMetrics) }).superRefine((report, context) => {
-  const valid = report.total === report.records.length && report.records.every((row) => (row.kind === 'project' || row.kind === 'expense') && !!row.client_id)
+export const managementReportSchema = analysisDetailResponseSchema.omit({ page: true, pageSize: true }).extend({ metric: z.enum(managementMetrics), projects: z.array(z.object({
+ id:z.string().uuid(), label:z.string(), title:z.string(), project_value:z.string(), direct_cost:z.string(), total_aiu:z.string(), expenses:z.string(), paid_distributions:z.string(), real_profit:z.string(), projected_profit:z.string(), discount:z.string(), has_quote:z.boolean(),
+ items:z.array(z.object({id:z.string(),code:z.string(),description:z.string(),category:z.string(),quantity:z.string(),unit:z.string(),price:z.string(),amount:z.string()})),
+ expenses_detail:z.array(z.object({id:z.string(),date:z.string(),category:z.string(),note:z.string(),method:z.string(),amount:z.string()})),
+ distributions:z.array(z.object({id:z.string(),participant:z.string(),execution_date:z.string().nullable(),paid_on:z.string().nullable(),amount:z.string()}))
+ })) }).superRefine((report, context) => {
+  const economicValid = new Set(report.projects.map(p => p.id)).size === report.projects.length && report.projects.every(p => decimal(p.real_profit).equals(decimal(p.direct_cost).minus(p.expenses).minus(p.paid_distributions)));
+  const valid = economicValid && report.total === report.records.length && report.records.every((row) => (row.kind === 'project' || row.kind === 'expense') && !!row.client_id)
     && report.value !== null && decimal(report.value).equals(report.records.reduce((sum, row) => sum.plus(row.amount), decimal(0)));
   if (!valid) context.addIssue({ code: z.ZodIssueCode.custom, message: 'El informe está incompleto o sus totales no coinciden.' });
 });

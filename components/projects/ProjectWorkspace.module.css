@@ -20,3 +20,9 @@
 .paymentActions { display: flex; align-items: center; gap: 4px; width: max-content; }
 
 .paymentsTable table{min-width:760px}.paymentsTable th:nth-child(1),.paymentsTable td:nth-child(1){min-width:115px;white-space:nowrap}.paymentsTable th:nth-child(2),.paymentsTable td:nth-child(2){min-width:145px;white-space:nowrap;text-align:right}.paymentsTable td:nth-child(4){overflow-wrap:anywhere;min-width:130px}
+
+.expensesTable { max-width: 100%; overflow-x: auto; }
+.expensesTable table { min-width: 600px; }
+.expensesTable th:nth-child(1), .expensesTable td:nth-child(1):not([colspan]) { min-width: 115px; white-space: nowrap; }
+.expensesTable th:nth-child(3), .expensesTable td:nth-child(3) { white-space: nowrap; }
+.expensesTable td:nth-child(2), .expensesTable td:nth-child(4) { overflow-wrap: anywhere; }
